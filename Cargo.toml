@@ -9,3 +9,4 @@ license = "MIT"
 [dependencies]
 google-gmail1 = "*"
 tokio = { version = "1", features = ["full"] }
+thiserror = "1"
