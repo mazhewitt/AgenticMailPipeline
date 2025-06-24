@@ -168,6 +168,7 @@ cargo test -- --ignored
 
 **Current Functionality:**
 - Fetches unread emails from Gmail inbox
+- Extracts email subject and snippet (body preview) for each email
 - Uses Gmail API with read-only permissions
 - Secure OAuth2 authentication flow
 - Fallback to stub fetcher when credentials unavailable

@@ -1,0 +1,124 @@
+//! Stub implementation of EmailFetcher for testing and development.
+
+use async_trait::async_trait;
+use crate::email::Email;
+use crate::fetcher::EmailFetcher;
+use crate::types::FetchError;
+
+/// Stub fetcher for development and testing.
+/// 
+/// This implementation provides a simple stub that can be used during
+/// development and testing when you don't want to make actual API calls.
+/// It can be configured to return specific emails or errors for testing
+/// different scenarios.
+/// 
+/// # Examples
+/// 
+/// ```rust
+/// use agentic_mail_agent::fetcher::{EmailFetcher, StubFetcher};
+/// use agentic_mail_agent::email::Email;
+/// 
+/// #[tokio::main]
+/// async fn main() -> Result<(), Box<dyn std::error::Error>> {
+///     let fetcher = StubFetcher::new();
+///     let emails = fetcher.fetch_unread_emails().await?;
+///     assert!(emails.is_empty()); // Default stub returns empty list
+///     Ok(())
+/// }
+/// ```
+pub struct StubFetcher {
+    /// Emails to return when fetch_unread_emails is called
+    emails: Vec<Email>,
+    /// Error to return instead of emails, if set
+    error: Option<FetchError>,
+}
+
+impl StubFetcher {
+    /// Create a new StubFetcher that returns an empty list of emails.
+    pub fn new() -> Self {
+        Self {
+            emails: Vec::new(),
+            error: None,
+        }
+    }
+    
+    /// Create a StubFetcher that returns the specified emails.
+    pub fn with_emails(emails: Vec<Email>) -> Self {
+        Self {
+            emails,
+            error: None,
+        }
+    }
+    
+    /// Create a StubFetcher that returns the specified error.
+    pub fn with_error(error: FetchError) -> Self {
+        Self {
+            emails: Vec::new(),
+            error: Some(error),
+        }
+    }
+}
+
+impl Default for StubFetcher {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+#[async_trait]
+impl EmailFetcher for StubFetcher {
+    async fn fetch_unread_emails(&self) -> Result<Vec<Email>, FetchError> {
+        if let Some(error) = &self.error {
+            Err(error.clone())
+        } else {
+            Ok(self.emails.clone())
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::email::Email;
+
+    #[tokio::test]
+    async fn stub_fetcher_returns_empty_by_default() {
+        let fetcher = StubFetcher::new();
+        let result = fetcher.fetch_unread_emails().await;
+        assert_eq!(result.unwrap(), vec![]);
+    }
+
+    #[tokio::test]
+    async fn stub_fetcher_returns_configured_emails() {
+        let emails = vec![
+            Email::new(
+                "1".to_string(), 
+                Some("Test Email 1".to_string()),
+                Some("This is the first test email".to_string())
+            ),
+            Email::new(
+                "2".to_string(), 
+                Some("Test Email 2".to_string()),
+                Some("This is the second test email".to_string())
+            ),
+        ];
+        let fetcher = StubFetcher::with_emails(emails.clone());
+        let result = fetcher.fetch_unread_emails().await;
+        assert_eq!(result.unwrap(), emails);
+    }
+
+    #[tokio::test]
+    async fn stub_fetcher_returns_configured_error() {
+        let error = FetchError::network("Test network error");
+        let fetcher = StubFetcher::with_error(error.clone());
+        let result = fetcher.fetch_unread_emails().await;
+        assert_eq!(result.unwrap_err(), error);
+    }
+
+    #[tokio::test]
+    async fn stub_fetcher_default() {
+        let fetcher = StubFetcher::default();
+        let result = fetcher.fetch_unread_emails().await;
+        assert!(result.unwrap().is_empty());
+    }
+}
