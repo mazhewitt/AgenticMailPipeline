@@ -19,3 +19,5 @@ rustls = { version = "*", features = ["ring"] }
 serde = { version = "*", features = ["derive"] }
 serde_json = "*"
 rand = "0.8"
+langchain-rust = { version = "4.6.0", features = ["ollama"] }
+ollama-rs = "0.2"

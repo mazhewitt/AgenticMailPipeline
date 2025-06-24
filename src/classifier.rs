@@ -4,8 +4,10 @@
 //! classification methods, including local LLM integration via Ollama.
 
 mod stub;
+mod langchain;
 
 pub use stub::StubClassifier;
+pub use langchain::{LangChainClassifier, LangChainConfig};
 
 use crate::email::Email;
 

@@ -206,6 +206,63 @@ The system includes a flexible email classification module that can categorize e
 - Action routing and automation
 - Containerization
 
+---
+
+## ✨ Features
+
+### 🤖 AI-Powered Email Classification
+- **Local LLM Integration**: Uses langchain-rust with Ollama for intelligent email classification
+- **Multiple Classifiers**: Choose between deterministic stub classifier or AI-powered LLM classifier
+- **Privacy-First**: All LLM processing happens locally - no cloud AI services
+- **Semantic Understanding**: LLM classifier understands context beyond simple keyword matching
+
+### 📧 Email Processing Pipeline
+- **Gmail Integration**: Secure OAuth2 authentication with read-only permissions
+- **Smart Classification**: Categorizes emails into work, personal, promotional, spam, newsletter, urgent
+- **Intelligent Actions**: Automatic labeling, archiving, escalation based on classification confidence
+- **High-Priority Detection**: Identifies and escalates urgent emails requiring immediate attention
+
+### 🔧 Developer Experience
+- **Test-Driven Development**: Comprehensive unit and integration tests
+- **Modular Architecture**: Pluggable components with clean trait-based interfaces
+- **Stub Implementations**: Fast development with mock data and deterministic behavior
+- **Environment Configuration**: Easy switching between classifiers via environment variables
+
+### 🔒 Security & Privacy
+- **Local Processing**: Email content never leaves your machine
+- **Read-Only Gmail Access**: Safe, auditable Gmail API usage
+- **Secure Credential Management**: OAuth2 tokens stored securely
+- **Audit Trails**: All actions logged for transparency and compliance
+
+---
+
+## 🚀 Quick Start
+
+### Using Stub Classification (Development)
+```bash
+# Clone and build
+git clone <repository>
+cd agentic-mail-agent
+cargo build
+
+# Run with stub classifier (fast, deterministic)
+cargo run --bin agentic-mail-agent
+```
+
+### Using AI Classification (Production)
+```bash
+# Install and start Ollama
+ollama pull llama3.2
+ollama serve
+
+# Run with LLM classifier
+CLASSIFIER_TYPE=langchain cargo run --bin agentic-mail-agent
+```
+
+For detailed setup instructions, see:
+- [Gmail Setup Guide](GMAIL_SETUP.md) - Configure Gmail API access
+- [LLM Classification Guide](LLM_CLASSIFICATION_GUIDE.md) - Set up local AI classification
+
 ## Utilities
 
 - `./setup_gmail_auth.sh` - Complete OAuth2 setup automation

@@ -1,5 +1,5 @@
 use agentic_mail_agent::fetcher::{EmailFetcher, GmailFetcher, StubFetcher};
-use agentic_mail_agent::classifier::{MessageClassifier, StubClassifier};
+use agentic_mail_agent::classifier::{MessageClassifier, StubClassifier, LangChainClassifier};
 use agentic_mail_agent::action_router::{ActionRouter, RuleBasedRouter};
 
 #[tokio::main]
@@ -52,8 +52,30 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             println!("Fetched {} unread emails.", emails.len());
             println!("Starting agentic email processing pipeline...\n");
             
-            // Initialize classifier and action router
-            let classifier = StubClassifier::deterministic();
+            // Initialize classifier based on environment variable
+            let classifier_type = std::env::var("CLASSIFIER_TYPE").unwrap_or_else(|_| "stub".to_string());
+            let classifier: Box<dyn MessageClassifier> = match classifier_type.as_str() {
+                "langchain" | "llm" => {
+                    println!("🤖 Initializing LangChain LLM classifier with Ollama...");
+                    match LangChainClassifier::with_default_config().await {
+                        Ok(llm_classifier) => {
+                            println!("✅ LangChain classifier initialized successfully");
+                            Box::new(llm_classifier)
+                        }
+                        Err(e) => {
+                            eprintln!("❌ Failed to initialize LangChain classifier: {}", e);
+                            eprintln!("💡 Make sure Ollama is running locally (ollama serve)");
+                            eprintln!("🔄 Falling back to stub classifier...");
+                            Box::new(StubClassifier::deterministic())
+                        }
+                    }
+                }
+                "stub" | _ => {
+                    println!("🎯 Using deterministic stub classifier");
+                    Box::new(StubClassifier::deterministic())
+                }
+            };
+            
             let router = RuleBasedRouter::new();
             
             for (index, email) in emails.iter().enumerate() {
