@@ -160,6 +160,7 @@ cargo test -- --ignored
 - ✅ Gmail API integration with OAuth2 authentication
 - ✅ Automated OAuth2 setup script (`./setup_gmail_auth.sh`)
 - ✅ Email fetching from Gmail inbox (read-only, secure)
+- ✅ Email classification system with MessageClassifier trait
 - ✅ Comprehensive test suite (unit + integration tests)
 - ✅ Clean, modular Rust codebase following TDD principles
 - ✅ Complete documentation and setup guides
@@ -169,14 +170,39 @@ cargo test -- --ignored
 **Current Functionality:**
 - Fetches unread emails from Gmail inbox
 - Extracts email subject and snippet (body preview) for each email
+- Classifies emails by category (work, personal, promotional, spam, etc.)
 - Uses Gmail API with read-only permissions
 - Secure OAuth2 authentication flow
 - Fallback to stub fetcher when credentials unavailable
 - Full integration testing
 
+## Email Classification
+
+The system includes a flexible email classification module that can categorize emails automatically:
+
+**Classification Categories:**
+- `work` - Work-related emails, meetings, professional correspondence
+- `personal` - Personal emails from family and friends
+- `promotional` - Marketing emails and promotional content
+- `spam` - Spam and unwanted emails
+- `newsletter` - Newsletters and regular updates
+- `urgent` - Time-sensitive emails requiring immediate attention
+
+**Current Implementation:**
+- **StubClassifier**: Deterministic rule-based classifier for development and testing
+- Uses email subject and snippet content for classification
+- Returns confidence scores (0.0 to 1.0) for classification results
+- Provides detailed classification responses for audit purposes
+
+**Architecture:**
+- `MessageClassifier` trait for pluggable classification implementations
+- `Classification` struct with category, confidence score, and LLM response
+- `ClassificationError` enum for robust error handling
+- Async-ready design for future LLM integration
+
 **Ready for Extension:**
 - LLM integration (Ollama client)
-- Email classification
+- Advanced ML-based classification
 - Action routing and automation
 - Containerization
 

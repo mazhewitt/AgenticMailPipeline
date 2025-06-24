@@ -18,3 +18,4 @@ hyper-rustls = { version = "*", features = ["ring"] }
 rustls = { version = "*", features = ["ring"] }
 serde = { version = "*", features = ["derive"] }
 serde_json = "*"
+rand = "0.8"
