@@ -1,0 +1,79 @@
+# Rust generated files
+/target/
+Cargo.lock
+
+# Additional Rust artifacts
+**/*.rs.bk
+*.pdb
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+*.log
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Secrets and credentials (keep client-secret.json patterns as they contain real credentials)
+secrets/token.json
+secrets/client-secret.json
+secrets/client-secret.json.backup
+
+# Temporary files
+*.tmp
+*.temp
+
+# Documentation builds
+/docs/_build/
+
+# Coverage reports
+tarpaulin-report.html
+tarpaulin-report.json
+coverage/
+
+# Benchmark results
+criterion/
+
+# Generated binaries (executables)
+/target/debug/agentic-mail-agent
+/target/debug/auth_setup
+/target/release/agentic-mail-agent
+/target/release/auth_setup
+
+# Additional binary and object files
+*.exe
+*.dll
+*.so
+*.dylib
+*.a
+*.lib
+
+# Package files
+*.deb
+*.rpm
+*.pkg
+*.dmg
+*.msi
+
+# Compressed files that might be generated
+*.zip
+*.tar.gz
+*.tar.bz2
+*.rar
+*.7z
