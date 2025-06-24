@@ -1,5 +1,6 @@
 use agentic_mail_agent::fetcher::{EmailFetcher, GmailFetcher, StubFetcher};
 use agentic_mail_agent::classifier::{MessageClassifier, StubClassifier};
+use agentic_mail_agent::action_router::{ActionRouter, RuleBasedRouter};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -17,7 +18,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
         Err(_) => {
             println!("Gmail credentials not found, using stub fetcher with demo data");
-            // Create some demo emails to show the new functionality
+            // Create some demo emails to show the complete agentic functionality
             use agentic_mail_agent::email::Email;
             let demo_emails = vec![
                 Email::new(
@@ -27,10 +28,20 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 ),
                 Email::new(
                     "demo-2".to_string(), 
-                    Some("Meeting Reminder".to_string()),
-                    Some("Don't forget about the team meeting tomorrow at 2 PM. We'll be discussing the new email processing features.".to_string())
+                    Some("URGENT: Meeting Reminder".to_string()),
+                    Some("Don't forget about the URGENT team meeting tomorrow at 2 PM. We'll be discussing the new email processing features. Action required!".to_string())
                 ),
-                Email::with_id("demo-3".to_string()), // Email with no subject/snippet
+                Email::new(
+                    "demo-3".to_string(),
+                    Some("Weekly Newsletter".to_string()),
+                    Some("Check out this week's updates from our team. Newsletter content with promotions and news.".to_string())
+                ),
+                Email::new(
+                    "demo-4".to_string(),
+                    Some("Suspicious offer - You won $1,000,000!".to_string()),
+                    Some("Click here to claim your prize! Limited time offer. Send us your bank details now.".to_string())
+                ),
+                Email::with_id("demo-5".to_string()), // Email with no subject/snippet
             ];
             Box::new(StubFetcher::with_emails(demo_emails))
         }
@@ -39,11 +50,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     match fetcher.fetch_unread_emails().await {
         Ok(emails) => {
             println!("Fetched {} unread emails.", emails.len());
+            println!("Starting agentic email processing pipeline...\n");
             
-            // Initialize classifier for email classification
+            // Initialize classifier and action router
             let classifier = StubClassifier::deterministic();
+            let router = RuleBasedRouter::new();
             
-            for email in &emails {
+            for (index, email) in emails.iter().enumerate() {
+                println!("📧 Processing Email {} of {}:", index + 1, emails.len());
                 println!("  ID: {}", email.id);
                 if let Some(subject) = &email.subject {
                     println!("  Subject: {}", subject);
@@ -56,22 +70,38 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     println!("  Preview: (No preview)");
                 }
                 
-                // Classify the email
+                // Step 1: Classify the email
                 match classifier.classify(email).await {
                     Ok(classification) => {
-                        println!("  Classification: {} (confidence: {:.2})", 
+                        println!("  🏷️  Classification: {} (confidence: {:.2})", 
                                 classification.category,
                                 classification.score.unwrap_or(0.0));
                         if !classification.llm_response.is_empty() {
-                            println!("  Analysis: {}", classification.llm_response);
+                            println!("  🤖 Analysis: {}", classification.llm_response);
+                        }
+                        
+                        // Step 2: Route to actions based on classification
+                        match router.route(email, &classification).await {
+                            Ok(routing_result) => {
+                                println!("  🎯 Actions: {}", routing_result.actions_summary());
+                                println!("  💭 Reasoning: {}", routing_result.reasoning);
+                                if routing_result.has_high_priority_actions() {
+                                    println!("  ⚠️  HIGH PRIORITY ACTIONS DETECTED!");
+                                }
+                            },
+                            Err(e) => {
+                                println!("  ❌ Routing error: {}", e);
+                            }
                         }
                     },
                     Err(e) => {
-                        println!("  Classification error: {}", e);
+                        println!("  ❌ Classification error: {}", e);
                     }
                 }
-                println!("  ---");
+                println!("  ---\n");
             }
+            
+            println!("✅ Agentic email processing complete!");
         },
         Err(e) => eprintln!("Failed to fetch emails: {}", e),
     }
