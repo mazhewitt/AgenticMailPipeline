@@ -1,0 +1,11 @@
+[package]
+name = "agentic-mail-agent"
+version = "0.1.0"
+edition = "2021"
+authors = ["Your Name <your.email@example.com>"]
+description = "A modular, async-ready CLI agent for Gmail using google-apis-rs."
+license = "MIT"
+
+[dependencies]
+google-gmail1 = "*"
+tokio = { version = "1", features = ["full"] }
