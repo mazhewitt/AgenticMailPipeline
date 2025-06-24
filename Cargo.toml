@@ -10,3 +10,9 @@ license = "MIT"
 google-gmail1 = "*"
 tokio = { version = "1", features = ["full"] }
 thiserror = "1"
+yup-oauth2 = "*"
+hyper = { version = "*", features = ["client", "http1"] }
+hyper-util = { version = "*", features = ["client", "client-legacy"] }
+hyper-rustls = "*"
+serde = { version = "*", features = ["derive"] }
+serde_json = "*"
