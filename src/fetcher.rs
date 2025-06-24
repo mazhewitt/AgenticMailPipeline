@@ -62,7 +62,19 @@ impl EmailFetcher for GmailFetcher {
             return Err(FetchError::Auth);
         }
         let secret = fs::read_to_string(secret_path).map_err(|_| FetchError::Auth)?;
-        let secret: yup_oauth2::ApplicationSecret = serde_json::from_str(&secret).map_err(|_| FetchError::Auth)?;
+        let secret: yup_oauth2::ApplicationSecret = {
+            // Parse the JSON first
+            let google_secret: serde_json::Value = serde_json::from_str(&secret).map_err(|_| FetchError::Auth)?;
+            
+            // Check if it's in the Google "installed" format
+            if let Some(installed) = google_secret.get("installed") {
+                // Extract the fields from the "installed" object
+                serde_json::from_value(installed.clone()).map_err(|_| FetchError::Auth)?
+            } else {
+                // Try parsing as direct ApplicationSecret format
+                serde_json::from_str(&secret).map_err(|_| FetchError::Auth)?
+            }
+        };
 
         let rt = Runtime::new().map_err(|_| FetchError::Unknown)?;
         let result = rt.block_on(async {
@@ -108,7 +120,7 @@ impl EmailFetcher for GmailFetcher {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::types::{Email, FetchError};
+    use crate::types::FetchError;
 
     #[test]
     fn stub_fetcher_returns_empty() {
@@ -127,6 +139,9 @@ mod tests {
     #[test]
     #[ignore]
     fn gmail_fetcher_integration() {
+        // Install default crypto provider for rustls
+        let _ = rustls::crypto::ring::default_provider().install_default();
+        
         if GmailFetcher::from_env().is_err() {
             eprintln!("Skipping GmailFetcher integration test: missing credentials");
             return;
