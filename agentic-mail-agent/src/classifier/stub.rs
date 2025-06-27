@@ -62,10 +62,10 @@ impl StubClassifier {
     /// Generate a random classification from predefined categories.
     fn random_classification(&self) -> Classification {
         let categories = ["work", "personal", "promotional", "spam", "newsletter", "urgent"];
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         
-        let category = categories[rng.gen_range(0..categories.len())].to_string();
-        let score = rng.gen_range(0.5..1.0);
+        let category = categories[rng.random_range(0..categories.len())].to_string();
+        let score = rng.random_range(0.5..1.0);
         
         Classification::with_score(category, score)
     }

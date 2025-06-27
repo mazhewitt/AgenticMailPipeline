@@ -1,0 +1,3 @@
+[env]
+GMAIL_CLIENT_SECRET_JSON = "/Users/mazdahewitt/projects/MazMailChatBot/agentic-mail-agent/secrets/client-secret.json"
+GMAIL_TOKEN_JSON = "/Users/mazdahewitt/projects/MazMailChatBot/agentic-mail-agent/secrets/token.json"

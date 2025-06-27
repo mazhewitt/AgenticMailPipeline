@@ -1,0 +1,17 @@
+[package]
+name = "auth-setup"
+version = "0.1.0"
+edition = "2021"
+authors = ["Your Name <your.email@example.com>"]
+description = "OAuth2 setup utility for Gmail API access"
+license = "MIT"
+
+[[bin]]
+name = "auth_setup"
+path = "src/main.rs"
+
+[dependencies]
+tokio = { workspace = true }
+yup-oauth2 = "12.1.0"  # Latest version for auth setup
+serde = { workspace = true }
+serde_json = { workspace = true }

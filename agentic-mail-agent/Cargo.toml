@@ -1,0 +1,23 @@
+[package]
+name = "agentic-mail-agent"
+version = "0.1.0"
+edition = "2021"
+authors = ["Your Name <your.email@example.com>"]
+description = "A modular, async-ready CLI agent for Gmail using google-apis-rs."
+license = "MIT"
+
+[dependencies]
+async-trait = "0.1"
+google-gmail1 = "6.0.0"
+tokio = { workspace = true }
+thiserror = "2.0.12"
+# Use the yup-oauth2 version from google-gmail1 for compatibility
+hyper = { version = "1.6.0", features = ["full"] }
+hyper-rustls = "0.27.7"
+rustls = { version = "*", features = ["ring"] }
+serde = { workspace = true }
+serde_json = { workspace = true }
+rand = "0.9.1"
+langchain-rust = { version = "4.6.0", features = ["ollama"] }
+ollama-rs = "0.2.2"
+base64 = "0.22"

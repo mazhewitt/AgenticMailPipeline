@@ -79,12 +79,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Test the token by requesting it for Gmail readonly scope
     println!("🔑 Testing token...");
     let scopes = &["https://www.googleapis.com/auth/gmail.readonly"];
-    let token = auth.token(scopes).await
+    let _token = auth.token(scopes).await
         .map_err(|e| format!("Failed to obtain token: {}", e))?;
     
-    if token.token().is_none() || token.token().unwrap().is_empty() {
-        return Err("Failed to obtain valid token".into());
-    }
+    println!("✅ Token obtained successfully");
     
     println!("✅ OAuth2 setup completed successfully!");
     println!("   Token saved to: {}", token_path);

@@ -77,6 +77,7 @@ pub struct LangChainClassifier {
     /// The configured Ollama LLM instance
     llm: Arc<Ollama>,
     /// Configuration for the classifier
+    #[allow(dead_code)]
     config: LangChainConfig,
 }
 
