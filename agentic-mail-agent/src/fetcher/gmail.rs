@@ -108,6 +108,7 @@ fn extract_subject_from_headers(headers: &[google_gmail1::api::MessagePartHeader
 fn extract_body_from_parts(parts: &[google_gmail1::api::MessagePart]) -> Option<String> {
     use base64::{engine::general_purpose, Engine as _};
     
+    // First try to find text/plain content
     for part in parts {
         if let Some(mime_type) = &part.mime_type {
             if mime_type == "text/plain" {
@@ -131,6 +132,35 @@ fn extract_body_from_parts(parts: &[google_gmail1::api::MessagePart]) -> Option<
             }
         }
     }
+    
+    // If no text/plain found, try text/html as fallback
+    for part in parts {
+        if let Some(mime_type) = &part.mime_type {
+            if mime_type == "text/html" {
+                if let Some(body) = &part.body {
+                    if let Some(data) = &body.data {
+                        if let Ok(decoded) = general_purpose::URL_SAFE.decode(data) {
+                            if let Ok(text) = String::from_utf8(decoded) {
+                                // Basic HTML stripping for preview purposes
+                                let cleaned = text
+                                    .replace("<br>", "\n")
+                                    .replace("<br/>", "\n")
+                                    .replace("<br />", "\n");
+                                // Remove HTML tags (very basic)
+                                let re = regex::Regex::new(r"<[^>]*>").unwrap_or_else(|_| {
+                                    // Fallback if regex fails
+                                    return regex::Regex::new(r"").unwrap();
+                                });
+                                let stripped = re.replace_all(&cleaned, "");
+                                return Some(stripped.trim().to_string());
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
     None
 }
 
@@ -143,8 +173,6 @@ impl EmailFetcher for GmailFetcher {
         use yup_oauth2::{InstalledFlowAuthenticator, InstalledFlowReturnMethod};
         use std::fs;
         use std::path::Path;
-        use google_gmail1::hyper_util::client::legacy::Client;
-        use google_gmail1::hyper_util::rt::TokioExecutor;
 
         // Validate file paths exist
         let secret_path = Path::new(&self.client_secret_path);
@@ -191,10 +219,21 @@ impl EmailFetcher for GmailFetcher {
             }
         };
 
-        // Set up OAuth2 authentication
-        let auth = InstalledFlowAuthenticator::builder(
+        // Set up OAuth2 authentication with the new API
+        let connector = hyper_rustls::HttpsConnectorBuilder::new()
+            .with_native_roots()
+            .map_err(|e| FetchError::config(format!("Could not load native certs: {}", e)))?
+            .https_only()
+            .enable_http2()
+            .build();
+
+        let executor = google_gmail1::hyper_util::rt::TokioExecutor::new();
+        let auth = InstalledFlowAuthenticator::with_client(
             secret,
             InstalledFlowReturnMethod::HTTPRedirect,
+            google_gmail1::yup_oauth2::client::CustomHyperClientBuilder::from(
+                google_gmail1::hyper_util::client::legacy::Client::builder(executor).build(connector),
+            ),
         )
         .persist_tokens_to_disk(token_path)
         .build()
@@ -203,18 +242,28 @@ impl EmailFetcher for GmailFetcher {
             "Failed to build authenticator: {}", e
         )))?;
 
-        // The manual token call is removed to allow the authenticator to manage the
-        // token lifecycle automatically, which should fix the missing access token issue.
+        // Explicitly request the required Gmail scopes for full message access
+        let required_scopes = &[
+            "https://www.googleapis.com/auth/gmail.readonly",
+            "https://www.googleapis.com/auth/gmail.modify",
+            "https://www.googleapis.com/auth/gmail.compose"
+        ];
+        
+        // Test token with required scopes to ensure we have proper permissions
+        let _token = auth.token(required_scopes).await
+            .map_err(|e| FetchError::auth(format!(
+                "Failed to obtain token with required Gmail scopes: {}", e
+            )))?;
 
-        // Build HTTPS client and Gmail hub with authentication  
+        // Build HTTPS client and Gmail hub with authentication
         let https_connector = hyper_rustls::HttpsConnectorBuilder::new()
             .with_native_roots()
             .map_err(|e| FetchError::config(format!("Could not load native certs: {}", e)))?
             .https_only()
             .enable_http1()
             .build();
-        let client = Client::builder(TokioExecutor::new()).build(https_connector);
-        let hub = gmail1::Gmail::new(client, auth.clone());
+        let client = google_gmail1::hyper_util::client::legacy::Client::builder(google_gmail1::hyper_util::rt::TokioExecutor::new()).build(https_connector);
+        let hub = gmail1::Gmail::new(client, auth);
 
         // List unread messages
         let list_result = hub.users().messages_list("me")
@@ -257,9 +306,12 @@ impl EmailFetcher for GmailFetcher {
 
                 // Extract body from parts, fallback to snippet
                 let body = if let Some(p) = &message.payload {
+                    // Try extracting from parts first
                     if let Some(parts) = &p.parts {
                         extract_body_from_parts(parts)
+                            .or_else(|| message.snippet.clone())
                     } else {
+                        // Try direct body data, then fallback to snippet
                         p.body.as_ref()
                          .and_then(|b| b.data.as_ref())
                          .and_then(|data| {
@@ -269,6 +321,7 @@ impl EmailFetcher for GmailFetcher {
                          .or_else(|| message.snippet.clone())
                     }
                 } else {
+                    // No payload, use snippet
                     message.snippet.clone()
                 };
 

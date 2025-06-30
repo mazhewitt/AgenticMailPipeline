@@ -66,6 +66,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("🌐 Starting OAuth2 flow...");
     println!("   A browser window will open for authentication.");
     println!("   Please sign in to your Gmail account and grant the requested permissions.");
+    println!("   ");
+    println!("   ⚠️  IMPORTANT: This setup requests comprehensive Gmail permissions");
+    println!("   including read access to individual message content.");
+    println!("   These permissions are needed to fetch email subjects and bodies.");
+    println!("   ");
     
     let auth = InstalledFlowAuthenticator::builder(
         secret,
@@ -76,16 +81,32 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     .await
     .map_err(|e| format!("Failed to build authenticator: {}", e))?;
     
-    // Test the token by requesting it for Gmail readonly scope
-    println!("🔑 Testing token...");
-    let scopes = &["https://www.googleapis.com/auth/gmail.readonly"];
+    // Test the token by requesting it for Gmail scopes needed for full message access
+    println!("🔑 Testing token with Gmail scopes...");
+    println!("   Requesting scopes:");
+    println!("   - gmail.readonly (read messages and labels)");
+    println!("   - gmail.compose (needed for some message operations)");
+    println!("   - gmail.modify (needed for full message access)");
+    
+    let scopes = &[
+        "https://www.googleapis.com/auth/gmail.readonly",
+        "https://www.googleapis.com/auth/gmail.modify",
+        "https://www.googleapis.com/auth/gmail.compose"
+    ];
     let _token = auth.token(scopes).await
         .map_err(|e| format!("Failed to obtain token: {}", e))?;
     
-    println!("✅ Token obtained successfully");
+    println!("✅ Token obtained successfully with required Gmail scopes");
+    println!("   This token can now access individual Gmail message content");
     
     println!("✅ OAuth2 setup completed successfully!");
     println!("   Token saved to: {}", token_path);
+    println!("   ");
+    println!("   🔍 The token file should now contain:");
+    println!("   - access_token (for immediate API calls)");
+    println!("   - refresh_token (for automatic token renewal)");
+    println!("   - scope information (including Gmail permissions)");
+    println!("   ");
     println!("   You can now run the main application:");
     println!("   cargo run");
     

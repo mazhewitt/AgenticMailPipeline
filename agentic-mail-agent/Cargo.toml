@@ -8,7 +8,7 @@ license = "MIT"
 
 [dependencies]
 async-trait = "0.1"
-google-gmail1 = "6.0.0"
+google-gmail1 = { path = "/Users/mazdahewitt/projects/MazMailChatBot/google-apis-rs/gen/gmail1" }
 tokio = { workspace = true }
 thiserror = "2.0.12"
 # Use the yup-oauth2 version from google-gmail1 for compatibility
@@ -21,3 +21,4 @@ rand = "0.9.1"
 langchain-rust = { version = "4.6.0", features = ["ollama"] }
 ollama-rs = "0.2.2"
 base64 = "0.22"
+regex = "1.0"

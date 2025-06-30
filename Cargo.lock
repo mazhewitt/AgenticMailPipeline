@@ -29,6 +29,7 @@ dependencies = [
  "langchain-rust",
  "ollama-rs",
  "rand 0.9.1",
+ "regex",
  "rustls",
  "serde",
  "serde_json",
@@ -181,7 +182,7 @@ dependencies = [
  "serde",
  "serde_json",
  "tokio",
- "yup-oauth2 12.1.0",
+ "yup-oauth2",
 ]
 
 [[package]]
@@ -889,9 +890,7 @@ checksum = "a8d1add55171497b4705a648c6b583acafb01d58050a51727785f0b2c8e0a2b2"
 
 [[package]]
 name = "google-apis-common"
-version = "7.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7530ee92a7e9247c3294ae1b84ea98474dbc27563c49a14d3938e816499bf38f"
+version = "8.0.0"
 dependencies = [
  "base64 0.22.1",
  "chrono",
@@ -899,7 +898,6 @@ dependencies = [
  "http-body-util",
  "hyper 1.6.0",
  "hyper-util",
- "itertools 0.13.0",
  "mime",
  "percent-encoding",
  "serde",
@@ -907,14 +905,12 @@ dependencies = [
  "serde_with",
  "tokio",
  "url",
- "yup-oauth2 11.0.0",
+ "yup-oauth2",
 ]
 
 [[package]]
 name = "google-gmail1"
-version = "6.0.0+20240624"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1bf34ab6b7566ccc02d88db8255aa7ee1c9812f7e8df457fa084e1dc63c91f78"
+version = "7.0.0+20240624"
 dependencies = [
  "chrono",
  "google-apis-common",
@@ -927,7 +923,7 @@ dependencies = [
  "serde_with",
  "tokio",
  "url",
- "yup-oauth2 11.0.0",
+ "yup-oauth2",
 ]
 
 [[package]]
@@ -3732,33 +3728,6 @@ dependencies = [
  "quote",
  "syn 2.0.104",
  "synstructure",
-]
-
-[[package]]
-name = "yup-oauth2"
-version = "11.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4ed5f19242090128c5809f6535cc7b8d4e2c32433f6c6005800bbc20a644a7f0"
-dependencies = [
- "anyhow",
- "async-trait",
- "base64 0.22.1",
- "futures",
- "http 1.3.1",
- "http-body-util",
- "hyper 1.6.0",
- "hyper-rustls",
- "hyper-util",
- "log",
- "percent-encoding",
- "rustls",
- "rustls-pemfile 2.2.0",
- "seahash",
- "serde",
- "serde_json",
- "time",
- "tokio",
- "url",
 ]
 
 [[package]]
