@@ -30,37 +30,37 @@ impl Default for RoutingConfig {
         
         // Default rules for common email categories
         category_actions.insert("work".to_string(), vec![
-            EmailAction::label("work"),
+            EmailAction::label("AGENT_WORK"),
             EmailAction::MarkAsRead,
         ]);
         
         category_actions.insert("personal".to_string(), vec![
-            EmailAction::label("personal"),
+            EmailAction::label("AGENT_PERSONAL"),
         ]);
         
         category_actions.insert("promotional".to_string(), vec![
-            EmailAction::label("promotional"),
+            EmailAction::label("AGENT_PROMOTIONAL"),
             EmailAction::Archive,
         ]);
         
         category_actions.insert("spam".to_string(), vec![
-            EmailAction::label("spam"),
+            EmailAction::label("AGENT_SPAM"),
             EmailAction::Archive,
         ]);
         
         category_actions.insert("urgent".to_string(), vec![
-            EmailAction::label("urgent"),
+            EmailAction::label("AGENT_URGENT"),
             EmailAction::MarkImportant,
             EmailAction::escalate("Urgent email detected", 4),
         ]);
         
         category_actions.insert("newsletter".to_string(), vec![
-            EmailAction::label("newsletter"),
+            EmailAction::label("AGENT_NEWSLETTER"),
             EmailAction::move_to("newsletters"),
         ]);
         
         category_actions.insert("notification".to_string(), vec![
-            EmailAction::label("notification"),
+            EmailAction::label("AGENT_NOTIFICATION"),
             EmailAction::MarkAsRead,
         ]);
         
@@ -68,7 +68,7 @@ impl Default for RoutingConfig {
             category_actions,
             confidence_threshold: 0.7,
             low_confidence_actions: vec![
-                EmailAction::label("needs_review"),
+                EmailAction::label("AGENT_NEEDS_REVIEW"),
             ],
             urgent_actions: vec![
                 EmailAction::MarkImportant,
@@ -244,7 +244,7 @@ mod tests {
         
         let result = router.route(&email, &classification).await.unwrap();
         
-        assert!(result.actions.iter().any(|a| matches!(a, EmailAction::Label { label } if label == "work")));
+        assert!(result.actions.iter().any(|a| matches!(a, EmailAction::Label { label } if label == "AGENT_WORK")));
         assert!(result.reasoning.contains("category: work"));
         assert_eq!(result.confidence, 0.9);
     }
@@ -273,7 +273,7 @@ mod tests {
         
         let result = router.route(&email, &classification).await.unwrap();
         
-        assert!(result.actions.iter().any(|a| matches!(a, EmailAction::Label { label } if label == "needs_review")));
+        assert!(result.actions.iter().any(|a| matches!(a, EmailAction::Label { label } if label == "AGENT_NEEDS_REVIEW")));
         assert!(result.reasoning.contains("low confidence"));
     }
     
@@ -285,7 +285,7 @@ mod tests {
         
         let result = router.route(&email, &classification).await.unwrap();
         
-        assert!(result.actions.iter().any(|a| matches!(a, EmailAction::Label { label } if label == "spam")));
+        assert!(result.actions.iter().any(|a| matches!(a, EmailAction::Label { label } if label == "AGENT_SPAM")));
         assert!(result.actions.contains(&EmailAction::Archive));
     }
     

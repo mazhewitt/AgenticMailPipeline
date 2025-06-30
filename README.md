@@ -159,8 +159,11 @@ cargo test -- --ignored
 **Completed Features:**
 - ✅ Gmail API integration with OAuth2 authentication
 - ✅ Automated OAuth2 setup script (`./setup_gmail_auth.sh`)
-- ✅ Email fetching from Gmail inbox (read-only, secure)
+- ✅ Email fetching from Gmail inbox (secure with read/modify permissions)
 - ✅ Email classification system with MessageClassifier trait
+- ✅ **Gmail labeling based on classification results**
+- ✅ **Automatic label creation and management**
+- ✅ **Idempotent labeling operations (safe re-application)**
 - ✅ Comprehensive test suite (unit + integration tests)
 - ✅ Clean, modular Rust codebase following TDD principles
 - ✅ Complete documentation and setup guides
@@ -171,10 +174,13 @@ cargo test -- --ignored
 - Fetches unread emails from Gmail inbox
 - Extracts email subject and snippet (body preview) for each email
 - Classifies emails by category (work, personal, promotional, spam, etc.)
-- Uses Gmail API with read-only permissions
+- **Automatically applies Gmail labels based on classification (AGENT_WORK, AGENT_SPAM, etc.)**
+- **Creates labels if they don't exist**
+- **Executes labeling operations idempotently (safe to run multiple times)**
+- Uses Gmail API with modify permissions for labeling
 - Secure OAuth2 authentication flow
-- Fallback to stub fetcher when credentials unavailable
-- Full integration testing
+- Fallback to stub implementations when credentials unavailable
+- Full integration testing with both stub and Gmail API implementations
 
 ## Email Classification
 

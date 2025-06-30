@@ -1,6 +1,7 @@
 use agentic_mail_agent::fetcher::{EmailFetcher, GmailFetcher, StubFetcher};
 use agentic_mail_agent::classifier::{MessageClassifier, StubClassifier, LangChainClassifier};
-use agentic_mail_agent::action_router::{ActionRouter, RuleBasedRouter};
+use agentic_mail_agent::action_router::{ActionRouter, RuleBasedRouter, EmailAction};
+use agentic_mail_agent::labeler::{EmailLabeler, StubLabeler, GmailLabeler};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -11,40 +12,40 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     
     // Try to use real Gmail fetcher if environment variables are set,
     // otherwise use stub fetcher for development
-    let fetcher: Box<dyn EmailFetcher> = match GmailFetcher::from_env() {
-        Ok(gmail_fetcher) => {
-            println!("Using Gmail API fetcher");
-            Box::new(gmail_fetcher)
-        }
-        Err(_) => {
-            println!("Gmail credentials not found, using stub fetcher with demo data");
-            // Create some demo emails to show the complete agentic functionality
-            use agentic_mail_agent::email::Email;
-            let demo_emails = vec![
-                Email::new(
-                    "demo-1".to_string(),
-                    Some("Welcome to Agentic Mail Agent".to_string()),
-                    Some("This is a demo email showing the new subject and snippet functionality. The agent can now extract both the email subject line and a preview of the email content.".to_string())
-                ),
-                Email::new(
-                    "demo-2".to_string(), 
-                    Some("URGENT: Meeting Reminder".to_string()),
-                    Some("Don't forget about the URGENT team meeting tomorrow at 2 PM. We'll be discussing the new email processing features. Action required!".to_string())
-                ),
-                Email::new(
-                    "demo-3".to_string(),
-                    Some("Weekly Newsletter".to_string()),
-                    Some("Check out this week's updates from our team. Newsletter content with promotions and news.".to_string())
-                ),
-                Email::new(
-                    "demo-4".to_string(),
-                    Some("Suspicious offer - You won $1,000,000!".to_string()),
-                    Some("Click here to claim your prize! Limited time offer. Send us your bank details now.".to_string())
-                ),
-                Email::with_id("demo-5".to_string()), // Email with no subject/snippet
-            ];
-            Box::new(StubFetcher::with_emails(demo_emails))
-        }
+    // Check for demo mode or Gmail credentials
+    let use_demo_mode = std::env::var("DEMO_MODE").is_ok() || GmailFetcher::from_env().is_err();
+    
+    let fetcher: Box<dyn EmailFetcher> = if use_demo_mode {
+        println!("Gmail credentials not found, using stub fetcher with demo data");
+        // Create some demo emails to show the complete agentic functionality
+        use agentic_mail_agent::email::Email;
+        let demo_emails = vec![
+            Email::new(
+                "demo-1".to_string(),
+                Some("Welcome to Agentic Mail Agent".to_string()),
+                Some("This is a demo email showing the new subject and snippet functionality. The agent can now extract both the email subject line and a preview of the email content.".to_string())
+            ),
+            Email::new(
+                "demo-2".to_string(), 
+                Some("URGENT: Meeting Reminder".to_string()),
+                Some("Don't forget about the URGENT team meeting tomorrow at 2 PM. We'll be discussing the new email processing features. Action required!".to_string())
+            ),
+            Email::new(
+                "demo-3".to_string(),
+                Some("Weekly Newsletter".to_string()),
+                Some("Check out this week's updates from our team. Newsletter content with promotions and news.".to_string())
+            ),
+            Email::new(
+                "demo-4".to_string(),
+                Some("Suspicious offer - You won $1,000,000!".to_string()),
+                Some("Click here to claim your prize! Limited time offer. Send us your bank details now.".to_string())
+            ),
+            Email::with_id("demo-5".to_string()), // Email with no subject/snippet
+        ];
+        Box::new(StubFetcher::with_emails(demo_emails))
+    } else {
+        println!("Using Gmail API fetcher");
+        Box::new(GmailFetcher::from_env().unwrap())
     };
     
     match fetcher.fetch_unread_emails().await {
@@ -78,6 +79,25 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             
             let router = RuleBasedRouter::new();
             
+            // Initialize labeler based on demo mode or Gmail credentials
+            let labeler: Box<dyn EmailLabeler> = if use_demo_mode {
+                println!("🎯 Using stub labeler (demo mode or no Gmail credentials)");
+                Box::new(StubLabeler::new())
+            } else {
+                println!("📧 Initializing Gmail labeler with API credentials...");
+                match GmailLabeler::from_env().await {
+                    Ok(gmail_labeler) => {
+                        println!("✅ Gmail labeler initialized successfully");
+                        Box::new(gmail_labeler)
+                    }
+                    Err(e) => {
+                        eprintln!("❌ Failed to initialize Gmail labeler: {}", e);
+                        eprintln!("🔄 Falling back to stub labeler...");
+                        Box::new(StubLabeler::new())
+                    }
+                }
+            };
+            
             for (index, email) in emails.iter().enumerate() {
                 println!("📧 Processing Email {} of {}:", index + 1, emails.len());
                 println!("  ID: {}", email.id);
@@ -109,6 +129,25 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                                 println!("  💭 Reasoning: {}", routing_result.reasoning);
                                 if routing_result.has_high_priority_actions() {
                                     println!("  ⚠️  HIGH PRIORITY ACTIONS DETECTED!");
+                                }
+                                
+                                // Step 3: Execute labeling actions
+                                for action in &routing_result.actions {
+                                    if let EmailAction::Label { label } = action {
+                                        print!("  🏷️  Applying label '{}'... ", label);
+                                        match labeler.apply_label(&email.id, label).await {
+                                            Ok(labeling_result) => {
+                                                if labeling_result.created_new_label {
+                                                    println!("✅ (new label created)");
+                                                } else {
+                                                    println!("✅ (existing label applied)");
+                                                }
+                                            }
+                                            Err(e) => {
+                                                println!("❌ Failed: {}", e);
+                                            }
+                                        }
+                                    }
                                 }
                             },
                             Err(e) => {
