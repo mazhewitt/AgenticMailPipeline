@@ -49,7 +49,7 @@ async fn test_gmail_fetcher_subject_and_body() {
     let _ = rustls::crypto::ring::default_provider().install_default();
 
     // Create fetcher from environment
-    let fetcher = GmailFetcher::from_env().expect("Failed to create GmailFetcher from env");
+    let fetcher = GmailFetcher::from_env().await.expect("Failed to create GmailFetcher from env");
 
     // Fetch unread emails
     let emails = fetcher.fetch_unread_emails().await.expect("Failed to fetch unread emails");
@@ -82,8 +82,8 @@ async fn test_gmail_fetcher_basic_connection() {
     // Install crypto provider for rustls if needed
     let _ = rustls::crypto::ring::default_provider().install_default();
 
-    let fetcher_result = GmailFetcher::from_env();
-    assert!(fetcher_result.is_ok(), "Failed to create GmailFetcher from env: {:?}", fetcher_result.err());
+    let fetcher_result = GmailFetcher::from_env().await;
+    assert!(fetcher_result.is_ok(), "Failed to create GmailFetcher from env: {:?}", fetcher_result.as_ref().err());
     
     println!("✅ Successfully created GmailFetcher from environment");
 }
@@ -95,7 +95,7 @@ async fn test_gmail_list_messages_only() {
     // Install crypto provider for rustls if needed
     let _ = rustls::crypto::ring::default_provider().install_default();
 
-    let fetcher = GmailFetcher::from_env().expect("Failed to create GmailFetcher from env");
+    let fetcher = GmailFetcher::from_env().await.expect("Failed to create GmailFetcher from env");
     let emails_result = fetcher.fetch_unread_emails().await;
     
     match emails_result {
@@ -130,7 +130,7 @@ async fn test_gmail_auth_issue_isolation() {
     // Install crypto provider for rustls if needed
     let _ = rustls::crypto::ring::default_provider().install_default();
 
-    let fetcher = GmailFetcher::from_env().expect("Failed to create GmailFetcher from env");
+    let fetcher = GmailFetcher::from_env().await.expect("Failed to create GmailFetcher from env");
     let emails = fetcher.fetch_unread_emails().await.expect("Failed to fetch unread emails");
 
     if emails.is_empty() {
@@ -179,7 +179,7 @@ async fn test_gmail_expected_failures() {
     // Install crypto provider for rustls if needed
     let _ = rustls::crypto::ring::default_provider().install_default();
 
-    let fetcher = GmailFetcher::from_env().expect("Failed to create GmailFetcher from env");
+    let fetcher = GmailFetcher::from_env().await.expect("Failed to create GmailFetcher from env");
     let emails = fetcher.fetch_unread_emails().await.expect("Failed to fetch unread emails");
 
     // We must fetch at least one email ID
@@ -218,7 +218,7 @@ async fn test_gmail_fetcher_subject_and_body_with_detailed_failure_analysis() {
     let _ = rustls::crypto::ring::default_provider().install_default();
 
     // Create fetcher from environment
-    let fetcher = GmailFetcher::from_env().expect("Failed to create GmailFetcher from env");
+    let fetcher = GmailFetcher::from_env().await.expect("Failed to create GmailFetcher from env");
 
     // Fetch unread emails
     let emails = fetcher.fetch_unread_emails().await.expect("Failed to fetch unread emails");
@@ -355,7 +355,7 @@ async fn test_gmail_token_and_scope_verification() {
     }
 
     // Try creating the fetcher
-    let fetcher_result = GmailFetcher::from_env();
+    let fetcher_result = GmailFetcher::from_env().await;
     match fetcher_result {
         Ok(_) => println!("  ✅ GmailFetcher created successfully"),
         Err(e) => println!("  ❌ GmailFetcher creation failed: {:?}", e),
@@ -386,7 +386,7 @@ async fn test_gmail_minimal_auth_operation() {
     // Install crypto provider for rustls if needed
     let _ = rustls::crypto::ring::default_provider().install_default();
 
-    let _fetcher = match GmailFetcher::from_env() {
+    let _fetcher = match GmailFetcher::from_env().await {
         Ok(f) => f,
         Err(e) => {
             println!("❌ Cannot create fetcher: {:?}", e);
@@ -646,8 +646,8 @@ async fn test_gmail_issue_summary_and_diagnosis() {
     println!("\n🔍 ROOT CAUSE ANALYSIS:");
     
     // Test basic fetcher creation
-    let fetcher = GmailFetcher::from_env();
-    match fetcher {
+    let fetcher = GmailFetcher::from_env().await;
+    match fetcher.await {
         Ok(_) => println!("  ✅ GmailFetcher creation: SUCCESS"),
         Err(e) => println!("  ❌ GmailFetcher creation: FAILED - {:?}", e),
     }
@@ -706,7 +706,7 @@ async fn test_gmail_issue_summary_and_diagnosis() {
     println!("  4. Test token refresh mechanism");
     
     println!("\n📊 ISOLATION TEST RESULTS:");
-    let fetcher = GmailFetcher::from_env().unwrap();
+    let fetcher = GmailFetcher::from_env().await.unwrap();
     let emails = fetcher.fetch_unread_emails().await.unwrap();
     
     let total = emails.len();

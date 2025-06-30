@@ -13,7 +13,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Try to use real Gmail fetcher if environment variables are set,
     // otherwise use stub fetcher for development
     // Check for demo mode or Gmail credentials
-    let use_demo_mode = std::env::var("DEMO_MODE").is_ok() || GmailFetcher::from_env().is_err();
+    let use_demo_mode = std::env::var("DEMO_MODE").is_ok() || GmailFetcher::from_env().await.is_err();
     
     let fetcher: Box<dyn EmailFetcher> = if use_demo_mode {
         println!("Gmail credentials not found, using stub fetcher with demo data");
@@ -45,7 +45,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         Box::new(StubFetcher::with_emails(demo_emails))
     } else {
         println!("Using Gmail API fetcher");
-        Box::new(GmailFetcher::from_env().unwrap())
+        Box::new(GmailFetcher::from_env().await.unwrap())
     };
     
     match fetcher.fetch_unread_emails().await {

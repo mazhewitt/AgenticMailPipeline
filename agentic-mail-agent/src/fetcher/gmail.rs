@@ -4,8 +4,7 @@ use async_trait::async_trait;
 use crate::email::Email;
 use crate::fetcher::EmailFetcher;
 use crate::types::FetchError;
-use google_gmail1::hyper_rustls;
-use google_gmail1::yup_oauth2;
+use crate::gmail_client::{GmailClient, GmailAuthConfig};
 
 /// Fetcher that uses the Gmail API (google-gmail1 crate) to fetch emails.
 ///
@@ -66,7 +65,7 @@ use google_gmail1::yup_oauth2;
 /// - Configuration issues like missing environment variables (`FetchError::Config`)
 /// - Unexpected errors (`FetchError::Unknown`)
 pub struct GmailFetcher {
-    auth_config: AuthConfig,
+    gmail_client: GmailClient,
 }
 
 impl GmailFetcher {
@@ -78,9 +77,9 @@ impl GmailFetcher {
     /// 
     /// # Errors
     /// Returns `FetchError::Config` if either environment variable is missing.
-    pub fn from_env() -> Result<Self, FetchError> {
-        let auth_config = AuthConfig::from_env()?;
-        Ok(Self { auth_config })
+    pub async fn from_env() -> Result<Self, FetchError> {
+        let gmail_client = GmailClient::from_env().await?;
+        Ok(Self { gmail_client })
     }
     
     /// Create a new GmailFetcher with explicit paths.
@@ -88,9 +87,10 @@ impl GmailFetcher {
     /// # Arguments
     /// * `client_secret_path` - Path to the OAuth2 client secret JSON file
     /// * `token_path` - Path to the OAuth2 token JSON file
-    pub fn new(client_secret_path: String, token_path: String) -> Self {
-        let auth_config = AuthConfig::new(client_secret_path, token_path);
-        Self { auth_config }
+    pub async fn new(client_secret_path: String, token_path: String) -> Result<Self, FetchError> {
+        let config = GmailAuthConfig::new(client_secret_path, token_path);
+        let gmail_client = GmailClient::new(config).await?;
+        Ok(Self { gmail_client })
     }
 }
 
@@ -238,88 +238,13 @@ impl EmailFetcher for GmailFetcher {
     async fn fetch_unread_emails(&self) -> Result<Vec<Email>, FetchError> {
         use google_gmail1 as gmail1;
         use gmail1::api::ListMessagesResponse;
-        use yup_oauth2::{InstalledFlowAuthenticator, InstalledFlowReturnMethod};
 
-        // Validate file paths exist
-        self.auth_config.validate_files()?;
-
-        // Read and parse client secret
-        let secret = std::fs::read_to_string(&self.auth_config.client_secret_path)
-            .map_err(|e| FetchError::config(format!(
-                "Failed to read client secret file: {}", e
-            )))?;
-
-        let secret: yup_oauth2::ApplicationSecret = {
-            // Parse the JSON first
-            let google_secret: serde_json::Value = serde_json::from_str(&secret)
-                .map_err(|e| FetchError::config(format!(
-                    "Failed to parse client secret JSON: {}", e
-                )))?;
-            
-            // Check if it's in the Google "installed" format
-            if let Some(installed) = google_secret.get("installed") {
-                // Extract the fields from the "installed" object
-                serde_json::from_value(installed.clone())
-                    .map_err(|e| FetchError::config(format!(
-                        "Failed to parse installed client secret: {}", e
-                    )))?
-            } else {
-                // Try parsing as direct ApplicationSecret format
-                serde_json::from_str(&secret)
-                    .map_err(|e| FetchError::config(format!(
-                        "Failed to parse ApplicationSecret: {}", e
-                    )))?
-            }
-        };
-
-        // Set up OAuth2 authentication with the new API
-        let connector = hyper_rustls::HttpsConnectorBuilder::new()
-            .with_native_roots()
-            .map_err(|e| FetchError::config(format!("Could not load native certs: {}", e)))?
-            .https_only()
-            .enable_http2()
-            .build();
-
-        let executor = google_gmail1::hyper_util::rt::TokioExecutor::new();
-        let auth = InstalledFlowAuthenticator::with_client(
-            secret,
-            InstalledFlowReturnMethod::HTTPRedirect,
-            google_gmail1::yup_oauth2::client::CustomHyperClientBuilder::from(
-                google_gmail1::hyper_util::client::legacy::Client::builder(executor).build(connector),
-            ),
-        )
-        .persist_tokens_to_disk(&self.auth_config.token_path)
-        .build()
-        .await
-        .map_err(|e| FetchError::auth(format!(
-            "Failed to build authenticator: {}", e
-        )))?;
-
-        // Explicitly request the required Gmail scopes for full message access
-        let required_scopes = GMAIL_SCOPES;
-        
-        // Test token with required scopes to ensure we have proper permissions
-        let _token = auth.token(required_scopes).await
-            .map_err(|e| FetchError::auth(format!(
-                "Failed to obtain token with required Gmail scopes: {}", e
-            )))?;
-
-        // Build HTTPS client and Gmail hub with authentication
-        let https_connector = hyper_rustls::HttpsConnectorBuilder::new()
-            .with_native_roots()
-            .map_err(|e| FetchError::config(format!("Could not load native certs: {}", e)))?
-            .https_only()
-            .enable_http1()
-            .build();
-        let client = google_gmail1::hyper_util::client::legacy::Client::builder(google_gmail1::hyper_util::rt::TokioExecutor::new()).build(https_connector);
-        let hub = gmail1::Gmail::new(client, auth);
-
-        // List unread messages
-        let list_result = hub.users().messages_list(GMAIL_USER_ID)
+        // List unread messages using the shared Gmail client
+        let list_result = self.gmail_client.hub.users().messages_list(GMAIL_USER_ID)
             .add_label_ids(UNREAD_LABEL)
-             .max_results(DEFAULT_MAX_RESULTS)
-             .doit()
-             .await;
+            .max_results(DEFAULT_MAX_RESULTS)
+            .doit()
+            .await;
         let message_list = match list_result {
             Ok((_, ListMessagesResponse { messages: Some(msgs), .. })) => msgs,
             Ok((_, _)) => Vec::new(),
@@ -331,7 +256,7 @@ impl EmailFetcher for GmailFetcher {
         for msg in message_list {
             if let Some(msg_id) = &msg.id {
                 // Fetch full message
-                let full = hub
+                let full = self.gmail_client.hub
                     .users()
                     .messages_get(GMAIL_USER_ID, msg_id)
                     .format("full")
@@ -359,64 +284,9 @@ impl EmailFetcher for GmailFetcher {
 }
 
 /// Gmail API configuration constants
-const GMAIL_SCOPES: &[&str] = &[
-    "https://www.googleapis.com/auth/gmail.readonly",
-    "https://www.googleapis.com/auth/gmail.modify",
-    "https://www.googleapis.com/auth/gmail.compose"
-];
-
 const DEFAULT_MAX_RESULTS: u32 = 5;
 const GMAIL_USER_ID: &str = "me";
 const UNREAD_LABEL: &str = "UNREAD";
-
-/// Configuration for Gmail authentication
-#[derive(Debug, Clone)]
-struct AuthConfig {
-    client_secret_path: String,
-    token_path: String,
-}
-
-impl AuthConfig {
-    /// Create AuthConfig from file paths
-    fn new(client_secret_path: String, token_path: String) -> Self {
-        Self {
-            client_secret_path,
-            token_path,
-        }
-    }
-    
-    /// Create AuthConfig from environment variables
-    fn from_env() -> Result<Self, FetchError> {
-        let client_secret_path = std::env::var("GMAIL_CLIENT_SECRET_JSON")
-            .map_err(|_| FetchError::config("GMAIL_CLIENT_SECRET_JSON environment variable not set"))?;
-        let token_path = std::env::var("GMAIL_TOKEN_JSON")
-            .map_err(|_| FetchError::config("GMAIL_TOKEN_JSON environment variable not set"))?;
-        Ok(Self::new(client_secret_path, token_path))
-    }
-    
-    /// Validate that the required files exist
-    fn validate_files(&self) -> Result<(), FetchError> {
-        use std::path::Path;
-        
-        let secret_path = Path::new(&self.client_secret_path);
-        let token_path = Path::new(&self.token_path);
-        
-        if !secret_path.exists() {
-            return Err(FetchError::config(format!(
-                "Client secret file not found: {}", 
-                self.client_secret_path
-            )));
-        }
-        if !token_path.exists() {
-            return Err(FetchError::config(format!(
-                "Token file not found: {}", 
-                self.token_path
-            )));
-        }
-        
-        Ok(())
-    }
-}
 
 #[cfg(test)]
 mod tests {
@@ -424,46 +294,9 @@ mod tests {
 
     #[test]
     fn test_gmail_constants() {
-        assert_eq!(GMAIL_SCOPES.len(), 3);
-        assert!(GMAIL_SCOPES.contains(&"https://www.googleapis.com/auth/gmail.readonly"));
         assert_eq!(DEFAULT_MAX_RESULTS, 5);
         assert_eq!(GMAIL_USER_ID, "me");
         assert_eq!(UNREAD_LABEL, "UNREAD");
-    }
-
-    #[test]
-    fn test_auth_config_new() {
-        let config = AuthConfig::new(
-            "/path/to/secret.json".to_string(),
-            "/path/to/token.json".to_string(),
-        );
-        assert_eq!(config.client_secret_path, "/path/to/secret.json");
-        assert_eq!(config.token_path, "/path/to/token.json");
-    }
-
-    #[test]
-    fn test_auth_config_from_env_missing_vars() {
-        // Temporarily unset environment variables
-        std::env::remove_var("GMAIL_CLIENT_SECRET_JSON");
-        std::env::remove_var("GMAIL_TOKEN_JSON");
-        
-        let result = AuthConfig::from_env();
-        assert!(result.is_err());
-    }
-
-    #[test]
-    fn test_auth_config_validate_files_nonexistent() {
-        let config = AuthConfig::new(
-            "/nonexistent/secret.json".to_string(),
-            "/nonexistent/token.json".to_string(),
-        );
-        let result = config.validate_files();
-        assert!(result.is_err());
-        if let Err(FetchError::Config { message }) = result {
-            assert!(message.contains("Client secret file not found"));
-        } else {
-            panic!("Expected Config error for nonexistent file");
-        }
     }
 
     #[test]
@@ -576,13 +409,13 @@ mod tests {
         assert_eq!(strip_html_basic(html), expected);
     }
 
-    #[test]
-    fn gmail_fetcher_from_env_missing_vars() {
+    #[tokio::test]
+    async fn gmail_fetcher_from_env_missing_vars() {
         // Temporarily unset environment variables
         std::env::remove_var("GMAIL_CLIENT_SECRET_JSON");
         std::env::remove_var("GMAIL_TOKEN_JSON");
         
-        let result = GmailFetcher::from_env();
+        let result = GmailFetcher::from_env().await;
         assert!(result.is_err());
         if let Err(FetchError::Config { message }) = result {
             assert!(message.contains("GMAIL_CLIENT_SECRET_JSON"));
@@ -591,14 +424,19 @@ mod tests {
         }
     }
 
-    #[test]
-    fn gmail_fetcher_new() {
-        let fetcher = GmailFetcher::new(
-            "/path/to/secret.json".to_string(),
-            "/path/to/token.json".to_string(),
-        );
-        assert_eq!(fetcher.auth_config.client_secret_path, "/path/to/secret.json");
-        assert_eq!(fetcher.auth_config.token_path, "/path/to/token.json");
+    #[tokio::test]
+    async fn gmail_fetcher_new_missing_files() {
+        // Test with nonexistent files
+        let result = GmailFetcher::new(
+            "/nonexistent/secret.json".to_string(),
+            "/nonexistent/token.json".to_string(),
+        ).await;
+        assert!(result.is_err());
+        if let Err(FetchError::Config { message }) = result {
+            assert!(message.contains("Client secret file not found"));
+        } else {
+            panic!("Expected Config error for nonexistent file");
+        }
     }
 
     #[test]

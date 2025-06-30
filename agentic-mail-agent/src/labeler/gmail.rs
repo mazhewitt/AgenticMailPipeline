@@ -5,11 +5,9 @@ use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
 use super::{EmailLabeler, LabelingResult, LabelingError};
+use crate::gmail_client::{GmailClient, GmailAuthConfig};
 use google_gmail1::{
-    hyper_rustls,
-    yup_oauth2::{self, InstalledFlowAuthenticator, InstalledFlowReturnMethod},
     api::{Label, ModifyMessageRequest},
-    Gmail,
 };
 
 /// Gmail API implementation of EmailLabeler.
@@ -50,7 +48,7 @@ use google_gmail1::{
 /// ```
 #[derive(Clone)]
 pub struct GmailLabeler {
-    gmail_hub: Gmail<hyper_rustls::HttpsConnector<google_gmail1::hyper_util::client::legacy::connect::HttpConnector>>,
+    gmail_client: GmailClient,
     /// Cache of label name -> label ID mappings
     label_cache: Arc<Mutex<HashMap<String, String>>>,
 }
@@ -65,13 +63,12 @@ impl GmailLabeler {
     /// Returns `LabelingError::Config` if environment variables are missing
     /// or credential files are invalid.
     pub async fn from_env() -> Result<Self, LabelingError> {
-        let client_secret_path = std::env::var("GMAIL_CLIENT_SECRET_JSON")
-            .map_err(|_| LabelingError::config("GMAIL_CLIENT_SECRET_JSON environment variable not set"))?;
-
-        let token_path = std::env::var("GMAIL_TOKEN_JSON")
-            .map_err(|_| LabelingError::config("GMAIL_TOKEN_JSON environment variable not set"))?;
-
-        Self::new(client_secret_path, token_path).await
+        let gmail_client = GmailClient::from_env().await?;
+        
+        Ok(Self {
+            gmail_client,
+            label_cache: Arc::new(Mutex::new(HashMap::new())),
+        })
     }
 
     /// Create a new GmailLabeler with explicit credential paths.
@@ -80,85 +77,13 @@ impl GmailLabeler {
     /// * `client_secret_path` - Path to OAuth2 client secret JSON file
     /// * `token_path` - Path to OAuth2 token JSON file
     pub async fn new(client_secret_path: String, token_path: String) -> Result<Self, LabelingError> {
-        let gmail_hub = Self::create_gmail_client(client_secret_path, token_path).await?;
+        let config = GmailAuthConfig::new(client_secret_path, token_path);
+        let gmail_client = GmailClient::new(config).await?;
         
         Ok(Self {
-            gmail_hub,
+            gmail_client,
             label_cache: Arc::new(Mutex::new(HashMap::new())),
         })
-    }
-
-    /// Create and configure the Gmail API client.
-    async fn create_gmail_client(
-        client_secret_path: String,
-        token_path: String,
-    ) -> Result<Gmail<hyper_rustls::HttpsConnector<google_gmail1::hyper_util::client::legacy::connect::HttpConnector>>, LabelingError> {
-        // Validate file paths exist
-        if !std::path::Path::new(&client_secret_path).exists() {
-            return Err(LabelingError::config(format!(
-                "Client secret file not found: {}", client_secret_path
-            )));
-        }
-
-        // Read and parse client secret
-        let secret = std::fs::read_to_string(&client_secret_path)
-            .map_err(|e| LabelingError::config(format!(
-                "Failed to read client secret file: {}", e
-            )))?;
-
-        let secret: yup_oauth2::ApplicationSecret = {
-            // Parse the JSON first
-            let google_secret: serde_json::Value = serde_json::from_str(&secret)
-                .map_err(|e| LabelingError::config(format!(
-                    "Failed to parse client secret JSON: {}", e
-                )))?;
-            
-            // Check if it's in the Google "installed" format
-            if let Some(installed) = google_secret.get("installed") {
-                serde_json::from_value(installed.clone())
-                    .map_err(|e| LabelingError::config(format!(
-                        "Failed to parse installed client secret: {}", e
-                    )))?
-            } else {
-                serde_json::from_str(&secret)
-                    .map_err(|e| LabelingError::config(format!(
-                        "Failed to parse ApplicationSecret: {}", e
-                    )))?
-            }
-        };
-
-        // Set up OAuth2 authentication
-        let connector = hyper_rustls::HttpsConnectorBuilder::new()
-            .with_native_roots()
-            .map_err(|e| LabelingError::config(format!("Could not load native certs: {}", e)))?
-            .https_only()
-            .enable_http2()
-            .build();
-
-        let executor = google_gmail1::hyper_util::rt::TokioExecutor::new();
-        let auth = InstalledFlowAuthenticator::with_client(
-            secret,
-            InstalledFlowReturnMethod::HTTPRedirect,
-            google_gmail1::yup_oauth2::client::CustomHyperClientBuilder::from(
-                google_gmail1::hyper_util::client::legacy::Client::builder(executor).build(connector.clone()),
-            ),
-        )
-        .persist_tokens_to_disk(&token_path)
-        .build()
-        .await
-        .map_err(|e| LabelingError::auth(format!(
-            "Failed to build authenticator: {}", e
-        )))?;
-
-        // Create Gmail hub
-        let gmail_hub = Gmail::new(
-            google_gmail1::hyper_util::client::legacy::Client::builder(
-                google_gmail1::hyper_util::rt::TokioExecutor::new()
-            ).build(connector),
-            auth,
-        );
-
-        Ok(gmail_hub)
     }
 
     /// Get the Gmail label ID for a label name, creating the label if it doesn't exist.
@@ -172,7 +97,7 @@ impl GmailLabeler {
         }
 
         // List existing labels to find the one we want
-        let labels_result = self.gmail_hub
+        let labels_result = self.gmail_client.hub
             .users()
             .labels_list("me")
             .doit()
@@ -210,7 +135,7 @@ impl GmailLabeler {
             ..Default::default()
         };
 
-        let result = self.gmail_hub
+        let result = self.gmail_client.hub
             .users()
             .labels_create(new_label, "me")
             .doit()
@@ -233,7 +158,7 @@ impl GmailLabeler {
 
     /// Check if a message already has a specific label.
     async fn message_has_label(&self, message_id: &str, label_id: &str) -> Result<bool, LabelingError> {
-        let message_result = self.gmail_hub
+        let message_result = self.gmail_client.hub
             .users()
             .messages_get("me", message_id)
             .doit()
@@ -279,7 +204,7 @@ impl EmailLabeler for GmailLabeler {
             remove_label_ids: None,
         };
 
-        self.gmail_hub
+        self.gmail_client.hub
             .users()
             .messages_modify(modify_request, "me", message_id)
             .doit()
