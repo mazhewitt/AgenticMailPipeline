@@ -77,3 +77,10 @@ criterion/
 *.tar.bz2
 *.rar
 *.7z
+
+# Test data with potentially sensitive email content
+# (Run 'cargo run --bin download_test_data' to regenerate locally)
+test_data/
+**/test_data/
+test_emails/
+**/test_emails/

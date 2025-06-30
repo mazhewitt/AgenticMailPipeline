@@ -647,7 +647,7 @@ async fn test_gmail_issue_summary_and_diagnosis() {
     
     // Test basic fetcher creation
     let fetcher = GmailFetcher::from_env().await;
-    match fetcher.await {
+    match fetcher {
         Ok(_) => println!("  ✅ GmailFetcher creation: SUCCESS"),
         Err(e) => println!("  ❌ GmailFetcher creation: FAILED - {:?}", e),
     }

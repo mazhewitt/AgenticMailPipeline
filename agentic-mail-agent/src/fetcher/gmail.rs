@@ -92,6 +92,68 @@ impl GmailFetcher {
         let gmail_client = GmailClient::new(config).await?;
         Ok(Self { gmail_client })
     }
+    
+    /// Fetch emails from inbox (all emails, not just unread) with a limit.
+    /// 
+    /// This method fetches emails from the inbox, including both read and unread messages.
+    /// It's useful for getting test data or reviewing recent emails regardless of read status.
+    /// 
+    /// # Arguments
+    /// * `limit` - Maximum number of emails to fetch (capped at 100 for safety)
+    /// 
+    /// # Returns
+    /// Returns a vector of emails from the inbox, ordered by Gmail's default sorting (newest first).
+    /// 
+    /// # Errors
+    /// Returns `FetchError` if the Gmail API call fails or authentication is invalid.
+    pub async fn fetch_inbox_emails(&self, limit: u32) -> Result<Vec<Email>, FetchError> {
+        use google_gmail1 as gmail1;
+        use gmail1::api::ListMessagesResponse;
+
+        // Cap the limit for safety
+        let safe_limit = std::cmp::min(limit, 100);
+
+        // List messages from inbox without any label filters
+        let list_result = self.gmail_client.hub.users().messages_list(GMAIL_USER_ID)
+            .max_results(safe_limit)
+            .doit()
+            .await;
+        
+        let message_list = match list_result {
+            Ok((_, ListMessagesResponse { messages: Some(msgs), .. })) => msgs,
+            Ok((_, _)) => Vec::new(),
+            Err(e) => return Err(FetchError::network(format!("Failed to list inbox messages: {}", e))),
+        };
+
+        // Fetch each message in full format to extract subject and body
+        let mut emails = Vec::new();
+        for msg in message_list {
+            if let Some(msg_id) = &msg.id {
+                // Fetch full message
+                let full = self.gmail_client.hub
+                    .users()
+                    .messages_get(GMAIL_USER_ID, msg_id)
+                    .format("full")
+                    .doit()
+                    .await;
+                
+                let message = match full {
+                    Ok((_, m)) => m,
+                    Err(e) => {
+                        // Log individual message fetch failure but continue processing
+                        println!("Warning: Failed to fetch message {}: {}", msg_id, e);
+                        emails.push(Email::new(msg_id.clone(), None, None));
+                        continue;
+                    }
+                };
+
+                // Use MessageParser to parse the message
+                emails.push(MessageParser::parse_message(msg_id.clone(), &message));
+            }
+        }
+
+        Ok(emails)
+    }
 }
 
 /// Helper function to extract subject from Gmail headers
