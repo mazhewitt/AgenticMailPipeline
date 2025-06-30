@@ -42,7 +42,7 @@ use crate::gmail_client::{GmailClient, GmailAuthConfig};
 ///     // export GMAIL_CLIENT_SECRET_JSON=/path/to/client_secret.json
 ///     // export GMAIL_TOKEN_JSON=/path/to/token.json
 ///     
-///     let fetcher = GmailFetcher::from_env()?;
+///     let fetcher = GmailFetcher::from_env().await?;
 ///     let emails = fetcher.fetch_unread_emails().await?;
 ///     println!("Fetched {} unread emails", emails.len());
 ///     for email in &emails {
@@ -163,6 +163,34 @@ fn extract_subject_from_headers(headers: &[google_gmail1::api::MessagePartHeader
         .and_then(|h| h.value.clone())
 }
 
+/// Helper function to extract from field from Gmail headers
+fn extract_from_header(headers: &[google_gmail1::api::MessagePartHeader]) -> Option<String> {
+    headers.iter()
+        .find(|h| h.name.as_ref().map(|n| n.eq_ignore_ascii_case("from")).unwrap_or(false))
+        .and_then(|h| h.value.clone())
+}
+
+/// Helper function to extract to field from Gmail headers
+fn extract_to_header(headers: &[google_gmail1::api::MessagePartHeader]) -> Option<Vec<String>> {
+    headers.iter()
+        .find(|h| h.name.as_ref().map(|n| n.eq_ignore_ascii_case("to")).unwrap_or(false))
+        .and_then(|h| h.value.clone())
+        .map(|to_string| {
+            // Split comma-separated email addresses
+            to_string
+                .split(',')
+                .map(|addr| addr.trim().to_string())
+                .collect()
+        })
+}
+
+/// Helper function to extract date field from Gmail headers
+fn extract_date_header(headers: &[google_gmail1::api::MessagePartHeader]) -> Option<String> {
+    headers.iter()
+        .find(|h| h.name.as_ref().map(|n| n.eq_ignore_ascii_case("date")).unwrap_or(false))
+        .and_then(|h| h.value.clone())
+}
+
 /// Helper function to extract body text from Gmail message parts
 fn extract_body_from_parts(parts: &[google_gmail1::api::MessagePart]) -> Option<String> {
     use base64::{engine::general_purpose, Engine as _};
@@ -263,8 +291,26 @@ impl MessageParser {
             .and_then(|h| extract_subject_from_headers(h));
 
         let body = Self::extract_body_from_message(message);
+        
+        // Extract From header
+        let from = message.payload
+            .as_ref()
+            .and_then(|p| p.headers.as_ref())
+            .and_then(|h| extract_from_header(h));
+        
+        // Extract To header
+        let to = message.payload
+            .as_ref()
+            .and_then(|p| p.headers.as_ref())
+            .and_then(|h| extract_to_header(h));
+        
+        // Extract Date header
+        let sent = message.payload
+            .as_ref()
+            .and_then(|p| p.headers.as_ref())
+            .and_then(|h| extract_date_header(h));
 
-        Email::new(message_id, subject, body)
+        Email::new_full(message_id, subject, message.snippet.clone(), from, to, sent, body)
     }
 
     /// Extract body text from Gmail message, with fallback to snippet
@@ -387,6 +433,56 @@ mod tests {
     }
 
     #[test]
+    fn test_message_parser_with_full_fields() {
+        use google_gmail1::api::{Message, MessagePart, MessagePartHeader, MessagePartBody};
+        use base64::{engine::general_purpose, Engine as _};
+        
+        let body_content = "This is the full email body content.";
+        let encoded_body = general_purpose::URL_SAFE.encode(body_content.as_bytes()).into_bytes();
+        
+        let message = Message {
+            payload: Some(MessagePart {
+                headers: Some(vec![
+                    MessagePartHeader {
+                        name: Some("Subject".to_string()),
+                        value: Some("Test Subject".to_string()),
+                    },
+                    MessagePartHeader {
+                        name: Some("From".to_string()),
+                        value: Some("sender@example.com".to_string()),
+                    },
+                    MessagePartHeader {
+                        name: Some("To".to_string()),
+                        value: Some("recipient@example.com".to_string()),
+                    },
+                    MessagePartHeader {
+                        name: Some("Date".to_string()),
+                        value: Some("Wed, 30 Jun 2023 10:00:00 +0000".to_string()),
+                    },
+                ]),
+                mime_type: Some("text/plain".to_string()),
+                body: Some(MessagePartBody {
+                    data: Some(encoded_body),
+                    ..Default::default()
+                }),
+                ..Default::default()
+            }),
+            snippet: Some("Test snippet content".to_string()),
+            ..Default::default()
+        };
+
+        let email = MessageParser::parse_message("test-full".to_string(), &message);
+        
+        assert_eq!(email.id, "test-full");
+        assert_eq!(email.subject, Some("Test Subject".to_string()));
+        assert_eq!(email.snippet, Some("Test snippet content".to_string()));
+        assert_eq!(email.from, Some("sender@example.com".to_string()));
+        assert_eq!(email.to, Some(vec!["recipient@example.com".to_string()]));
+        assert_eq!(email.sent, Some("Wed, 30 Jun 2023 10:00:00 +0000".to_string()));
+        assert_eq!(email.body, Some(body_content.to_string()));
+    }
+
+    #[test]
     fn test_message_parser_no_subject() {
         use google_gmail1::api::Message;
         
@@ -401,6 +497,10 @@ mod tests {
         assert_eq!(email.id, "test-456");
         assert_eq!(email.subject, None);
         assert_eq!(email.snippet, Some("Just snippet".to_string()));
+        assert_eq!(email.from, None);
+        assert_eq!(email.to, None);
+        assert_eq!(email.sent, None);
+        assert_eq!(email.body, Some("Just snippet".to_string()));
     }
 
     #[test]

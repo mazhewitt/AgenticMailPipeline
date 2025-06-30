@@ -139,9 +139,10 @@ impl RuleBasedRouter {
         ];
         
         let text_to_check = format!(
-            "{} {}",
+            "{} {} {}",
             email.subject_or_default().to_lowercase(),
-            email.snippet_or_default().to_lowercase()
+            email.snippet_or_default().to_lowercase(),
+            email.body_or_default().to_lowercase()
         );
         
         urgent_keywords.iter().any(|&keyword| text_to_check.contains(keyword))
@@ -314,5 +315,30 @@ mod tests {
         
         let normal_email = Email::with_subject("2".to_string(), "Weekly newsletter".to_string());
         assert!(!router.is_urgent_email(&normal_email));
+        
+        // Test urgent detection in body content
+        let urgent_in_body = Email::new_full(
+            "3".to_string(),
+            Some("Status Update".to_string()),
+            Some("Regular status update".to_string()),
+            Some("sender@example.com".to_string()),
+            Some(vec!["recipient@example.com".to_string()]),
+            Some("Wed, 30 Jun 2023 10:00:00 +0000".to_string()),
+            Some("This is a regular status update. However, there is an EMERGENCY situation that requires immediate attention.".to_string()),
+        );
+        assert!(router.is_urgent_email(&urgent_in_body));
+        
+        // Test urgent detection in from field for VIP senders
+        let vip_email = Email::new_full(
+            "4".to_string(),
+            Some("Regular Meeting".to_string()),
+            Some("Regular meeting notes".to_string()),
+            Some("ceo@company.com".to_string()),
+            Some(vec!["employee@company.com".to_string()]),
+            Some("Wed, 30 Jun 2023 10:00:00 +0000".to_string()),
+            Some("Please review the quarterly reports.".to_string()),
+        );
+        // For now, this should not be urgent unless we add VIP detection
+        assert!(!router.is_urgent_email(&vip_email));
     }
 }

@@ -85,6 +85,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             id: email.id.clone(),
             subject: email.subject.clone(),
             snippet: email.snippet.clone(),
+            from: email.from.clone(),
+            to: email.to.clone(),
+            sent: email.sent.clone(),
+            body: email.body.clone(),
             downloaded_at: chrono::Utc::now().to_rfc3339(),
             file_index: index + 1,
         };
@@ -97,6 +101,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         if let Some(subject) = &email.subject {
             println!("     Subject: {}", subject);
         }
+        if let Some(from) = &email.from {
+            println!("     From: {}", from);
+        }
+        if let Some(to) = &email.to {
+            println!("     To: {}", to.join(", "));
+        }
+        if let Some(sent) = &email.sent {
+            println!("     Date: {}", sent);
+        }
         if let Some(snippet) = &email.snippet {
             let preview = if snippet.chars().count() > 100 {
                 let truncated: String = snippet.chars().take(100).collect();
@@ -105,6 +118,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 snippet.clone()
             };
             println!("     Preview: {}", preview);
+        }
+        if let Some(body) = &email.body {
+            let body_preview = if body.chars().count() > 150 {
+                let truncated: String = body.chars().take(150).collect();
+                format!("{}...", truncated)
+            } else {
+                body.clone()
+            };
+            println!("     Body: {}", body_preview);
         }
         println!();
     }
@@ -120,6 +142,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 id: email.id.clone(),
                 subject: email.subject.clone(),
                 has_snippet: email.snippet.is_some(),
+                has_from: email.from.is_some(),
+                has_to: email.to.is_some(),
+                has_sent: email.sent.is_some(),
+                has_body: email.body.is_some(),
             }
         }).collect(),
     };
@@ -149,10 +175,33 @@ struct TestDataEmail {
     pub subject: Option<String>,
     /// Email snippet/preview
     pub snippet: Option<String>,
+    /// Sender's email address
+    pub from: Option<String>,
+    /// Recipient email addresses
+    pub to: Option<Vec<String>>,
+    /// Sent timestamp (ISO 8601 format)
+    pub sent: Option<String>,
+    /// Full email body content
+    pub body: Option<String>,
     /// Timestamp when this test data was downloaded
     pub downloaded_at: String,
     /// Index in the downloaded batch (1-based)
     pub file_index: usize,
+}
+
+impl TestDataEmail {
+    /// Convert to the Email type used by the classifier
+    fn to_email(&self) -> agentic_mail_agent::email::Email {
+        agentic_mail_agent::email::Email::new_full(
+            self.id.clone(),
+            self.subject.clone(),
+            self.snippet.clone(),
+            self.from.clone(),
+            self.to.clone(),
+            self.sent.clone(),
+            self.body.clone(),
+        )
+    }
 }
 
 /// Summary information about a test email file
@@ -168,6 +217,14 @@ struct EmailSummary {
     pub subject: Option<String>,
     /// Whether the email has snippet content
     pub has_snippet: bool,
+    /// Whether the email has from address
+    pub has_from: bool,
+    /// Whether the email has to addresses
+    pub has_to: bool,
+    /// Whether the email has sent timestamp
+    pub has_sent: bool,
+    /// Whether the email has body content
+    pub has_body: bool,
 }
 
 /// Manifest file containing metadata about all downloaded test emails

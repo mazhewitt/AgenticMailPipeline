@@ -125,7 +125,10 @@ impl LangChainClassifier {
     /// Build the email classification prompt with the given email content.
     fn build_prompt(&self, email: &Email) -> String {
         let subject = email.subject_or_default();
-        let snippet = email.snippet_or_default();
+        let from = email.from_or_default();
+        let to = email.to_or_default();
+        let sent = email.sent_or_default();
+        let body = email.body_or_default();
 
         format!(
             r#"You are an expert email classifier. Your task is to classify emails into one of these categories:
@@ -137,8 +140,11 @@ impl LangChainClassifier {
 - urgent: Time-sensitive emails requiring immediate attention
 
 Given the following email:
+From: "{}"
+To: "{}"
+Date: "{}"
 Subject: "{}"
-Snippet: "{}"
+Body: "{}"
 
 Please classify this email and respond with a JSON object in this exact format:
 {{
@@ -149,7 +155,11 @@ Please classify this email and respond with a JSON object in this exact format:
 
 Ensure the score is between 0.0 and 1.0, where 1.0 means completely confident.
 Only respond with the JSON object, no additional text."#,
-            subject, snippet
+            from,
+            to.join(", "),
+            sent,
+            subject,
+            body
         )
     }
 
@@ -248,9 +258,13 @@ mod tests {
             )),
             config,
         };
-        let email = Email::new(
+        let email = Email::new_full(
             "test123".to_string(),
             Some("Meeting reminder".to_string()),
+            Some("Don't forget our meeting tomorrow at 2pm".to_string()),
+            Some("sender@example.com".to_string()),
+            Some(vec!["recipient@example.com".to_string()]),
+            Some("Wed, 30 Jun 2023 14:00:00 +0000".to_string()),
             Some("Don't forget our meeting tomorrow at 2pm".to_string()),
         );
 
@@ -258,12 +272,48 @@ mod tests {
         
         assert!(prompt.contains("Meeting reminder"));
         assert!(prompt.contains("Don't forget our meeting tomorrow at 2pm"));
+        assert!(prompt.contains("sender@example.com"));
+        assert!(prompt.contains("recipient@example.com"));
         assert!(prompt.contains("work"));
         assert!(prompt.contains("personal"));
         assert!(prompt.contains("promotional"));
         assert!(prompt.contains("spam"));
         assert!(prompt.contains("newsletter"));
         assert!(prompt.contains("urgent"));
+    }
+
+    #[test]
+    fn test_build_prompt_with_full_email_fields() {
+        // This test should fail initially - we haven't updated build_prompt yet
+        let config = LangChainConfig::default();
+        let classifier = LangChainClassifier {
+            llm: Arc::new(Ollama::new(
+                Arc::new(OllamaClient::default()),
+                config.model.clone(),
+                None,
+            )),
+            config,
+        };
+        
+        let email = Email::new_full(
+            "test123".to_string(),
+            Some("Meeting Tomorrow".to_string()),
+            Some("Don't forget our 2pm meeting".to_string()),
+            Some("boss@company.com".to_string()),
+            Some(vec!["employee@company.com".to_string()]),
+            Some("Wed, 30 Jun 2023 10:00:00 +0000".to_string()),
+            Some("Hi Team,\n\nThis is a reminder about our important meeting tomorrow at 2pm. Please bring your reports.\n\nBest regards,\nThe Boss".to_string()),
+        );
+
+        let prompt = classifier.build_prompt(&email);
+
+        // Verify all the new fields are included
+        assert!(prompt.contains("boss@company.com"), "Prompt should contain from address");
+        assert!(prompt.contains("employee@company.com"), "Prompt should contain to address");
+        assert!(prompt.contains("Wed, 30 Jun 2023"), "Prompt should contain sent date");
+        assert!(prompt.contains("Meeting Tomorrow"), "Prompt should contain subject");
+        assert!(prompt.contains("Hi Team"), "Prompt should contain full body");
+        assert!(prompt.contains("Best regards"), "Prompt should contain full body");
     }
 
     #[test]
