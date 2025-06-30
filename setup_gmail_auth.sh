@@ -33,8 +33,8 @@ print_error() {
 }
 
 # Check if we're in the right directory
-if [[ ! -f "Cargo.toml" ]] || [[ ! -f "src/main.rs" ]]; then
-    print_error "Please run this script from the agentic-mail-agent project root directory"
+if [[ ! -f "Cargo.toml" ]] || [[ ! -f "agentic-mail-agent/src/main.rs" ]]; then
+    print_error "Please run this script from the project root directory"
     exit 1
 fi
 
@@ -44,8 +44,9 @@ if [[ ! -d "secrets" ]]; then
     mkdir -p secrets
 fi
 
-# Check for client secret file
-CLIENT_SECRET_FILE="./secrets/client-secret.json"
+# Check for client secret file  
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CLIENT_SECRET_FILE="$SCRIPT_DIR/secrets/client-secret.json"
 if [[ ! -f "$CLIENT_SECRET_FILE" ]]; then
     print_warning "Client secret file not found at $CLIENT_SECRET_FILE"
     echo ""
@@ -100,9 +101,9 @@ fi
 
 print_success "Client secret file found"
 
-# Set environment variables
-export GMAIL_CLIENT_SECRET_JSON="$CLIENT_SECRET_FILE"
-export GMAIL_TOKEN_JSON="./secrets/token.json"
+# Set environment variables with absolute paths
+export GMAIL_CLIENT_SECRET_JSON="$(realpath "$CLIENT_SECRET_FILE")"
+export GMAIL_TOKEN_JSON="$SCRIPT_DIR/secrets/token.json"
 
 print_info "Environment variables set:"
 echo "  GMAIL_CLIENT_SECRET_JSON=$GMAIL_CLIENT_SECRET_JSON"

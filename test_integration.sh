@@ -23,6 +23,10 @@ print_info "Checking setup status..."
 ./check_setup.sh
 
 echo ""
+print_info "Loading environment variables..."
+source ./set_gmail_env.sh
+
+echo ""
 print_info "Testing main application..."
 
 # Run the application
