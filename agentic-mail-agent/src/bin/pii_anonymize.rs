@@ -5,7 +5,8 @@
 //! 1. Use LLM to detect and list all PII entities with positions
 //! 2. Replace PII entities in Rust code with realistic fake data
 //! 3. Maintain auditability and consistency
-//! 4. Include fallback mechanisms for critical PII types
+//! 4. LLM-only detection - no fallback, email fails if LLM fails
+//! 5. Resume capability for interrupted processing
 //! 
 //! Usage:
 //!   cargo run --bin pii_anonymize -- --input-dir temp_test_data_raw --output-dir temp_anonymized_pii
@@ -21,6 +22,7 @@ use std::path::{Path, PathBuf};
 use std::io::{self, Write};
 use std::time::{Duration, Instant};
 use tokio;
+use chrono;
 
 /// Email structure for anonymization
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
@@ -285,6 +287,8 @@ async fn process_directory(
     output_dir: &Path,
     pipeline: &mut AnonymizationPipeline,
     max_emails: Option<usize>,
+    backend: &str,
+    model: &str,
 ) -> Result<AnonymizationStats, Box<dyn std::error::Error>> {
     // Create output directory
     fs::create_dir_all(output_dir)?;
@@ -312,9 +316,25 @@ async fn process_directory(
     
     println!("🔍 Found {} JSON files to process", json_files.len());
     
+    // Check which emails have already been processed (for restart capability)
+    let processed_emails = get_processed_emails(output_dir)?;
+    let already_processed = processed_emails.len();
+    
+    if already_processed > 0 {
+        println!("🔄 Resume mode: Found {} already processed emails", already_processed);
+    }
+    
     for (i, input_path) in json_files.iter().enumerate() {
         let file_name = input_path.file_name().unwrap();
+        let file_stem = input_path.file_stem().unwrap().to_str().unwrap();
         let output_path = output_dir.join(file_name);
+        
+        // Skip already processed files
+        if processed_emails.contains(file_stem) {
+            println!("✅ Skipping already processed: {}", file_name.to_string_lossy());
+            stats.processed_emails += 1;
+            continue;
+        }
         
         print!("Processing {}/{}: {} ... ", i + 1, json_files.len(), file_name.to_string_lossy());
         io::stdout().flush().unwrap();
@@ -329,9 +349,64 @@ async fn process_directory(
                 stats.add_failed_email();
             }
         }
+        
+        // Save processing summary after each file
+        let _ = save_processing_summary(
+            output_dir,
+            stats.total_emails,
+            stats.processed_emails,
+            stats.failed_emails,
+            backend,
+            model,
+        );
     }
     
     Ok(stats)
+}
+
+/// Check which emails have already been processed (for restart capability)
+fn get_processed_emails(output_dir: &Path) -> Result<std::collections::HashSet<String>, Box<dyn std::error::Error>> {
+    let mut processed = std::collections::HashSet::new();
+    
+    if !output_dir.exists() {
+        return Ok(processed);
+    }
+    
+    for entry in fs::read_dir(output_dir)? {
+        let entry = entry?;
+        let path = entry.path();
+        if path.extension().and_then(|s| s.to_str()) == Some("json") {
+            if let Some(file_name) = path.file_stem().and_then(|s| s.to_str()) {
+                processed.insert(file_name.to_string());
+            }
+        }
+    }
+    
+    Ok(processed)
+}
+
+/// Create a processing summary file for tracking progress
+fn save_processing_summary(
+    output_dir: &Path, 
+    total_emails: usize, 
+    processed_count: usize,
+    failed_count: usize,
+    backend: &str,
+    model: &str
+) -> Result<(), Box<dyn std::error::Error>> {
+    let summary = serde_json::json!({
+        "total_emails": total_emails,
+        "processed_count": processed_count,
+        "failed_count": failed_count,
+        "backend": backend,
+        "model": model,
+        "last_updated": chrono::Utc::now().to_rfc3339(),
+        "status": if processed_count + failed_count >= total_emails { "complete" } else { "partial" }
+    });
+    
+    let summary_path = output_dir.join("processing_summary.json");
+    fs::write(summary_path, serde_json::to_string_pretty(&summary)?)?;
+    Ok(())
 }
 
 #[tokio::main]
@@ -355,6 +430,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         return Err(format!("Input directory does not exist: {}", cli_config.input_dir.display()).into());
     }
     
+    // Save values before moving cli_config
+    let backend_name = match cli_config.backend {
+        LlmBackend::Ollama => "Ollama",
+        LlmBackend::OpenAI => "OpenAI",
+    };
+    let model_name = cli_config.model.as_deref().unwrap_or("default").to_string();
+    
     // Create anonymization configuration
     let anonymization_config = AnonymizationConfig::new(cli_config.backend, cli_config.model)?;
     
@@ -365,11 +447,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("✅ Anonymization pipeline ready!");
     
     // Process all emails
+    
     let stats = process_directory(
         &cli_config.input_dir,
         &cli_config.output_dir,
         &mut pipeline,
         cli_config.max_emails,
+        &backend_name,
+        &model_name,
     ).await?;
     
     // Print summary

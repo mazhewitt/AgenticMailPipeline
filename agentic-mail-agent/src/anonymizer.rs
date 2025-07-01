@@ -4,11 +4,10 @@
 //! 1. LLM-based PII entity detection with structured JSON output
 //! 2. Rust-based replacement with fake but realistic data
 //! 3. Auditability and consistency across the same email
-//! 4. Fallback mechanisms for critical PII types
+//! 4. LLM-only detection - no fallback, email fails if LLM fails
 
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use regex::Regex;
 use tokio::time::timeout;
 use std::time::Duration;
 use langchain_rust::{
@@ -348,28 +347,13 @@ pub struct PiiReplacer {
     replacement_cache: HashMap<String, String>,
     /// Audit log of all replacements
     replacement_log: Vec<ReplacementLogEntry>,
-    /// Regex patterns for fallback PII detection
-    fallback_patterns: HashMap<String, Regex>,
 }
 
 impl PiiReplacer {
     pub fn new() -> Self {
-        let mut fallback_patterns = HashMap::new();
-        
-        // Common PII patterns for fallback
-        fallback_patterns.insert(
-            "email".to_string(),
-            Regex::new(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b").unwrap()
-        );
-        fallback_patterns.insert(
-            "phone".to_string(),
-            Regex::new(r"\b(?:\+?1[-.\s]?)?\(?[0-9]{3}\)?[-.\s]?[0-9]{3}[-.\s]?[0-9]{4}\b").unwrap()
-        );
-        
         Self {
             replacement_cache: HashMap::new(),
             replacement_log: Vec::new(),
-            fallback_patterns,
         }
     }
     
@@ -413,40 +397,10 @@ impl PiiReplacer {
         Ok(result)
     }
     
-    /// Replace PII with fallback regex patterns when LLM fails
+    /// Replace PII entities in text with fake data (LLM-only, no fallback)
     pub fn replace_pii_with_fallback(&mut self, text: &str, llm_entities: &[PiiEntity]) -> Result<String, Box<dyn std::error::Error>> {
-        let mut result = self.replace_pii(text, llm_entities)?;
-        
-        // Apply fallback patterns for critical PII types not caught by LLM
-        let patterns: Vec<(String, Regex)> = self.fallback_patterns.iter()
-            .map(|(k, v)| (k.clone(), v.clone()))
-            .collect();
-            
-        for (pii_type, pattern) in patterns {
-            let mut matches = Vec::new();
-            for mat in pattern.find_iter(&result) {
-                matches.push((mat.start(), mat.end(), mat.as_str().to_string()));
-            }
-            
-            for (start, end, matched_text) in matches.into_iter().rev() {
-                // Skip if this was already handled by LLM
-                if llm_entities.iter().any(|e| e.text == matched_text) {
-                    continue;
-                }
-                
-                let fake_value = self.generate_fake_value(&pii_type, &matched_text);
-                result.replace_range(start..end, &fake_value);
-                
-                self.replacement_log.push(ReplacementLogEntry {
-                    pii_type: pii_type.clone(),
-                    original_value: matched_text,
-                    fake_value: fake_value.clone(),
-                    position: start,
-                });
-            }
-        }
-        
-        Ok(result)
+        // No fallback - LLM detection only. If LLM fails, the email should fail anonymization.
+        self.replace_pii(text, llm_entities)
     }
     
     /// Generate a fake value for the given PII type, maintaining consistency
@@ -555,7 +509,7 @@ impl AnonymizationPipeline {
         // Step 1: Detect PII using LLM
         let detected_entities = self.detector.detect_pii(text).await?;
         
-        // Step 2: Replace PII with fake data (including fallback)
+        // Step 2: Replace PII with fake data (LLM-only, no fallback)
         let anonymized_text = self.replacer.replace_pii_with_fallback(text, &detected_entities)?;
         
         // Step 3: Return comprehensive result
