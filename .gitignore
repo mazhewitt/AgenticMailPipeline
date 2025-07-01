@@ -34,6 +34,7 @@ Thumbs.db
 secrets/token.json
 secrets/client-secret.json
 secrets/client-secret.json.backup
+secrets/openai.json
 
 # Temporary files
 *.tmp
@@ -84,3 +85,19 @@ test_data/
 **/test_data/
 test_emails/
 **/test_emails/
+temp_expanded_data/
+**/temp_expanded_data/
+single_test_data/
+**/single_test_data/
+*_test_data/
+**/*_test_data/
+
+# Test outputs and temporary anonymization results
+single_test_output*/
+**/single_test_output*/
+test_anonymized*/
+**/test_anonymized*/
+*_output/
+**/*_output/
+anonymized_test_data/
+**/anonymized_test_data/
