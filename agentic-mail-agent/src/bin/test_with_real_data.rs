@@ -1,7 +1,6 @@
 #!/usr/bin/env cargo test --
 //! Test demonstrating how to use the downloaded test data for classifier testing.
 
-use agentic_mail_agent::classifier::MessageClassifier;
 use agentic_mail_agent::email::Email;
 use serde_json;
 use std::fs;
@@ -9,6 +8,7 @@ use std::path::Path;
 
 /// Test data email structure matching the downloaded format
 #[derive(serde::Deserialize, Debug)]
+#[allow(dead_code)]
 struct TestDataEmail {
     id: String,
     subject: Option<String>,
@@ -23,6 +23,7 @@ struct TestDataEmail {
 
 impl TestDataEmail {
     /// Convert to the Email type used by the classifier
+    #[allow(dead_code)]
     fn to_email(&self) -> Email {
         Email::new_full(
             self.id.clone(),
@@ -37,6 +38,7 @@ impl TestDataEmail {
 }
 
 /// Load a test email from the test_data directory
+#[allow(dead_code)]
 fn load_test_email(filename: &str) -> Result<TestDataEmail, Box<dyn std::error::Error>> {
     let path = Path::new("test_data").join(filename);
     let content = fs::read_to_string(path)?;
@@ -45,6 +47,7 @@ fn load_test_email(filename: &str) -> Result<TestDataEmail, Box<dyn std::error::
 }
 
 /// Load all test emails from manifest
+#[allow(dead_code)]
 fn load_all_test_emails() -> Result<Vec<TestDataEmail>, Box<dyn std::error::Error>> {
     let manifest_path = Path::new("test_data").join("manifest.json");
     
@@ -53,11 +56,13 @@ fn load_all_test_emails() -> Result<Vec<TestDataEmail>, Box<dyn std::error::Erro
     }
     
     #[derive(serde::Deserialize)]
+    #[allow(dead_code)]
     struct Manifest {
         emails: Vec<ManifestEntry>,
     }
     
     #[derive(serde::Deserialize)]
+    #[allow(dead_code)]
     struct ManifestEntry {
         filename: String,
     }

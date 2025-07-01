@@ -13,7 +13,7 @@
 //!   GMAIL_TOKEN_JSON - Path to OAuth2 token JSON file
 //!   TEST_DATA_DIR - Directory to save test data files (default: test_data)
 
-use agentic_mail_agent::fetcher::GmailFetcher;
+use agentic_mail_agent::fetcher::{EmailFetcher, GmailFetcher};
 use serde_json;
 use std::fs;
 use std::path::Path;
@@ -191,6 +191,7 @@ struct TestDataEmail {
 
 impl TestDataEmail {
     /// Convert to the Email type used by the classifier
+    #[allow(dead_code)]
     fn to_email(&self) -> agentic_mail_agent::email::Email {
         agentic_mail_agent::email::Email::new_full(
             self.id.clone(),

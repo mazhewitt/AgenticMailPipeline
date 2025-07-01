@@ -92,68 +92,6 @@ impl GmailFetcher {
         let gmail_client = GmailClient::new(config).await?;
         Ok(Self { gmail_client })
     }
-    
-    /// Fetch emails from inbox (all emails, not just unread) with a limit.
-    /// 
-    /// This method fetches emails from the inbox, including both read and unread messages.
-    /// It's useful for getting test data or reviewing recent emails regardless of read status.
-    /// 
-    /// # Arguments
-    /// * `limit` - Maximum number of emails to fetch (capped at 100 for safety)
-    /// 
-    /// # Returns
-    /// Returns a vector of emails from the inbox, ordered by Gmail's default sorting (newest first).
-    /// 
-    /// # Errors
-    /// Returns `FetchError` if the Gmail API call fails or authentication is invalid.
-    pub async fn fetch_inbox_emails(&self, limit: u32) -> Result<Vec<Email>, FetchError> {
-        use google_gmail1 as gmail1;
-        use gmail1::api::ListMessagesResponse;
-
-        // Cap the limit for safety
-        let safe_limit = std::cmp::min(limit, 100);
-
-        // List messages from inbox without any label filters
-        let list_result = self.gmail_client.hub.users().messages_list(GMAIL_USER_ID)
-            .max_results(safe_limit)
-            .doit()
-            .await;
-        
-        let message_list = match list_result {
-            Ok((_, ListMessagesResponse { messages: Some(msgs), .. })) => msgs,
-            Ok((_, _)) => Vec::new(),
-            Err(e) => return Err(FetchError::network(format!("Failed to list inbox messages: {}", e))),
-        };
-
-        // Fetch each message in full format to extract subject and body
-        let mut emails = Vec::new();
-        for msg in message_list {
-            if let Some(msg_id) = &msg.id {
-                // Fetch full message
-                let full = self.gmail_client.hub
-                    .users()
-                    .messages_get(GMAIL_USER_ID, msg_id)
-                    .format("full")
-                    .doit()
-                    .await;
-                
-                let message = match full {
-                    Ok((_, m)) => m,
-                    Err(e) => {
-                        // Log individual message fetch failure but continue processing
-                        println!("Warning: Failed to fetch message {}: {}", msg_id, e);
-                        emails.push(Email::new(msg_id.clone(), None, None));
-                        continue;
-                    }
-                };
-
-                // Use MessageParser to parse the message
-                emails.push(MessageParser::parse_message(msg_id.clone(), &message));
-            }
-        }
-
-        Ok(emails)
-    }
 }
 
 /// Helper function to extract subject from Gmail headers
@@ -201,7 +139,11 @@ fn extract_body_from_parts(parts: &[google_gmail1::api::MessagePart]) -> Option<
             if mime_type == "text/plain" {
                 if let Some(body) = &part.body {
                     if let Some(data) = &body.data {
-                        // The data is base64 encoded bytes.
+                        // Gmail API returns raw bytes, try direct UTF-8 conversion first
+                        if let Ok(text) = String::from_utf8(data.clone()) {
+                            return Some(text);
+                        }
+                        // Fallback to base64 decoding if needed
                         if let Ok(decoded) = general_purpose::URL_SAFE.decode(data) {
                             if let Ok(text) = String::from_utf8(decoded) {
                                 return Some(text);
@@ -327,10 +269,15 @@ impl MessageParser {
             if let Some(body_data) = p.body.as_ref()
                 .and_then(|b| b.data.as_ref())
                 .and_then(|data| {
-                    use base64::{engine::general_purpose, Engine as _};
-                    general_purpose::URL_SAFE.decode(data).ok()
-                })
-                .and_then(|bytes| String::from_utf8(bytes).ok()) 
+                    // Try direct UTF-8 conversion first (Gmail API returns raw bytes)
+                    String::from_utf8(data.clone()).ok()
+                        .or_else(|| {
+                            // Fallback to base64 decoding if direct conversion fails
+                            use base64::{engine::general_purpose, Engine as _};
+                            general_purpose::URL_SAFE.decode(data).ok()
+                                .and_then(|bytes| String::from_utf8(bytes).ok())
+                        })
+                }) 
             {
                 return Some(body_data);
             }
@@ -376,6 +323,54 @@ impl EmailFetcher for GmailFetcher {
                     Err(e) => {
                         // Log individual message fetch failure but continue processing
                         // Individual message failures shouldn't break the entire batch
+                        println!("Warning: Failed to fetch message {}: {}", msg_id, e);
+                        emails.push(Email::new(msg_id.clone(), None, None));
+                        continue;
+                    }
+                };
+
+                // Use MessageParser to parse the message
+                emails.push(MessageParser::parse_message(msg_id.clone(), &message));
+            }
+        }
+
+        Ok(emails)
+    }
+
+    async fn fetch_inbox_emails(&self, max_results: u32) -> Result<Vec<Email>, FetchError> {
+        use google_gmail1 as gmail1;
+        use gmail1::api::ListMessagesResponse;
+
+        // Cap the limit for safety
+        let safe_limit = std::cmp::min(max_results, 100);
+
+        // List messages from inbox without any label filters
+        let list_result = self.gmail_client.hub.users().messages_list(GMAIL_USER_ID)
+            .max_results(safe_limit)
+            .doit()
+            .await;
+        let message_list = match list_result {
+            Ok((_, ListMessagesResponse { messages: Some(msgs), .. })) => msgs,
+            Ok((_, _)) => Vec::new(),
+            Err(e) => return Err(FetchError::network(format!("Failed to list messages: {}", e))),
+        };
+
+        // Fetch each message in full format to extract subject and body
+        let mut emails = Vec::new();
+        for msg in message_list {
+            if let Some(msg_id) = &msg.id {
+                // Fetch full message
+                let full = self.gmail_client.hub
+                    .users()
+                    .messages_get(GMAIL_USER_ID, msg_id)
+                    .format("full")
+                    .doit()
+                    .await;
+                
+                let message = match full {
+                    Ok((_, m)) => m,
+                    Err(e) => {
+                        // Log individual message fetch failure but continue processing
                         println!("Warning: Failed to fetch message {}: {}", msg_id, e);
                         emails.push(Email::new(msg_id.clone(), None, None));
                         continue;
@@ -435,10 +430,10 @@ mod tests {
     #[test]
     fn test_message_parser_with_full_fields() {
         use google_gmail1::api::{Message, MessagePart, MessagePartHeader, MessagePartBody};
-        use base64::{engine::general_purpose, Engine as _};
         
         let body_content = "This is the full email body content.";
-        let encoded_body = general_purpose::URL_SAFE.encode(body_content.as_bytes()).into_bytes();
+        // Simulate what the google-gmail1 crate returns: raw UTF-8 bytes
+        let body_bytes = body_content.as_bytes().to_vec();
         
         let message = Message {
             payload: Some(MessagePart {
@@ -462,7 +457,7 @@ mod tests {
                 ]),
                 mime_type: Some("text/plain".to_string()),
                 body: Some(MessagePartBody {
-                    data: Some(encoded_body),
+                    data: Some(body_bytes),
                     ..Default::default()
                 }),
                 ..Default::default()
@@ -663,14 +658,14 @@ mod tests {
     fn test_extract_body_from_parts() {
         // Test helper function to extract body text from Gmail message parts
         use google_gmail1::api::{MessagePart, MessagePartBody};
-        use base64::{engine::general_purpose, Engine as _};
         
-        let base64_data = general_purpose::URL_SAFE.encode("Hello World");
+        // Use raw bytes as the Gmail API returns them, not base64-encoded
+        let raw_data = "Hello World".as_bytes().to_vec();
         let parts = vec![
             MessagePart {
                 mime_type: Some("text/plain".to_string()),
                 body: Some(MessagePartBody {
-                    data: Some(base64_data.into_bytes()),
+                    data: Some(raw_data),
                     ..Default::default()
                 }),
                 ..Default::default()

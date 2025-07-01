@@ -6,6 +6,7 @@ use std::path::Path;
 
 /// Test data email structure matching the downloaded format
 #[derive(serde::Deserialize, Debug, Clone)]
+#[allow(dead_code)]
 struct TestDataEmail {
     id: String,
     subject: Option<String>,

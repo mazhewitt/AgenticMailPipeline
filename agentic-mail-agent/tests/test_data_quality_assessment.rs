@@ -1,4 +1,16 @@
-use agentic_mail_agent::classifier::{StubClassifier, MessageClassifier};
+use agen#[derive(Clone, Debug, serde::Deserialize)]
+#[allow(dead_code)]
+struct TestDataEmail {
+    id: String,
+    subject: Option<String>,
+    snippet: Option<String>,
+    from: Option<String>,
+    to: Option<Vec<String>>,
+    sent: Option<String>,
+    body: Option<String>,
+    downloaded_at: String,
+    file_index: usize,
+}nt::classifier::{StubClassifier, MessageClassifier};
 use agentic_mail_agent::email::Email;
 use serde_json;
 use std::collections::{HashMap, HashSet};

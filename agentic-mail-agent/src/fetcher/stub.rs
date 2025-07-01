@@ -74,6 +74,19 @@ impl EmailFetcher for StubFetcher {
             Ok(self.emails.clone())
         }
     }
+
+    async fn fetch_inbox_emails(&self, max_results: u32) -> Result<Vec<Email>, FetchError> {
+        if let Some(error) = &self.error {
+            Err(error.clone())
+        } else {
+            // Return up to max_results emails from our configured emails
+            let emails = self.emails.iter()
+                .take(max_results as usize)
+                .cloned()
+                .collect();
+            Ok(emails)
+        }
+    }
 }
 
 #[cfg(test)]
@@ -120,5 +133,50 @@ mod tests {
         let fetcher = StubFetcher::default();
         let result = fetcher.fetch_unread_emails().await;
         assert!(result.unwrap().is_empty());
+    }
+
+    #[tokio::test]
+    async fn stub_fetcher_fetch_inbox_emails_empty() {
+        let fetcher = StubFetcher::new();
+        let result = fetcher.fetch_inbox_emails(10).await;
+        assert_eq!(result.unwrap(), vec![]);
+    }
+
+    #[tokio::test]
+    async fn stub_fetcher_fetch_inbox_emails_with_limit() {
+        let emails = vec![
+            Email::new(
+                "1".to_string(), 
+                Some("Test Email 1".to_string()),
+                Some("This is the first test email".to_string())
+            ),
+            Email::new(
+                "2".to_string(), 
+                Some("Test Email 2".to_string()),
+                Some("This is the second test email".to_string())
+            ),
+            Email::new(
+                "3".to_string(), 
+                Some("Test Email 3".to_string()),
+                Some("This is the third test email".to_string())
+            ),
+        ];
+        let fetcher = StubFetcher::with_emails(emails.clone());
+        
+        // Test with limit less than available emails
+        let result = fetcher.fetch_inbox_emails(2).await;
+        assert_eq!(result.unwrap().len(), 2);
+        
+        // Test with limit greater than available emails
+        let result = fetcher.fetch_inbox_emails(5).await;
+        assert_eq!(result.unwrap().len(), 3);
+    }
+
+    #[tokio::test]
+    async fn stub_fetcher_fetch_inbox_emails_returns_error() {
+        let error = FetchError::network("Test network error");
+        let fetcher = StubFetcher::with_error(error.clone());
+        let result = fetcher.fetch_inbox_emails(10).await;
+        assert_eq!(result.unwrap_err(), error);
     }
 }
