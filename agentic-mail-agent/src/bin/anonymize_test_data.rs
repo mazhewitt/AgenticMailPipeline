@@ -24,6 +24,7 @@ use langchain_rust::{
     language_models::llm::LLM,
 };
 use serde::Deserialize;
+use chrono;
 
 /// Email structure for anonymization
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
@@ -571,6 +572,48 @@ async fn async_main() -> Result<(), Box<dyn std::error::Error>> {
         return Ok(());
     }
     
+    // Check for existing output and crash recovery
+    println!("🔍 Checking for existing output (crash recovery)...");
+    let existing_outputs = scan_existing_outputs(&args.output_dir)?;
+    let existing_emails = load_existing_emails(&args.output_dir)?;
+    
+    if !existing_outputs.is_empty() {
+        println!("📦 Found {} already-processed emails", existing_outputs.len());
+        println!("🔄 Resuming from where we left off...");
+        
+        // Show which emails are already done
+        let mut existing_indices: Vec<usize> = existing_outputs.iter().cloned().collect();
+        existing_indices.sort();
+        if existing_indices.len() <= 10 {
+            println!("   Already completed: {:?}", existing_indices);
+        } else {
+            println!("   Already completed: {} through {} (and {} more)", 
+                existing_indices[0], 
+                existing_indices[9], 
+                existing_indices.len() - 10);
+        }
+    } else {
+        println!("🆕 Starting fresh anonymization process");
+    }
+    
+    // Filter emails to only process those not already completed
+    let total_emails = emails.len();
+    let emails_to_process: Vec<_> = emails.into_iter()
+        .filter(|email| !existing_outputs.contains(&email.file_index))
+        .collect();
+    
+    if emails_to_process.is_empty() {
+        println!("✅ All emails already anonymized! Nothing to do.");
+        println!("📊 Total emails: {}", existing_emails.len());
+        println!("📂 Output directory: {}/", args.output_dir);
+        return Ok(());
+    }
+    
+    println!("📋 Processing plan:");
+    println!("   • Total emails in dataset: {}", total_emails);
+    println!("   • Already completed: {}", existing_outputs.len());
+    println!("   • Remaining to process: {}", emails_to_process.len());
+    
     // Initialize LLM anonymizer
     println!("🤖 Initializing {} anonymizer...", backend_name);
     let config = AnonymizerConfig::new(args.backend, args.model)?;
@@ -579,7 +622,7 @@ async fn async_main() -> Result<(), Box<dyn std::error::Error>> {
     
     // Show preview of what will be anonymized
     println!("\n🔍 Preview of emails to anonymize:");
-    for (i, email) in emails.iter().take(5).enumerate() {
+    for (i, email) in emails_to_process.iter().take(5).enumerate() {
         println!("  {}. File {}: {}", 
             i + 1, 
             email.file_index, 
@@ -593,8 +636,8 @@ async fn async_main() -> Result<(), Box<dyn std::error::Error>> {
             }
         }
     }
-    if emails.len() > 5 {
-        println!("  ... and {} more emails", emails.len() - 5);
+    if emails_to_process.len() > 5 {
+        println!("  ... and {} more emails", emails_to_process.len() - 5);
     }
     
     // Ask for confirmation
@@ -610,21 +653,65 @@ async fn async_main() -> Result<(), Box<dyn std::error::Error>> {
         return Ok(());
     }
     
+    // Create output directory early
+    println!("📁 Creating output directory: {}", args.output_dir);
+    fs::create_dir_all(&args.output_dir)?;
+    
+    // Check for existing output and crash recovery
+    println!("🔍 Checking for existing output (crash recovery)...");
+    let existing_outputs = scan_existing_outputs(&args.output_dir)?;
+    let existing_emails = load_existing_emails(&args.output_dir)?;
+    
+    if !existing_outputs.is_empty() {
+        println!("� Found {} already-processed emails", existing_outputs.len());
+        println!("� Resuming from where we left off...");
+        
+        // Show which emails are already done
+        let mut existing_indices: Vec<usize> = existing_outputs.iter().cloned().collect();
+        existing_indices.sort();
+        if existing_indices.len() <= 10 {
+            println!("   Already completed: {:?}", existing_indices);
+        } else {
+            println!("   Already completed: {} through {} (and {} more)", 
+                existing_indices[0], 
+                existing_indices[9], 
+                existing_indices.len() - 10);
+        }
+    } else {
+        println!("🆕 Starting fresh anonymization process");
+    }
+    
+    println!("📋 Processing plan:");
+    println!("   • Total emails in dataset: {}", total_emails);
+    println!("   • Already completed: {}", existing_outputs.len()); 
+    println!("   • Remaining to process: {}", emails_to_process.len());
+    
     // Process emails with LLM
-    println!("\n🔧 Processing emails with {} (strict mode - no fallback)...", backend_name);
-    let mut anonymized_emails = Vec::new();
+    println!("🔧 Processing {} remaining emails with {} (strict mode - no fallback)...", 
+        emails_to_process.len(), backend_name);
+    println!("💾 Each email will be saved immediately after anonymization");
+    
+    let mut newly_anonymized = Vec::new();
     let mut failed_emails = Vec::new();
-    let total = emails.len();
     let overall_start = Instant::now();
     
-    for (i, email) in emails.iter().enumerate() {
-        println!("\n📧 [{}/{}] Processing email {} (ID: {})...", 
-            i + 1, total, email.file_index, email.id);
+    for (i, email) in emails_to_process.iter().enumerate() {
+        println!("📧 [{}/{}] Processing email {} (ID: {})...", 
+            i + 1, emails_to_process.len(), email.file_index, email.id);
         
         match anonymizer.anonymize_email(email).await {
             Ok(anonymized) => {
-                anonymized_emails.push(anonymized);
-                println!("✅ Email {} anonymized successfully", email.file_index);
+                // Save immediately after anonymization
+                match save_single_email(&anonymized, &args.output_dir) {
+                    Ok(_) => {
+                        newly_anonymized.push(anonymized.clone());
+                        println!("✅ Email {} anonymized and saved successfully", email.file_index);
+                    }
+                    Err(e) => {
+                        println!("❌ Failed to save anonymized email {}: {}", email.file_index, e);
+                        failed_emails.push((email.file_index, format!("Save failed: {}", e)));
+                    }
+                }
             }
             Err(e) => {
                 println!("❌ Failed to anonymize email {}: {}", email.file_index, e);
@@ -642,27 +729,35 @@ async fn async_main() -> Result<(), Box<dyn std::error::Error>> {
     
     // Handle results
     if !failed_emails.is_empty() {
-        println!("\n⚠️  Some emails failed to anonymize:");
+        println!("⚠️  Some emails failed to anonymize:");
         for (index, error) in &failed_emails {
             println!("   • Email {}: {}", index, error);
         }
-        println!("\n❌ Anonymization incomplete. {} succeeded, {} failed.", 
-            anonymized_emails.len(), failed_emails.len());
+        println!("❌ Anonymization incomplete. {} succeeded, {} failed.", 
+            newly_anonymized.len(), failed_emails.len());
         return Err(format!("{} emails failed anonymization", failed_emails.len()).into());
     }
     
-    // Save anonymized emails
-    println!("\n💾 Saving anonymized emails to {}...", args.output_dir);
-    save_emails(&anonymized_emails, &args.output_dir)?;
+    // Combine existing and newly processed emails for final manifest
+    let mut all_anonymized_emails = existing_emails;
+    all_anonymized_emails.extend(newly_anonymized.clone());
     
-    println!("\n✅ Anonymization complete!");
+    // Sort by file_index to maintain order
+    all_anonymized_emails.sort_by_key(|email| email.file_index);
+    
+    // Create/update manifest with all emails
+    println!("📄 Creating manifest for {} total emails...", all_anonymized_emails.len());
+    save_manifest(&all_anonymized_emails, &args.output_dir)?;
+    
+    println!("✅ Anonymization complete!");
     println!("📊 Summary:");
-    println!("   • Total emails: {}", total);
-    println!("   • Successfully anonymized: {}", anonymized_emails.len());
+    println!("   • Total emails in final set: {}", all_anonymized_emails.len());
+    println!("   • Previously completed: {}", existing_outputs.len());
+    println!("   • Newly anonymized: {}", newly_anonymized.len());
     println!("   • Failed: {}", failed_emails.len());
     println!("   • Backend used: {} ({})", backend_name, 
         anonymizer.config.model);
-    println!("   • Total time: {:.2}s", overall_duration.as_secs_f64());
+    println!("   • Processing time: {:.2}s", overall_duration.as_secs_f64());
     println!("   • Output directory: {}/", args.output_dir);
     println!("   • Ready for version control: ✅");
     
@@ -702,20 +797,90 @@ fn load_emails(input_dir: &str) -> Result<Vec<TestDataEmail>, Box<dyn std::error
     Ok(emails)
 }
 
-fn save_emails(emails: &[TestDataEmail], output_dir: &str) -> Result<(), Box<dyn std::error::Error>> {
-    // Create output directory
-    fs::create_dir_all(output_dir)?;
+/// Scan output directory for existing anonymized emails (crash recovery)
+fn scan_existing_outputs(output_dir: &str) -> Result<std::collections::HashSet<usize>, Box<dyn std::error::Error>> {
+    let mut existing_indices = std::collections::HashSet::new();
     
-    // Save each email
-    for email in emails {
-        let filename = format!("email_{:03}.json", email.file_index);
-        let filepath = Path::new(output_dir).join(&filename);
-        
-        let json_content = serde_json::to_string_pretty(email)?;
-        fs::write(&filepath, json_content)?;
+    let output_path = Path::new(output_dir);
+    if !output_path.exists() {
+        return Ok(existing_indices);
     }
     
-    // Create manifest
+    // Look for email_XXX.json files
+    for entry in fs::read_dir(output_path)? {
+        let entry = entry?;
+        let filename = entry.file_name();
+        let filename_str = filename.to_string_lossy();
+        
+        // Match pattern email_001.json, email_002.json, etc.
+        if filename_str.starts_with("email_") && filename_str.ends_with(".json") {
+            // Extract the number from email_XXX.json
+            if let Some(number_part) = filename_str.strip_prefix("email_").and_then(|s| s.strip_suffix(".json")) {
+                if let Ok(index) = number_part.parse::<usize>() {
+                    existing_indices.insert(index);
+                }
+            }
+        }
+    }
+    
+    Ok(existing_indices)
+}
+
+/// Load existing anonymized emails from output directory (crash recovery)
+fn load_existing_emails(output_dir: &str) -> Result<Vec<TestDataEmail>, Box<dyn std::error::Error>> {
+    let mut emails = Vec::new();
+    let output_path = Path::new(output_dir);
+    
+    if !output_path.exists() {
+        return Ok(emails);
+    }
+    
+    // Look for email_XXX.json files and load them
+    let mut entries: Vec<_> = fs::read_dir(output_path)?
+        .filter_map(|entry| entry.ok())
+        .filter(|entry| {
+            let filename = entry.file_name();
+            let filename_str = filename.to_string_lossy();
+            filename_str.starts_with("email_") && filename_str.ends_with(".json")
+        })
+        .collect();
+    
+    // Sort by filename to maintain order
+    entries.sort_by(|a, b| a.file_name().cmp(&b.file_name()));
+    
+    for entry in entries {
+        let path = entry.path();
+        match fs::read_to_string(&path) {
+            Ok(content) => {
+                match serde_json::from_str::<TestDataEmail>(&content) {
+                    Ok(email) => emails.push(email),
+                    Err(e) => {
+                        println!("⚠️  Warning: Failed to parse existing email {}: {}", path.display(), e);
+                    }
+                }
+            }
+            Err(e) => {
+                println!("⚠️  Warning: Failed to read existing email {}: {}", path.display(), e);
+            }
+        }
+    }
+    
+    Ok(emails)
+}
+
+/// Save a single email immediately after anonymization
+fn save_single_email(email: &TestDataEmail, output_dir: &str) -> Result<(), Box<dyn std::error::Error>> {
+    let filename = format!("email_{:03}.json", email.file_index);
+    let filepath = Path::new(output_dir).join(&filename);
+    
+    let json_content = serde_json::to_string_pretty(email)?;
+    fs::write(&filepath, json_content)?;
+    
+    Ok(())
+}
+
+/// Create manifest file for all anonymized emails
+fn save_manifest(emails: &[TestDataEmail], output_dir: &str) -> Result<(), Box<dyn std::error::Error>> {
     #[derive(serde::Serialize)]
     struct Manifest {
         created_at: String,
