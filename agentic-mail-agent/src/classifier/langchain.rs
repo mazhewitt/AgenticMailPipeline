@@ -31,7 +31,7 @@ struct LLMClassificationResponse {
 pub struct LangChainConfig {
     /// Ollama base URL (default: http://localhost:11434)
     pub ollama_url: String,
-    /// Model name to use for classification (default: llama3.2)
+    /// Model name to use for classification (default: llama3:8b)
     pub model: String,
     /// Temperature for LLM generation (default: 0.1 for consistent classification)
     pub temperature: f64,
@@ -41,7 +41,7 @@ impl Default for LangChainConfig {
     fn default() -> Self {
         Self {
             ollama_url: "http://localhost:11434".to_string(),
-            model: "llama3.2".to_string(),
+            model: "llama3.1:8b".to_string(),
             temperature: 0.1,
         }
     }
@@ -418,7 +418,7 @@ mod tests {
         let config = LangChainConfig::default();
         
         assert_eq!(config.ollama_url, "http://localhost:11434");
-        assert_eq!(config.model, "llama3.2");
+        assert_eq!(config.model, "llama3:8b");
         assert_eq!(config.temperature, 0.1);
     }
 }

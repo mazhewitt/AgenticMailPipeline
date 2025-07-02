@@ -98,7 +98,7 @@ mod tests {
                 println!("⚠️  Could not initialize LangChain classifier: {}", e);
                 println!("💡 Make sure Ollama is running with a compatible model:");
                 println!("   ollama serve");
-                println!("   ollama pull llama3.2");
+                println!("   ollama pull llama3:8b");
                 return;
             }
         };

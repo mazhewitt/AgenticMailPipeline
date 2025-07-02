@@ -242,6 +242,39 @@ async fn anonymize_email_file(
     // Anonymize the combined text
     let result = pipeline.anonymize_email_text(&full_text).await?;
     
+    // Count unique PII texts detected by LLM vs total replacements made
+    let unique_pii_texts: std::collections::HashSet<String> = result.detected_entities
+        .iter()
+        .map(|e| e.text.clone())
+        .collect();
+    let unique_detected_count = unique_pii_texts.len();
+    let total_replaced_count = result.replacement_log.len();
+    
+    // Validate that we found and replaced all detected PII
+    // We should replace at least as many times as we have unique PII texts
+    // (More replacements is good - it means we found all instances)
+    if unique_detected_count > 0 && total_replaced_count < unique_detected_count {
+        return Err(format!(
+            "Email {} failed anonymization: detected {} unique PII texts but only replaced {} instances ({}%)",
+            input_path.display(),
+            unique_detected_count, 
+            total_replaced_count,
+            (total_replaced_count * 100) / unique_detected_count
+        ).into());
+    }
+    
+    // Additional validation: check that we actually replaced instances of each detected PII text
+    for pii_text in &unique_pii_texts {
+        let was_replaced = result.replacement_log.iter().any(|log| &log.original_value == pii_text);
+        if !was_replaced {
+            return Err(format!(
+                "Email {} failed anonymization: detected PII text '{}' was never replaced",
+                input_path.display(),
+                pii_text
+            ).into());
+        }
+    }
+    
     // Parse the anonymized text back into fields
     let mut body_lines = Vec::new();
     let mut processing_body = false;

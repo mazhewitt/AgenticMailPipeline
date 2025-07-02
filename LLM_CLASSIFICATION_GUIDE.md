@@ -18,7 +18,7 @@ Download and install Ollama from https://ollama.ai/
 
 ```bash
 # Install a lightweight model (recommended)
-ollama pull llama3.2
+ollama pull llama3:8b
 
 # Or use a more powerful model for better accuracy
 ollama pull llama3.1:8b
@@ -106,7 +106,7 @@ If you see this message:
 **Solutions:**
 1. Make sure Ollama is running: `ollama serve`
 2. Check if the model is available: `ollama list`
-3. Pull the required model: `ollama pull llama3.2`
+3. Pull the required model: `ollama pull llama3:8b`
 4. Verify Ollama is accessible: `curl http://localhost:11434/api/tags`
 
 ### Performance Considerations
@@ -124,7 +124,7 @@ If you see this message:
 ## Model Recommendations
 
 ### For Development
-- `llama3.2` (3.2B): Fast, lightweight, good for basic classification
+- `llama3:8b` (3.2B): Fast, lightweight, good for basic classification
 - Good balance of speed and accuracy
 
 ### For Production

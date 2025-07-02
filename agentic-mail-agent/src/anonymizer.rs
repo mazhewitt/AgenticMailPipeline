@@ -15,7 +15,31 @@ use langchain_rust::{
     language_models::llm::LLM,
 };
 
-/// PII entity detected by the LLM
+/// Find the nearest character boundary for safe string slicing
+fn find_char_boundary_helper(text: &str, position: usize) -> usize {
+    if position >= text.len() {
+        return text.len();
+    }
+    
+    // Find the nearest character boundary at or before the given position
+    let mut pos = position;
+    while pos > 0 && !text.is_char_boundary(pos) {
+        pos -= 1;
+    }
+    pos
+}
+
+/// PII entity detected by the LLM (simplified - no positions)
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct LlmPiiEntity {
+    /// Type of PII (e.g., "name", "email", "phone", "address", etc.)
+    #[serde(alias = "type")]
+    pub pii_type: String,
+    /// The exact text as it appears in the original content
+    pub text: String,
+}
+
+/// PII entity with positions calculated in Rust
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct PiiEntity {
     /// Type of PII (e.g., "name", "email", "phone", "address", etc.)
@@ -80,7 +104,7 @@ impl AnonymizationConfig {
     pub fn new(backend: LlmBackend, model: Option<String>) -> Result<Self, Box<dyn std::error::Error>> {
         let (model, openai_api_key) = match backend {
             LlmBackend::Ollama => {
-                (model.unwrap_or_else(|| "llama3.1:8b".to_string()), None)
+                (model.unwrap_or_else(|| "llama3:8b".to_string()), None)
             }
             LlmBackend::OpenAI => {
                 let api_key = Self::load_openai_key()?;
@@ -163,24 +187,86 @@ impl PiiDetector {
     /// Use LLM to detect PII entities in the given text
     pub async fn detect_pii(&self, text: &str) -> Result<Vec<PiiEntity>, Box<dyn std::error::Error>> {
         let prompt = format!(
-            r#"You are a PII detection expert. Find all personally identifiable information (PII) in the following email text.
+            r#"SYSTEM: You are a PII extraction robot. You ONLY output JSON arrays. NO explanations, NO markdown, NO conversations.
 
-For each PII item found, provide:
-- type: The category (name, email, phone, address, company, date, etc.)
-- text: The exact text as it appears
-- start: Character position where the PII starts (0-indexed)
-- end: Character position where the PII ends (0-indexed, exclusive)
+TASK: Extract ALL personally identifiable information (PII) from email text. Return ONLY valid JSON array.
 
-Return ONLY a JSON array with this exact format:
+CRITICAL: You must find ALL instances of PII. Missing any PII will cause the email to fail processing.
+
+FIND ALL of these PII types:
+- Full names of people (first/last names, titles)
+- Email addresses (ALL email addresses including domains)
+- Phone numbers (any format)
+- Physical addresses (street, city, state, zip)
+- Company/organization names
+- Usernames and handles
+- Domain names and URLs
+- Financial information
+- Account numbers and IDs
+
+SPECIFIC EXAMPLES - YOU MUST DETECT ALL OF THESE:
+
+1. Names and Titles:
+   - "John Smith", "Mary Johnson", "Dr. Williams", "Ms. Chen", "CEO Sarah Brown"
+
+2. Email Addresses (CRITICAL - find ALL):
+   - "john@company.com", "user@gmail.com", "contact@domain.org"
+   - "notifications@github.com", "hello@news.smood.ch"
+   - In headers: "John <john@test.com>", "support@example.com"
+
+3. Phone Numbers (ALL formats):
+   - "+1-555-123-4567", "(555) 123-4567", "555.123.4567", "1234567890"
+   - "555-1234", "123 456 7890"
+
+4. Usernames/Handles:
+   - "mazhewitt", "user123", "@username", "john_doe"
+
+5. Company/Organization Names:
+   - "Google", "Microsoft Corp", "Acme Inc", "GitHub", "Smood"
+   - Domain companies: "example.com", "github.com", "smood.ch"
+
+6. Addresses:
+   - "123 Main St", "456 Oak Avenue, Springfield", "New York, NY 10001"
+
+7. URLs and Domains:
+   - "https://github.com/user/repo", "www.example.com", "smood.ch"
+
+8. Financial Info:
+   - "4111-1111-1111-1111", "Account #12345", "$1,000"
+
+EXAMPLE INPUT:
+"From: John Smith <john@github.com>
+To: mazhewitt@gmail.com
+Subject: [user/repo] Build failed
+Hi mazhewitt, your build at https://github.com/user/repo failed.
+Call support at +1-555-123-4567."
+
+EXAMPLE OUTPUT (MUST find ALL of these):
 [
-  {{"type": "name", "text": "John Doe", "start": 15, "end": 23}},
-  {{"type": "email", "text": "john@example.com", "start": 45, "end": 61}}
+  {{"type": "name", "text": "John Smith"}},
+  {{"type": "email", "text": "john@github.com"}},
+  {{"type": "email", "text": "mazhewitt@gmail.com"}},
+  {{"type": "username", "text": "mazhewitt"}},
+  {{"type": "username", "text": "user"}},
+  {{"type": "company", "text": "github.com"}},
+  {{"type": "url", "text": "https://github.com/user/repo"}},
+  {{"type": "phone", "text": "+1-555-123-4567"}}
 ]
 
-Email text to analyze:
+INSTRUCTIONS:
+- Extract EXACT text as it appears
+- Include partial emails/domains (e.g., "@github.com" if in an email)
+- Find usernames even without @ symbol
+- Detect company names in domains and URLs
+- Be extremely thorough - missing PII fails the email
+
+WARNING: OUTPUT MUST BE VALID JSON ARRAY ONLY. NO TEXT. NO EXPLANATIONS. NO MARKDOWN.
+IF YOU OUTPUT ANYTHING OTHER THAN A JSON ARRAY, THE SYSTEM WILL FAIL.
+
+EMAIL TEXT:
 {}
 
-JSON array:"#,
+JSON:"#,
             text
         );
         
@@ -190,12 +276,155 @@ JSON array:"#,
             .map_err(|e| format!("LLM request failed: {}", e))?;
         
         // Parse JSON response
-        let entities = self.parse_pii_response(&response)?;
+        let llm_entities = self.parse_pii_response(&response)?;
+        
+        // Find all positions for each detected PII text in Rust
+        let entities = self.find_all_positions(text, llm_entities);
         
         Ok(entities)
     }
     
-    fn parse_pii_response(&self, response: &str) -> Result<Vec<PiiEntity>, Box<dyn std::error::Error>> {
+    /// Find all positions of detected PII text in the content
+    fn find_all_positions(&self, text: &str, llm_entities: Vec<LlmPiiEntity>) -> Vec<PiiEntity> {
+        // Safety limit: prevent processing extremely large texts
+        if text.len() > 1_000_000 {
+            eprintln!("Warning: Text too large ({} chars), truncating to 1MB", text.len());
+            let truncated_text = &text[..1_000_000];
+            return self.find_all_positions_safe(truncated_text, llm_entities);
+        }
+        
+        // Process with safety limits
+        self.find_all_positions_safe(text, llm_entities)
+    }
+    
+    /// Safe version with bounds checking and iteration limits
+    fn find_all_positions_safe(&self, text: &str, llm_entities: Vec<LlmPiiEntity>) -> Vec<PiiEntity> {
+        let mut entities = Vec::new();
+        let max_iterations_per_entity = 1000; // Prevent infinite loops
+        
+        // First, find all positions for each detected PII text
+        for llm_entity in llm_entities {
+            let mut start = 0;
+            let mut iteration_count = 0;
+            
+            while start < text.len() && iteration_count < max_iterations_per_entity {
+                iteration_count += 1;
+                
+                // Ensure we're at a character boundary
+                let safe_start = find_char_boundary_helper(text, start);
+                if safe_start >= text.len() {
+                    break;
+                }
+                
+                if let Some(pos) = text[safe_start..].find(&llm_entity.text) {
+                    let actual_start = safe_start + pos;
+                    let actual_end = actual_start + llm_entity.text.len();
+                    
+                    // Bounds check
+                    if actual_end <= text.len() {
+                        entities.push(PiiEntity {
+                            pii_type: llm_entity.pii_type.clone(),
+                            text: llm_entity.text.clone(),
+                            start: actual_start,
+                            end: actual_end,
+                        });
+                    }
+                    
+                    // Move past this occurrence, ensuring we make progress
+                    let next_start = actual_start + 1;
+                    if next_start <= start {
+                        // Safety: ensure we always make progress
+                        break;
+                    }
+                    start = next_start;
+                } else {
+                    break; // No more occurrences found
+                }
+            }
+            
+            if iteration_count >= max_iterations_per_entity {
+                eprintln!("Warning: Hit iteration limit for PII text: {}", llm_entity.text);
+            }
+        }
+        
+        // Sort entities by start position, then by length (longer first)
+        entities.sort_by(|a, b| {
+            match a.start.cmp(&b.start) {
+                std::cmp::Ordering::Equal => b.text.len().cmp(&a.text.len()), // Longer text first
+                other => other,
+            }
+        });
+        
+        // Remove overlapping entities, preferring longer and more specific ones
+        let mut deduplicated = Vec::new();
+        
+        for entity in entities {
+            let mut should_add = true;
+            
+            // Check for overlaps with existing entities
+            for existing in &deduplicated {
+                if self.entities_overlap(&entity, existing) {
+                    // Determine which entity to keep
+                    if self.should_prefer_existing(existing, &entity) {
+                        should_add = false;
+                        break;
+                    } else {
+                        // Remove the existing entity and add this one
+                        // We'll handle this by continuing and using a second pass
+                    }
+                }
+            }
+            
+            if should_add {
+                // Remove any existing entities that this one should replace
+                deduplicated.retain(|existing| {
+                    !self.entities_overlap(&entity, existing) || self.should_prefer_existing(existing, &entity)
+                });
+                deduplicated.push(entity);
+            }
+        }
+        
+        // Sort final entities by start position for consistent processing
+        deduplicated.sort_by_key(|e| e.start);
+        deduplicated
+    }
+    
+    /// Check if two PII entities overlap in text positions
+    fn entities_overlap(&self, a: &PiiEntity, b: &PiiEntity) -> bool {
+        // Two entities overlap if one starts before the other ends
+        !(a.end <= b.start || b.end <= a.start)
+    }
+    
+    /// Determine which entity to prefer when there's an overlap
+    fn should_prefer_existing(&self, existing: &PiiEntity, new: &PiiEntity) -> bool {
+        // If one completely contains the other, prefer the longer one
+        if existing.start <= new.start && existing.end >= new.end {
+            return true; // existing contains new, keep existing
+        }
+        if new.start <= existing.start && new.end >= existing.end {
+            return false; // new contains existing, prefer new
+        }
+        
+        // If they're different lengths, prefer longer
+        if existing.text.len() != new.text.len() {
+            return existing.text.len() > new.text.len();
+        }
+        
+        // If same length, prefer more specific type
+        match (existing.pii_type.as_str(), new.pii_type.as_str()) {
+            ("email", "username") => true,  // email is more specific than username
+            ("username", "email") => false,
+            ("email", "company") => true,   // full email is more specific than just company
+            ("company", "email") => false,
+            ("name", "title") => true,      // full name is more specific than title
+            ("title", "name") => false,
+            ("email", "url") => true,       // email is more specific than url
+            ("url", "email") => false,
+            _ => true, // Keep existing by default
+        }
+    }
+    
+    fn parse_pii_response(&self, response: &str) -> Result<Vec<LlmPiiEntity>, Box<dyn std::error::Error>> {
         // Clean the response - sometimes LLMs add markdown or extra text
         let mut cleaned_response = response.trim();
         
@@ -216,17 +445,20 @@ JSON array:"#,
         let json_arrays = self.extract_json_arrays(cleaned_response);
         
         for json_str in &json_arrays {
-            // First try to parse as is, assuming the LLM used the correct field names
-            match serde_json::from_str::<Vec<PiiEntity>>(json_str) {
+            // Clean JSON comments (LLMs sometimes add them)
+            let cleaned_json = self.remove_json_comments(json_str);
+            
+            // First try to parse as LlmPiiEntity, assuming the LLM used the correct field names
+            match serde_json::from_str::<Vec<LlmPiiEntity>>(&cleaned_json) {
                 Ok(entities) => return Ok(entities),
                 Err(_) => {
                     // If that fails, try parsing as raw JSON and converting field names
-                    let raw_entities: Result<Vec<serde_json::Value>, _> = serde_json::from_str(json_str);
+                    let raw_entities: Result<Vec<serde_json::Value>, _> = serde_json::from_str(&cleaned_json);
                     match raw_entities {
                         Ok(raw_entities) => {
                             let mut entities = Vec::new();
                             for raw_entity in raw_entities {
-                                if let Some(entity) = self.parse_single_entity(&raw_entity) {
+                                if let Some(entity) = self.parse_single_llm_entity(&raw_entity) {
                                     entities.push(entity);
                                 }
                             }
@@ -251,7 +483,38 @@ JSON array:"#,
         let mut escape_next = false;
         let mut in_array = false;
         
-        for ch in text.chars() {
+        // Safety limits to prevent memory explosion
+        let max_response_length = 100_000; // 100KB limit
+        let max_array_length = 50_000; // 50KB per array
+        let max_arrays = 10; // Maximum number of arrays to extract
+        
+        let safe_text = if text.len() > max_response_length {
+            eprintln!("Warning: LLM response too large ({} chars), truncating", text.len());
+            &text[..max_response_length]
+        } else {
+            text
+        };
+        
+        for ch in safe_text.chars() {
+            // Safety check: prevent arrays from growing too large
+            if current_array.len() > max_array_length {
+                eprintln!("Warning: JSON array too large, truncating");
+                if in_array {
+                    // Try to close the array and save what we have
+                    current_array.push(']');
+                    arrays.push(current_array.clone());
+                    in_array = false;
+                    current_array.clear();
+                    bracket_count = 0;
+                }
+                break;
+            }
+            
+            // Safety check: prevent too many arrays
+            if arrays.len() >= max_arrays {
+                eprintln!("Warning: Too many JSON arrays found, stopping extraction");
+                break;
+            }
             if escape_next {
                 if in_array {
                     current_array.push(ch);
@@ -307,7 +570,7 @@ JSON array:"#,
         arrays
     }
     
-    fn parse_single_entity(&self, raw_entity: &serde_json::Value) -> Option<PiiEntity> {
+    fn parse_single_llm_entity(&self, raw_entity: &serde_json::Value) -> Option<LlmPiiEntity> {
         let pii_type = raw_entity.get("type")
             .or_else(|| raw_entity.get("pii_type"))
             .and_then(|v| v.as_str())
@@ -319,25 +582,73 @@ JSON array:"#,
             .unwrap_or("")
             .to_string();
         
-        let start = raw_entity.get("start")
-            .and_then(|v| v.as_u64())
-            .unwrap_or(0) as usize;
-            
-        let end = raw_entity.get("end")
-            .and_then(|v| v.as_u64())
-            .unwrap_or((start + text.len()) as u64) as usize;
-        
         // Only return valid entities (must have text)
         if !text.is_empty() {
-            Some(PiiEntity {
+            Some(LlmPiiEntity {
                 pii_type,
                 text,
-                start,
-                end,
             })
         } else {
             None
         }
+    }
+    
+    /// Remove JSON comments that LLMs sometimes add
+    fn remove_json_comments(&self, json_str: &str) -> String {
+        let mut result = String::new();
+        let mut in_string = false;
+        let mut escape_next = false;
+        let mut chars = json_str.chars().peekable();
+        
+        while let Some(ch) = chars.next() {
+            if escape_next {
+                result.push(ch);
+                escape_next = false;
+                continue;
+            }
+            
+            if ch == '\\' && in_string {
+                result.push(ch);
+                escape_next = true;
+                continue;
+            }
+            
+            if ch == '"' {
+                in_string = !in_string;
+                result.push(ch);
+                continue;
+            }
+            
+            if !in_string && ch == '/' {
+                if let Some(&'/') = chars.peek() {
+                    // Skip line comment
+                    chars.next(); // consume second '/'
+                    while let Some(next_ch) = chars.next() {
+                        if next_ch == '\n' || next_ch == '\r' {
+                            result.push(next_ch);
+                            break;
+                        }
+                    }
+                    continue;
+                } else if let Some(&'*') = chars.peek() {
+                    // Skip block comment
+                    chars.next(); // consume '*'
+                    while let Some(next_ch) = chars.next() {
+                        if next_ch == '*' {
+                            if let Some(&'/') = chars.peek() {
+                                chars.next(); // consume '/'
+                                break;
+                            }
+                        }
+                    }
+                    continue;
+                }
+            }
+            
+            result.push(ch);
+        }
+        
+        result
     }
 }
 
@@ -375,21 +686,29 @@ impl PiiReplacer {
             
             // Verify the text matches what we expect
             if adjusted_start < result.len() && adjusted_end <= result.len() {
-                let current_text = &result[adjusted_start..adjusted_end];
-                if current_text == entity.text {
-                    // Replace the text
-                    result.replace_range(adjusted_start..adjusted_end, &fake_value);
+                // Ensure we're slicing on character boundaries
+                let safe_start = self.find_char_boundary(&result, adjusted_start);
+                let safe_end = self.find_char_boundary(&result, adjusted_end);
+                
+                if safe_start < safe_end && safe_end <= result.len() {
+                    let current_text = &result[safe_start..safe_end];
                     
-                    // Update offset for next replacements
-                    offset += fake_value.len() as i32 - entity.text.len() as i32;
-                    
-                    // Log the replacement
-                    self.replacement_log.push(ReplacementLogEntry {
-                        pii_type: entity.pii_type.clone(),
-                        original_value: entity.text.clone(),
-                        fake_value: fake_value.clone(),
-                        position: adjusted_start,
-                    });
+                    // Check if the text contains what we're looking for (fuzzy match due to character boundary adjustments)
+                    if current_text.contains(&entity.text) || entity.text.contains(current_text) || current_text == entity.text {
+                        // Replace the text
+                        result.replace_range(safe_start..safe_end, &fake_value);
+                        
+                        // Update offset for next replacements
+                        offset += fake_value.len() as i32 - (safe_end - safe_start) as i32;
+                        
+                        // Log the replacement
+                        self.replacement_log.push(ReplacementLogEntry {
+                            pii_type: entity.pii_type.clone(),
+                            original_value: entity.text.clone(),
+                            fake_value: fake_value.clone(),
+                            position: safe_start,
+                        });
+                    }
                 }
             }
         }
@@ -488,6 +807,33 @@ impl PiiReplacer {
     pub fn get_replacement_log(&self) -> &[ReplacementLogEntry] {
         &self.replacement_log
     }
+    
+    /// Clear the replacement log (useful when processing multiple emails)
+    pub fn clear_replacement_log(&mut self) {
+        self.replacement_log.clear();
+    }
+    
+    /// Find the nearest character boundary for safe string slicing
+    fn find_char_boundary(&self, text: &str, position: usize) -> usize {
+        if position >= text.len() {
+            return text.len();
+        }
+        
+        // If we're already on a character boundary, return as-is
+        if text.is_char_boundary(position) {
+            return position;
+        }
+        
+        // Search backwards for the nearest character boundary
+        for i in (0..=position).rev() {
+            if text.is_char_boundary(i) {
+                return i;
+            }
+        }
+        
+        // Fallback to the start if somehow we can't find a boundary
+        0
+    }
 }
 
 /// Complete anonymization pipeline
@@ -506,6 +852,9 @@ impl AnonymizationPipeline {
     
     /// Anonymize an email text end-to-end
     pub async fn anonymize_email_text(&mut self, text: &str) -> Result<AnonymizationResult, Box<dyn std::error::Error>> {
+        // Clear any previous replacement log to avoid contamination
+        self.replacer.clear_replacement_log();
+        
         // Step 1: Detect PII using LLM
         let detected_entities = self.detector.detect_pii(text).await?;
         

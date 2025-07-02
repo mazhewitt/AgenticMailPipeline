@@ -258,7 +258,7 @@ cargo run --bin agentic-mail-agent
 ### Using AI Classification (Production)
 ```bash
 # Install and start Ollama
-ollama pull llama3.2
+ollama pull llama3:8b
 ollama serve
 
 # Run with LLM classifier
