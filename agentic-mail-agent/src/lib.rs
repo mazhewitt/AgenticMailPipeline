@@ -6,4 +6,5 @@ pub mod action_router;
 pub mod labeler;
 pub mod gmail_client;
 pub mod anonymizer;
+pub mod pii_orchestrator;
 pub mod test_data_utils;

@@ -29,6 +29,7 @@ dependencies = [
  "hyper 1.6.0",
  "hyper-rustls",
  "langchain-rust",
+ "lazy_static",
  "log",
  "ollama-rs",
  "rand 0.9.1",

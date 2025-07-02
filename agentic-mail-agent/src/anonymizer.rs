@@ -478,10 +478,8 @@ JSON:"#,
     fn extract_json_arrays(&self, text: &str) -> Vec<String> {
         let mut arrays = Vec::new();
         let mut current_array = String::new();
-        let mut bracket_count = 0;
         let mut in_string = false;
         let mut escape_next = false;
-        let mut in_array = false;
         
         // Safety limits to prevent memory explosion
         let max_response_length = 100_000; // 100KB limit
@@ -503,9 +501,7 @@ JSON:"#,
                     // Try to close the array and save what we have
                     current_array.push(']');
                     arrays.push(current_array.clone());
-                    in_array = false;
                     current_array.clear();
-                    bracket_count = 0;
                 }
                 break;
             }
@@ -541,11 +537,10 @@ JSON:"#,
             
             if !in_string {
                 if ch == '[' {
-                    if bracket_count == 0 {
-                        in_array = true;
-                        current_array.clear();
+                    if in_array {
+                        current_array.push(ch);
                     }
-                    bracket_count += 1;
+                    //bracket_count += 1;
                     if in_array {
                         current_array.push(ch);
                     }
@@ -553,10 +548,9 @@ JSON:"#,
                     if in_array {
                         current_array.push(ch);
                     }
-                    bracket_count -= 1;
+                    //bracket_count -= 1;
                     if bracket_count == 0 && in_array {
                         arrays.push(current_array.clone());
-                        in_array = false;
                         current_array.clear();
                     }
                 } else if in_array {
