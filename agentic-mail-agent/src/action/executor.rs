@@ -8,10 +8,10 @@
 
 use async_trait::async_trait;
 
-use crate::email::Email;
+use crate::core::email::Email;
 use crate::classifier::Classification;
-use crate::labeler::{EmailLabeler, LabelingError};
-use crate::archiver::{EmailArchiver, ArchivingError};
+use crate::action::impls::labeler::{EmailLabeler, LabelingError};
+use crate::action::impls::archiver::{EmailArchiver, ArchivingError};
 
 /// Result of action execution on an email.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -319,7 +319,7 @@ impl ActionExecutor for StubActionExecutor {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::labeler::StubLabeler;
+    use crate::action::impls::labeler::StubLabeler;
 
     #[test]
     fn test_get_label_for_category() {
@@ -380,7 +380,7 @@ mod tests {
     #[tokio::test]
     async fn test_gmail_action_executor_with_stub_labeler() {
         let labeler = StubLabeler::new();
-        let archiver = crate::archiver::StubArchiver::new();
+        let archiver = crate::action::impls::archiver::StubArchiver::new();
         let executor = GmailActionExecutor::new(labeler, archiver);
         
         let email = Email::new("msg456".to_string(), Some("Newsletter".to_string()), None);

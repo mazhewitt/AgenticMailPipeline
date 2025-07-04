@@ -4,7 +4,7 @@
 //! to test classification accuracy without requiring a live Ollama instance.
 
 use agentic_mail_agent::classifier::{MessageClassifier, MockOllamaClassifier};
-use agentic_mail_agent::email::Email;
+use agentic_mail_agent::core::email::Email;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 

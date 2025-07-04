@@ -9,8 +9,8 @@ mod stub;
 pub use gmail::GmailFetcher;
 pub use stub::StubFetcher;
 
-use crate::email::Email;
-use crate::types::FetchError;
+use crate::core::email::Email;
+use crate::core::types::FetchError;
 
 /// Trait for fetching unread emails from email services.
 /// 

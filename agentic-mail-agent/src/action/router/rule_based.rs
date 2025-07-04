@@ -4,7 +4,7 @@
 //! that maps email classifications to predefined actions based on configurable rules.
 
 use super::{ActionRouter, EmailAction, RoutingResult, RoutingError};
-use crate::email::Email;
+use crate::core::email::Email;
 use crate::classifier::Classification;
 use std::collections::HashMap;
 

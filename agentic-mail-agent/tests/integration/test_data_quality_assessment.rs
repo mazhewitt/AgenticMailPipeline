@@ -1,5 +1,5 @@
 use agentic_mail_agent::classifier::{StubClassifier, MessageClassifier};
-use agentic_mail_agent::email::Email;
+use agentic_mail_agent::core::email::Email;
 use serde_json;
 use std::collections::{HashMap, HashSet};
 use std::fs;

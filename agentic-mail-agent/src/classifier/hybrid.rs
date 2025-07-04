@@ -6,7 +6,7 @@
 
 use crate::classifier::{Classification, ClassificationError, MessageClassifier};
 use crate::classifier::text_preprocessing::prepare_email_for_classification;
-use crate::email::Email;
+use crate::core::email::Email;
 use async_trait::async_trait;
 use std::sync::Arc;
 

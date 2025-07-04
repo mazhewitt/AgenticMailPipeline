@@ -1,9 +1,9 @@
 //! Integration tests for the labeling functionality
 
-use agentic_mail_agent::email::Email;
+use agentic_mail_agent::core::email::Email;
 use agentic_mail_agent::classifier::{MessageClassifier, StubClassifier};
-use agentic_mail_agent::action_executor::{ActionExecutor, StubActionExecutor};
-use agentic_mail_agent::labeler::{StubLabeler, EmailLabeler};
+use agentic_mail_agent::action::executor::{ActionExecutor, StubActionExecutor};
+use agentic_mail_agent::action::impls::labeler::{StubLabeler, EmailLabeler};
 
 #[tokio::test]
 async fn test_end_to_end_labeling_pipeline() {

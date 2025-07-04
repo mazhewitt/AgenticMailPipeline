@@ -1,9 +1,9 @@
 //! Stub implementation of EmailFetcher for testing and development.
 
 use async_trait::async_trait;
-use crate::email::Email;
+use crate::core::email::Email;
 use crate::fetcher::EmailFetcher;
-use crate::types::FetchError;
+use crate::core::types::FetchError;
 
 /// Stub fetcher for development and testing.
 /// 
@@ -92,7 +92,7 @@ impl EmailFetcher for StubFetcher {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::email::Email;
+    use crate::core::email::Email;
 
     #[tokio::test]
     async fn stub_fetcher_returns_empty_by_default() {

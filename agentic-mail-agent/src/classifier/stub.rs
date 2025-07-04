@@ -5,7 +5,7 @@ use rand::Rng;
 
 use super::{Classification, ClassificationError, MessageClassifier};
 use super::text_preprocessing::prepare_email_for_classification;
-use crate::email::Email;
+use crate::core::email::Email;
 
 /// A stub classifier that returns predefined or random classifications.
 /// 

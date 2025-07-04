@@ -4,7 +4,7 @@
 //! To run them, ensure GMAIL_CLIENT_SECRET_JSON and GMAIL_TOKEN_JSON environment variables are set
 //! and use: cargo test --test integration_gmail_labeling -- --ignored
 
-use agentic_mail_agent::labeler::{GmailLabeler, EmailLabeler, LabelingError};
+use agentic_mail_agent::action::impls::labeler::{GmailLabeler, EmailLabeler, LabelingError};
 
 #[tokio::test]
 #[ignore = "Requires Gmail API credentials"]

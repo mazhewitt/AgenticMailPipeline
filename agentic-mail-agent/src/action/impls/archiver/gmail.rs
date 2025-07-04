@@ -5,7 +5,7 @@ use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
 use super::{EmailArchiver, ArchiveResult, ArchivingError};
-use crate::gmail_client::{GmailClient, GmailAuthConfig, GmailClientError};
+use crate::gmail::{GmailClient, GmailAuthConfig, GmailClientError};
 use google_gmail1::{
     api::ModifyMessageRequest,
 };

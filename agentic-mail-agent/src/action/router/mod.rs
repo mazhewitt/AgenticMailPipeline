@@ -8,7 +8,7 @@ mod rule_based;
 
 pub use rule_based::{RuleBasedRouter, RoutingConfig};
 
-use crate::email::Email;
+use crate::core::email::Email;
 use crate::classifier::Classification;
 
 /// Represents an action that can be performed on an email.

@@ -5,7 +5,7 @@
 //! not clutter the inbox but aren't actionable or particularly interesting.
 
 use agentic_mail_agent::classifier::{MessageClassifier, StubClassifier};
-use agentic_mail_agent::email::Email;
+use agentic_mail_agent::core::email::Email;
 
 /// Test marketing domain patterns should be classified as Noise
 #[tokio::test]

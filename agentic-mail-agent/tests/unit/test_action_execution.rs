@@ -5,11 +5,11 @@
 //! 2. Archives all emails except ActionRequired
 //! 3. Keeps ActionRequired emails in the inbox with proper labels
 
-use agentic_mail_agent::email::Email;
+use agentic_mail_agent::core::email::Email;
 use agentic_mail_agent::classifier::Classification;
-use agentic_mail_agent::action_executor::{ActionExecutor, GmailActionExecutor};
-use agentic_mail_agent::labeler::StubLabeler;
-use agentic_mail_agent::archiver::StubArchiver;
+use agentic_mail_agent::action::executor::{ActionExecutor, GmailActionExecutor};
+use agentic_mail_agent::action::impls::labeler::StubLabeler;
+use agentic_mail_agent::action::impls::archiver::StubArchiver;
 
 /// Test action executor that applies labels and archives based on classification
 type TestActionExecutor = GmailActionExecutor<StubLabeler, StubArchiver>;
@@ -141,7 +141,7 @@ async fn test_spam_emails_get_archived() {
 /// Test all 5 categories have correct label mapping
 #[tokio::test]
 async fn test_all_category_labels() {
-    use agentic_mail_agent::action_executor::get_label_for_category;
+    use agentic_mail_agent::action::executor::get_label_for_category;
     
     // Test all 5 current categories
     assert_eq!(get_label_for_category("ActionRequired"), "AGENT_ACTIONREQUIRED");

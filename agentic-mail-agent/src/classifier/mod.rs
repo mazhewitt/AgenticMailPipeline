@@ -9,6 +9,9 @@ mod text_preprocessing;
 mod hybrid;
 mod mock_ollama;
 
+pub mod rules;
+pub mod llm;
+
 pub use stub::StubClassifier;
 pub use langchain::{LangChainClassifier, LangChainConfig};
 pub use hybrid::HybridClassifier;
@@ -20,7 +23,7 @@ pub use text_preprocessing::{
     prepare_email_metadata_for_classification,
 };
 
-use crate::email::Email;
+use crate::core::email::Email;
 
 /// Result of email classification.
 /// 

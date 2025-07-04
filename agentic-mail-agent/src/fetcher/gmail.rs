@@ -1,10 +1,10 @@
 //! Gmail API implementation of EmailFetcher.
 
 use async_trait::async_trait;
-use crate::email::Email;
+use crate::core::email::Email;
 use crate::fetcher::EmailFetcher;
-use crate::types::FetchError;
-use crate::gmail_client::{GmailClient, GmailAuthConfig};
+use crate::core::types::FetchError;
+use crate::gmail::{GmailClient, GmailAuthConfig};
 
 /// Fetcher that uses the Gmail API (google-gmail1 crate) to fetch emails.
 ///
@@ -599,7 +599,7 @@ mod tests {
     #[test]
     fn email_construction_with_subject_and_snippet() {
         // Test that our Gmail fetcher would construct emails correctly
-        use crate::email::Email;
+        use crate::core::email::Email;
         
         let email = Email::new(
             "test-123".to_string(),

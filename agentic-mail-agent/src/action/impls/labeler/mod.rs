@@ -131,13 +131,13 @@ impl LabelingError {
 }
 
 // Conversion from GmailClientError to LabelingError
-impl From<crate::gmail_client::GmailClientError> for LabelingError {
-    fn from(error: crate::gmail_client::GmailClientError) -> Self {
+impl From<crate::gmail::GmailClientError> for LabelingError {
+    fn from(error: crate::gmail::GmailClientError) -> Self {
         match error {
-            crate::gmail_client::GmailClientError::Config { message } => {
+            crate::gmail::GmailClientError::Config { message } => {
                 LabelingError::config(message)
             }
-            crate::gmail_client::GmailClientError::Auth { message } => {
+            crate::gmail::GmailClientError::Auth { message } => {
                 LabelingError::auth(message)
             }
         }

@@ -7,7 +7,7 @@ use agentic_mail_agent::classifier::{
     MessageClassifier, LangChainClassifier, MockOllamaClassifier, 
     StubClassifier, HybridClassifier
 };
-use agentic_mail_agent::email::Email;
+use agentic_mail_agent::core::email::Email;
 
 /// Record responses from classifier ground truth tests
 #[tokio::test]

@@ -57,13 +57,13 @@ impl FetchError {
 }
 
 // Conversion from GmailClientError to FetchError
-impl From<crate::gmail_client::GmailClientError> for FetchError {
-    fn from(error: crate::gmail_client::GmailClientError) -> Self {
+impl From<crate::gmail::GmailClientError> for FetchError {
+    fn from(error: crate::gmail::GmailClientError) -> Self {
         match error {
-            crate::gmail_client::GmailClientError::Config { message } => {
+            crate::gmail::GmailClientError::Config { message } => {
                 FetchError::config(message)
             }
-            crate::gmail_client::GmailClientError::Auth { message } => {
+            crate::gmail::GmailClientError::Auth { message } => {
                 FetchError::auth(message)
             }
         }

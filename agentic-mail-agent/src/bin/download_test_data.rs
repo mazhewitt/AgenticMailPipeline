@@ -198,8 +198,8 @@ struct TestDataEmail {
 impl TestDataEmail {
     /// Convert to the Email type used by the classifier
     #[allow(dead_code)]
-    fn to_email(&self) -> agentic_mail_agent::email::Email {
-        agentic_mail_agent::email::Email::new_full(
+    fn to_email(&self) -> agentic_mail_agent::core::email::Email {
+        agentic_mail_agent::core::email::Email::new_full(
             self.id.clone(),
             self.subject.clone(),
             self.snippet.clone(),

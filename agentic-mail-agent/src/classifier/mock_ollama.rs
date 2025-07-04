@@ -4,7 +4,7 @@
 //! and then replay them deterministically for unit tests.
 
 use crate::classifier::{Classification, ClassificationError, MessageClassifier};
-use crate::email::Email;
+use crate::core::email::Email;
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;

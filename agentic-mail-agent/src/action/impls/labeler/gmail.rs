@@ -5,7 +5,7 @@ use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
 use super::{EmailLabeler, LabelingResult, LabelingError};
-use crate::gmail_client::{GmailClient, GmailAuthConfig};
+use crate::gmail::{GmailClient, GmailAuthConfig};
 use google_gmail1::{
     api::{Label, ModifyMessageRequest},
 };

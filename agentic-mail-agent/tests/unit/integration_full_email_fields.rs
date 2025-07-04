@@ -4,9 +4,9 @@
 //! with the new email fields (from, to, sent, body).
 
 use agentic_mail_agent::{
-    email::Email,
+    core::email::Email,
     classifier::{MessageClassifier, StubClassifier, Classification},
-    action_router::{ActionRouter, RuleBasedRouter},
+    action::router::{ActionRouter, RuleBasedRouter},
     fetcher::{EmailFetcher, StubFetcher},
 };
 

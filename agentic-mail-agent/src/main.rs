@@ -1,8 +1,8 @@
 use agentic_mail_agent::fetcher::{EmailFetcher, GmailFetcher, StubFetcher};
 use agentic_mail_agent::classifier::{MessageClassifier, StubClassifier, LangChainClassifier};
-use agentic_mail_agent::action_executor::{ActionExecutor, StubActionExecutor};
-use agentic_mail_agent::labeler::{EmailLabeler, StubLabeler, GmailLabeler};
-use agentic_mail_agent::archiver::{EmailArchiver, StubArchiver, GmailArchiver};
+use agentic_mail_agent::action::{ActionExecutor, StubActionExecutor};
+use agentic_mail_agent::action::impls::labeler::{EmailLabeler, StubLabeler, GmailLabeler};
+use agentic_mail_agent::action::impls::archiver::{EmailArchiver, StubArchiver, GmailArchiver};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -19,7 +19,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let fetcher: Box<dyn EmailFetcher> = if use_demo_mode {
         println!("Gmail credentials not found, using stub fetcher with demo data");
         // Create some demo emails to show the complete agentic functionality
-        use agentic_mail_agent::email::Email;
+        use agentic_mail_agent::core::email::Email;
         let demo_emails = vec![
             Email::new(
                 "demo-1".to_string(),
@@ -172,7 +172,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use agentic_mail_agent::email::Email;
+    use agentic_mail_agent::core::email::Email;
     use agentic_mail_agent::fetcher::StubFetcher;
     use agentic_mail_agent::classifier::ClassificationError;
 
