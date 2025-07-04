@@ -26,7 +26,7 @@ pub struct GroundTruthMetadata {
 
 /// Load ground truth data from JSON file
 fn load_ground_truth_data() -> GroundTruthData {
-    let ground_truth_json = include_str!("../test_data/ground_truth.json");
+    let ground_truth_json = include_str!("../../test_data/ground_truth.json");
     serde_json::from_str(ground_truth_json).expect("Failed to parse ground truth data")
 }
 

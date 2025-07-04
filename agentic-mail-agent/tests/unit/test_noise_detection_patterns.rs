@@ -4,7 +4,7 @@
 //! types of "Noise" emails (marketing, social, promotional content) that should
 //! not clutter the inbox but aren't actionable or particularly interesting.
 
-use agentic_mail_agent::classifier::{MessageClassifier, StubClassifier, HybridClassifier};
+use agentic_mail_agent::classifier::{MessageClassifier, StubClassifier};
 use agentic_mail_agent::email::Email;
 
 /// Test marketing domain patterns should be classified as Noise

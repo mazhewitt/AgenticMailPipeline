@@ -29,3 +29,26 @@ chrono = { version = "0.4", features = ["serde"] }
 log = "0.4"
 env_logger = "0.11"
 html2text = "0.4.1"
+
+# Test configuration for different test categories
+# Run with: cargo test --test unit --test ollama --test gmail --test integration
+
+# Unit tests - no external dependencies, fast execution
+[[test]]
+name = "unit"
+path = "tests/unit/mod.rs"
+
+# Ollama tests - require local Ollama server
+[[test]]
+name = "ollama"
+path = "tests/ollama/mod.rs"
+
+# Gmail tests - require Gmail API credentials
+[[test]]
+name = "gmail"
+path = "tests/gmail/mod.rs"
+
+# Integration tests - require both Gmail and Ollama
+[[test]]
+name = "integration"
+path = "tests/integration/mod.rs"

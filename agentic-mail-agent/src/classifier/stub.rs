@@ -99,8 +99,12 @@ impl StubClassifier {
             ("ActionRequired", 0.9)
         } else if 
             // InterestingInfo patterns - must come before general newsletter patterns
-            (cleaned_content.contains("newsletter") || cleaned_content.contains("digest")) && (cleaned_content.contains("tech") || cleaned_content.contains("ai") || cleaned_content.contains("news")) ||
-            cleaned_content.contains("tech") && cleaned_content.contains("newsletter") ||
+            // Check original content for newsletter patterns since "newsletter" is filtered out during preprocessing
+            (email.subject.as_deref().unwrap_or("").to_lowercase().contains("newsletter") || 
+             email.snippet.as_deref().unwrap_or("").to_lowercase().contains("newsletter") || 
+             cleaned_content.contains("digest")) && (cleaned_content.contains("tech") || cleaned_content.contains("ai") || cleaned_content.contains("news")) ||
+            cleaned_content.contains("tech") && (email.subject.as_deref().unwrap_or("").to_lowercase().contains("newsletter") || 
+                                                 email.snippet.as_deref().unwrap_or("").to_lowercase().contains("newsletter")) ||
             cleaned_content.contains("security") && cleaned_content.contains("alert") ||
             cleaned_content.contains("economics") || cleaned_content.contains("financial") ||
             cleaned_content.contains("scam") && cleaned_content.contains("protect") ||
@@ -166,9 +170,19 @@ impl StubClassifier {
             cleaned_content.contains("wishlist") && cleaned_content.contains("sale") ||
             
             // Newsletter patterns (excluding tech/security/AI newsletters)
-            cleaned_content.contains("newsletter") && !cleaned_content.contains("tech") && !cleaned_content.contains("ai") && !cleaned_content.contains("security") ||
+            // Check original content for newsletter patterns since "newsletter" is filtered out during preprocessing
+            (email.subject.as_deref().unwrap_or("").to_lowercase().contains("newsletter") || 
+             email.snippet.as_deref().unwrap_or("").to_lowercase().contains("newsletter") ||
+             sender_domain.contains("newsletter")) && 
+            !cleaned_content.contains("tech") && !cleaned_content.contains("ai") && !cleaned_content.contains("security") ||
             cleaned_content.contains("weekly digest") && !cleaned_content.contains("tech") && !cleaned_content.contains("ai") ||
             cleaned_content.contains("monthly update") && !cleaned_content.contains("security") && !cleaned_content.contains("tech") ||
+            // Generic newsletter-like patterns
+            cleaned_content.contains("weekly") && (cleaned_content.contains("roundup") || cleaned_content.contains("digest") || cleaned_content.contains("sports") || cleaned_content.contains("entertainment") || cleaned_content.contains("celebrity") || cleaned_content.contains("tips")) ||
+            cleaned_content.contains("monthly") && (cleaned_content.contains("roundup") || cleaned_content.contains("digest") || cleaned_content.contains("updates")) ||
+            // Lifestyle and wellness content
+            cleaned_content.contains("healthy living") || cleaned_content.contains("lifestyle") && cleaned_content.contains("tips") ||
+            cleaned_content.contains("wellness") || cleaned_content.contains("health") && (cleaned_content.contains("tips") || cleaned_content.contains("advice")) ||
             
             // Generic promotional language
             cleaned_content.contains("marketing") || cleaned_content.contains("subscribe") ||
@@ -179,6 +193,11 @@ impl StubClassifier {
             // Location-based promotional patterns
             cleaned_content.contains("events near you") || cleaned_content.contains("in your area") ||
             cleaned_content.contains("local events") || cleaned_content.contains("near your location") ||
+            cleaned_content.contains("at your location") || cleaned_content.contains("someone was at") ||
+            // Event and ticket promotions
+            cleaned_content.contains("concert tickets") || cleaned_content.contains("tickets available") ||
+            cleaned_content.contains("tickets") && (cleaned_content.contains("concerts") || cleaned_content.contains("shows") || cleaned_content.contains("events")) ||
+            cleaned_content.contains("get tickets") || cleaned_content.contains("upcoming concerts") ||
             
             // Check original subject/snippet for unsubscribe since it gets filtered out in preprocessing
             email.subject.as_deref().unwrap_or("").to_lowercase().contains("unsubscribe") ||
