@@ -4,7 +4,6 @@
 use agentic_mail_agent::anonymizer::{
     PiiEntity, PiiReplacer
 };
-use serde_json;
 
 /// Simulates what the LLM would detect in a realistic email
 fn simulate_llm_detection(text: &str) -> Vec<PiiEntity> {

@@ -5,7 +5,6 @@
 //! count, the email anonymization should fail.
 
 use agentic_mail_agent::anonymizer::{AnonymizationPipeline, AnonymizationConfig, LlmBackend};
-use serde_json;
 
 /// Email structure for anonymization testing
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]

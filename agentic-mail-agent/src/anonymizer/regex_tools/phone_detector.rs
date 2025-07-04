@@ -8,6 +8,12 @@ pub struct PhoneDetector {
     patterns: Vec<Regex>,
 }
 
+impl Default for PhoneDetector {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl PhoneDetector {
     /// Create a new phone detector with US and international phone number patterns
     pub fn new() -> Self {
@@ -101,7 +107,7 @@ impl PhoneDetector {
         // International phone numbers (with + prefix)
         if phone.starts_with('+') {
             // International numbers should have 7-15 digits total
-            if digit_count >= 7 && digit_count <= 15 {
+            if (7..=15).contains(&digit_count) {
                 return true;
             }
         }

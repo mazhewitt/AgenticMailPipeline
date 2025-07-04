@@ -186,7 +186,7 @@ pub fn check_for_real_emails(text: &str) -> bool {
         // Skip common anonymized patterns
         if email.contains("example.com") || 
            email.contains("user") && email.matches('@').count() == 1 ||
-           email.starts_with("user") && email.chars().nth(4).map_or(false, |c| c.is_ascii_digit()) {
+           email.starts_with("user") && email.chars().nth(4).is_some_and(|c| c.is_ascii_digit()) {
             continue;
         }
         

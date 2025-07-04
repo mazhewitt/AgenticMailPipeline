@@ -90,7 +90,6 @@ impl GmailAuthConfig {
     
     /// Find default path by looking in parent directories for the secrets folder.
     fn find_default_path(relative_path: &str) -> Result<String, GmailClientError> {
-        use std::path::PathBuf;
         
         let current_dir = std::env::current_dir()
             .map_err(|_| GmailClientError::config("Could not determine current directory"))?;
@@ -169,7 +168,7 @@ impl GmailAuthConfig {
                 }
                 
                 // Try to parse as JSON to ensure it's valid
-                if let Err(_) = serde_json::from_str::<serde_json::Value>(&content) {
+                if serde_json::from_str::<serde_json::Value>(&content).is_err() {
                     return Err(GmailClientError::config(format!(
                         "Token file contains invalid JSON: {}\n\nTo fix this:\n  1. Delete the corrupt file: rm {}\n  2. Run: ./setup_gmail_auth.sh", 
                         self.token_path,
@@ -291,7 +290,16 @@ mod tests {
         std::env::remove_var("GMAIL_CLIENT_SECRET_JSON");
         std::env::remove_var("GMAIL_TOKEN_JSON");
         
+        // Change to a directory where secrets won't be found
+        let original_dir = std::env::current_dir().unwrap();
+        let temp_dir = std::env::temp_dir();
+        std::env::set_current_dir(&temp_dir).unwrap();
+        
         let result = GmailAuthConfig::from_env();
+        
+        // Restore original directory
+        std::env::set_current_dir(original_dir).unwrap();
+        
         assert!(result.is_err());
     }
 

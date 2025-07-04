@@ -4,7 +4,6 @@
 //! `download_test_data` binary for testing email classification functionality.
 
 use agentic_mail_agent::core::email::Email;
-use serde_json;
 use std::fs;
 use std::path::Path;
 

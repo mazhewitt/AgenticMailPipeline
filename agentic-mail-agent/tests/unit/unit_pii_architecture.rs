@@ -1,7 +1,6 @@
 use agentic_mail_agent::anonymizer::{
     PiiEntity, PiiReplacer
 };
-use serde_json;
 use std::collections::HashMap;
 
 #[test]

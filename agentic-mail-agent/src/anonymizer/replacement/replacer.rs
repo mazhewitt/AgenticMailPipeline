@@ -15,6 +15,12 @@ pub struct PiiReplacer {
     replacement_cache: HashMap<String, String>,
 }
 
+impl Default for PiiReplacer {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl PiiReplacer {
     pub fn new() -> Self {
         Self {

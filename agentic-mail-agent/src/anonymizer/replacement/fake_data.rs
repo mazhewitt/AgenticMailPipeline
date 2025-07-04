@@ -3,6 +3,12 @@
 /// Generator for realistic fake data to replace PII
 pub struct FakeDataGenerator;
 
+impl Default for FakeDataGenerator {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl FakeDataGenerator {
     pub fn new() -> Self {
         Self

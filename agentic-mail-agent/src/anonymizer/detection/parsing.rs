@@ -5,6 +5,12 @@ use crate::anonymizer::types::LlmPiiEntity;
 /// Parser for LLM responses containing PII data
 pub struct ResponseParser;
 
+impl Default for ResponseParser {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ResponseParser {
     pub fn new() -> Self {
         Self
@@ -29,7 +35,7 @@ impl ResponseParser {
         }
 
         // Find the JSON array - look for complete arrays
-        let json_arrays = self.extract_json_arrays(&cleaned_response);
+        let json_arrays = self.extract_json_arrays(cleaned_response);
 
         for json_str in &json_arrays {
             // Clean JSON comments (LLMs sometimes add them)
@@ -244,7 +250,7 @@ impl ResponseParser {
                 if let Some(&'/') = chars.peek() {
                     // Skip line comment
                     chars.next(); // consume second '/'
-                    while let Some(next_ch) = chars.next() {
+                    for next_ch in chars.by_ref() {
                         if next_ch == '\n' || next_ch == '\r' {
                             result.push(next_ch);
                             break;

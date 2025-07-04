@@ -10,6 +10,12 @@ pub struct LocationDetector {
     swiss_postal_codes: Regex,
 }
 
+impl Default for LocationDetector {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl LocationDetector {
     /// Create a new location detector with Swiss and international patterns
     pub fn new() -> Self {
@@ -131,7 +137,7 @@ impl LocationDetector {
         if self.swiss_postal_codes.is_match(location) {
             let postal_code: u32 = location.parse().unwrap_or(0);
             // Swiss postal codes are 1000-9999
-            return postal_code >= 1000 && postal_code <= 9999;
+            return (1000..=9999).contains(&postal_code);
         }
         
         // Validate postal code + city patterns
@@ -141,11 +147,11 @@ impl LocationDetector {
                 // First part should be valid postal code
                 if let Ok(postal_code) = parts[0].parse::<u32>() {
                     // Swiss postal codes
-                    if postal_code >= 1000 && postal_code <= 9999 {
+                    if (1000..=9999).contains(&postal_code) {
                         return true;
                     }
                     // German postal codes
-                    if postal_code >= 10000 && postal_code <= 99999 {
+                    if (10000..=99999).contains(&postal_code) {
                         return true;
                     }
                 }

@@ -568,14 +568,26 @@ mod tests {
 
     #[tokio::test]
     async fn gmail_fetcher_from_env_missing_vars() {
+        // Install crypto provider for test
+        let _ = rustls::crypto::ring::default_provider().install_default();
+        
         // Temporarily unset environment variables
         std::env::remove_var("GMAIL_CLIENT_SECRET_JSON");
         std::env::remove_var("GMAIL_TOKEN_JSON");
         
+        // Change to a directory where secrets won't be found
+        let original_dir = std::env::current_dir().unwrap();
+        let temp_dir = std::env::temp_dir();
+        std::env::set_current_dir(&temp_dir).unwrap();
+        
         let result = GmailFetcher::from_env().await;
+        
+        // Restore original directory
+        std::env::set_current_dir(original_dir).unwrap();
+        
         assert!(result.is_err());
         if let Err(FetchError::Config { message }) = result {
-            assert!(message.contains("GMAIL_CLIENT_SECRET_JSON"));
+            assert!(message.contains("Gmail credentials not found"));
         } else {
             panic!("Expected Config error");
         }

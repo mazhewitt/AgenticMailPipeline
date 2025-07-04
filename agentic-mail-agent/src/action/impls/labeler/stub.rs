@@ -102,7 +102,7 @@ impl StubLabeler {
     fn add_label_to_message(&self, message_id: &str, label: &str) {
         let mut applied = self.applied_labels.lock().unwrap();
         applied.entry(message_id.to_string())
-            .or_insert_with(Vec::new)
+            .or_default()
             .push(label.to_string());
     }
 

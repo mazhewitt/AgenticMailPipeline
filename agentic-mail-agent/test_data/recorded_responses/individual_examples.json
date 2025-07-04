@@ -1,30 +1,17 @@
 {
   "responses": [
     {
-      "email_id": "newsletter001",
-      "email_subject": "Weekly Tech Newsletter",
-      "email_snippet": "Latest tech trends and AI developments",
-      "email_from": "tech@newsletter.com",
-      "classification": {
-        "category": "InterestingInfo",
-        "score": 0.95,
-        "llm_response": "LLM Response: The email contains valuable information about latest tech trends and AI developments, making it worth reading for someone interested in tech news. (Score: 0.95)"
-      },
-      "raw_response": "LLM Response: The email contains valuable information about latest tech trends and AI developments, making it worth reading for someone interested in tech news. (Score: 0.95)",
-      "recorded_at": "2025-07-04T21:49:34.643658+00:00"
-    },
-    {
       "email_id": "urgent001",
       "email_subject": "URGENT: Server Down",
       "email_snippet": "Production server crashed, need immediate action",
       "email_from": "ops@company.com",
       "classification": {
         "category": "ActionRequired",
-        "score": 0.98,
-        "llm_response": "LLM Response: The email contains urgent language ('URGENT: Server Down') and a clear call to action ('need immediate action'), indicating that personal attention is required. (Score: 0.98)"
+        "score": 0.95,
+        "llm_response": "LLM Response: The email contains an urgent message about a production server crash requiring immediate action, making it high priority and necessitating personal attention. (Score: 0.95)"
       },
-      "raw_response": "LLM Response: The email contains urgent language ('URGENT: Server Down') and a clear call to action ('need immediate action'), indicating that personal attention is required. (Score: 0.98)",
-      "recorded_at": "2025-07-04T21:49:22.690057+00:00"
+      "raw_response": "LLM Response: The email contains an urgent message about a production server crash requiring immediate action, making it high priority and necessitating personal attention. (Score: 0.95)",
+      "recorded_at": "2025-07-04T21:54:57.820126+00:00"
     },
     {
       "email_id": "receipt001",
@@ -33,11 +20,11 @@
       "email_from": "orders@shop.com",
       "classification": {
         "category": "Reference",
-        "score": 0.9,
-        "llm_response": "LLM Response: The email contains a receipt which is useful to keep for reference but does not require immediate personal action or contain actionable information. (Score: 0.90)"
+        "score": 0.8,
+        "llm_response": "LLM Response: This email contains an order confirmation which is useful for reference purposes but does not require immediate personal action (Score: 0.80)"
       },
-      "raw_response": "LLM Response: The email contains a receipt which is useful to keep for reference but does not require immediate personal action or contain actionable information. (Score: 0.90)",
-      "recorded_at": "2025-07-04T21:49:59.069050+00:00"
+      "raw_response": "LLM Response: This email contains an order confirmation which is useful for reference purposes but does not require immediate personal action (Score: 0.80)",
+      "recorded_at": "2025-07-04T21:55:24.190692+00:00"
     },
     {
       "email_id": "spam001",
@@ -46,16 +33,29 @@
       "email_from": "noreply@scam.com",
       "classification": {
         "category": "Spam",
-        "score": 0.99,
-        "llm_response": "LLM Response: This email contains a clear phishing attempt with an unsolicited offer of money, originating from a suspicious domain 'scam.com'. (Score: 0.99)"
+        "score": 1.0,
+        "llm_response": "LLM Response: The email contains a clear phishing attempt with an enticing but suspicious prize offer and comes from a known scam domain. (Score: 1.00)"
       },
-      "raw_response": "LLM Response: This email contains a clear phishing attempt with an unsolicited offer of money, originating from a suspicious domain 'scam.com'. (Score: 0.99)",
-      "recorded_at": "2025-07-04T21:49:47.807216+00:00"
+      "raw_response": "LLM Response: The email contains a clear phishing attempt with an enticing but suspicious prize offer and comes from a known scam domain. (Score: 1.00)",
+      "recorded_at": "2025-07-04T21:55:17.380928+00:00"
+    },
+    {
+      "email_id": "newsletter001",
+      "email_subject": "Weekly Tech Newsletter",
+      "email_snippet": "Latest tech trends and AI developments",
+      "email_from": "tech@newsletter.com",
+      "classification": {
+        "category": "InterestingInfo",
+        "score": 0.98,
+        "llm_response": "LLM Response: The email content contains valuable information about latest tech trends and AI developments, making it potentially interesting to read, but no personal action is required. (Score: 0.98)"
+      },
+      "raw_response": "LLM Response: The email content contains valuable information about latest tech trends and AI developments, making it potentially interesting to read, but no personal action is required. (Score: 0.98)",
+      "recorded_at": "2025-07-04T21:55:09.986948+00:00"
     }
   ],
   "metadata": {
     "model": "llama3.1:8b",
-    "recorded_at": "2025-07-04T21:49:59.069068+00:00",
+    "recorded_at": "2025-07-04T21:55:24.190715+00:00",
     "total_responses": 4
   }
 }

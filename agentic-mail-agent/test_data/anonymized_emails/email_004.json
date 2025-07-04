@@ -1,0 +1,13 @@
+{
+  "id": "197d735e74cc7841",
+  "subject": "Your receipt from Anthropic, PBC #2786-4974-8259",
+  "snippet": "Your receipt from Anthropic, PBC #2786-4974-8259 ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏",
+  "from": "\"Anthropic, PBC\" <info4@test.org>",
+  "to": [
+    "admin5@demo.co.uk"
+  ],
+  "sent": "Fri, 4 Jul 2025 20:52:01 +0000",
+  "body": "Anthropic, PBC  (https://www.anthropic.com/)\r\n\r\nAnthropic, PBC\r\n\r\nReceipt from Anthropic, PBC $16.80 Paid July 4, 2025 (invoice illustration [https://stripe-images.s3.amazonaws.com/emails/invoices_invoice_illustration.png]) Download invoice (https://pay.stripe.com/invoice/acct_1MExQ9BjIQrRQnux/live_YWNjdF8xTUV4UTlCaklRclJRbnV4LF9TY1ZiRkFNT2YyaWtvWml1OU5XZFUwbGlnWkRyTWJ3LDE0MjIwMzExNQ0200iXXexXGt/pdf?s=em) Download receipt (https://dashboard.stripe.com/receipts/invoices/CAcQARoXChVhY2N0XzFNRXhROUJqSVFyUlFudXgo6_2gwwYyBqSGYLaA-zovFu3HOgumcmpvimO9MXL0OXpl8VTIVHXlO0pPibK0kqoxEJUHgeYPtgPiWUG1UMo/pdf?s=em) Receipt number 2786-4974-8259 Invoice number UW8XX3DU-0003 Payment method Link\r\n\r\nReceipt #2786-4974-8259 Auto-recharge credits Qty 1 $15.54 Subtotal $15.54 Total excluding tax $15.54 VAT (8.1%) $1.26 Total $16.80 Amount paid $16.80 Questions? Visit our support site (https://support.anthropic.com/).\r\n\r\nPowered by    stripe logo (https://stripe.com)  |   Learn more about Stripe Invoicing (https://stripe.com/invoicing)",
+  "downloaded_at": "2025-07-04T21:53:25.796317+00:00",
+  "file_index": 4
+}

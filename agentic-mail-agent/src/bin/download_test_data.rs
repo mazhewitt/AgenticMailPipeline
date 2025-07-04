@@ -14,10 +14,8 @@
 //!   TEST_DATA_DIR - Directory to save test data files (default: test_data)
 
 use agentic_mail_agent::fetcher::{EmailFetcher, GmailFetcher};
-use serde_json;
 use std::fs;
 use std::path::Path;
-use tokio;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

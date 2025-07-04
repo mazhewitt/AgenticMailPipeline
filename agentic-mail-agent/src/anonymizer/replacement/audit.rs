@@ -7,6 +7,12 @@ pub struct AuditLogger {
     replacement_log: Vec<ReplacementLogEntry>,
 }
 
+impl Default for AuditLogger {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl AuditLogger {
     pub fn new() -> Self {
         Self {

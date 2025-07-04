@@ -8,6 +8,12 @@ pub struct EmailDetector {
     patterns: Vec<Regex>,
 }
 
+impl Default for EmailDetector {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl EmailDetector {
     /// Create a new email detector with comprehensive email patterns
     pub fn new() -> Self {

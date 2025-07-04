@@ -12,11 +12,9 @@
 //!   cargo run --bin orchestrated_pii_anonymize -- --backend ollama --model mistral --input-dir test_data --output-dir anonymized_safe_data
 
 use agentic_mail_agent::anonymizer::{PiiOrchestrator, AnonymizationConfig, LlmBackend, PiiReplacer};
-use serde_json;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::io::{self, Write};
-use tokio;
 
 /// Email structure for anonymization
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]

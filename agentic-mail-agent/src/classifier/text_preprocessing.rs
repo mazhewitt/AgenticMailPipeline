@@ -82,14 +82,7 @@ pub fn clean_text_for_classification(text: &str) -> String {
     cleaned = WHITESPACE_REGEX.replace_all(&cleaned, " ").to_string();
     
     // Remove zero-width characters and other Unicode artifacts
-    cleaned = cleaned
-        .replace('\u{200b}', "") // Zero-width space
-        .replace('\u{200c}', "") // Zero-width non-joiner
-        .replace('\u{200d}', "") // Zero-width joiner
-        .replace('\u{200e}', "") // Left-to-right mark
-        .replace('\u{200f}', "") // Right-to-left mark
-        .replace('\u{feff}', "") // Byte order mark
-        .replace('\u{ad}', "");   // Soft hyphen
+    cleaned = cleaned.replace(['\u{200b}', '\u{200c}', '\u{200d}', '\u{200e}', '\u{200f}', '\u{feff}', '\u{ad}'], "");
     
     // Trim and return
     cleaned.trim().to_string()
