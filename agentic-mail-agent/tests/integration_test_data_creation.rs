@@ -12,6 +12,7 @@ struct TestEmail {
 }
 
 #[tokio::test]
+#[ignore] // Requires Gmail credentials and downloads emails - use 'cargo test -- --ignored' to run
 async fn test_create_anonymized_test_data() {
     // This test requires actual Gmail credentials and should be run manually
     // Skip if running in CI environment

@@ -729,8 +729,10 @@ async fn test_gmail_issue_summary_and_diagnosis() {
 }
 
 #[tokio::test]
+#[ignore] // Requires manual OAuth2 flow - use 'cargo test -- --ignored' to run
 async fn test_gmail_direct_token_inspection() {
     // Test: Directly inspect what token the authenticator is providing
+    // WARNING: This test will hang if run without --ignored flag as it requires browser interaction
     
     use google_gmail1 as gmail1;
     use google_gmail1::hyper_util::client::legacy::Client;
@@ -862,8 +864,10 @@ async fn test_gmail_direct_token_inspection() {
 }
 
 #[tokio::test]
+#[ignore] // Requires manual OAuth2 flow - use 'cargo test -- --ignored' to run
 async fn test_gmail_message_format_variations() {
     // Test: Try different message formats to see if any work
+    // WARNING: This test will hang if run without --ignored flag as it requires browser interaction
     
     use google_gmail1 as gmail1;
     use google_gmail1::hyper_util::client::legacy::Client;

@@ -48,11 +48,11 @@ pub async fn anonymize_test_data(input_dir: &str, output_dir: &str) -> Result<()
     // Create output directory
     fs::create_dir_all(output_dir)?;
     
-    // Build the pii_anonymize command
+    // Build the orchestrated_pii_anonymize command
     let mut cmd = Command::new("cargo");
     cmd.arg("run")
        .arg("--bin")
-       .arg("pii_anonymize")
+       .arg("orchestrated_pii_anonymize")
        .arg("--")
        .arg("--input-dir")
        .arg(input_dir)
