@@ -5,9 +5,18 @@
 
 mod stub;
 mod langchain;
+mod text_preprocessing;
+mod hybrid;
 
 pub use stub::StubClassifier;
 pub use langchain::{LangChainClassifier, LangChainConfig};
+pub use hybrid::HybridClassifier;
+pub use text_preprocessing::{
+    clean_html_for_classification,
+    clean_text_for_classification,
+    prepare_email_for_classification,
+    prepare_email_metadata_for_classification,
+};
 
 use crate::email::Email;
 

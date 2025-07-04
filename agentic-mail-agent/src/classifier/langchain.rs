@@ -5,6 +5,7 @@
 //! email classification.
 
 use crate::classifier::{Classification, ClassificationError, MessageClassifier};
+use crate::classifier::text_preprocessing::{prepare_email_for_classification, prepare_email_metadata_for_classification};
 use crate::email::Email;
 use async_trait::async_trait;
 use langchain_rust::{
@@ -124,42 +125,64 @@ impl LangChainClassifier {
 
     /// Build the email classification prompt with the given email content.
     fn build_prompt(&self, email: &Email) -> String {
-        let subject = email.subject_or_default();
-        let from = email.from_or_default();
-        let to = email.to_or_default();
-        let sent = email.sent_or_default();
-        let body = email.body_or_default();
+        // Use text preprocessing to clean and prepare the email content
+        let cleaned_content = prepare_email_for_classification(
+            email.subject.as_deref(),
+            email.snippet.as_deref(),
+            email.body.as_deref(),
+            200 // Limit to 200 words for better LLM processing
+        );
+        
+        // Extract metadata features that help with classification
+        let metadata = prepare_email_metadata_for_classification(
+            email.from.as_deref(),
+            email.to.as_deref()
+        );
 
         format!(
-            r#"You are an expert email classifier. Your task is to classify emails into one of these categories:
-- work: Business, professional, or work-related emails
-- personal: Personal communications from friends, family, or acquaintances
-- promotional: Marketing emails, sales, offers, or advertisements
-- spam: Unwanted, suspicious, or clearly spam emails
-- newsletter: Newsletters, updates, or regular communications from organizations
-- urgent: Time-sensitive emails requiring immediate attention
+            r#"You are an expert email classifier for inbox management. Your task is to classify emails into one of these categories:
 
-Given the following email:
-From: "{}"
-To: "{}"
-Date: "{}"
-Subject: "{}"
-Body: "{}"
+**ActionRequired**: Something I really need to respond to, schedule, or deal with myself
+- Examples: Meeting requests, deadlines, tasks assigned to me, urgent requests, tickets to transfer
+- High priority items that require personal action
 
-Please classify this email and respond with a JSON object in this exact format:
+**InterestingInfo**: Not actionable, but possibly interesting to me  
+- Examples: Industry news, tech updates, newsletters with valuable content, security alerts
+- Informative content worth reading but no action needed
+
+**Reference**: Useful to keep but not urgent or interesting
+- Examples: Receipts, confirmations, travel notifications, service updates, terms changes
+- Important records to keep for reference
+
+**Noise**: Not useful (generic newsletters, social notifications, low-value promotions)
+- Examples: Social media notifications, connection requests, generic marketing, promotional emails
+- Low-value communications that clutter the inbox
+
+**Spam**: Unwanted or truly spammy content
+- Examples: Phishing attempts, scams, malicious emails, clearly unwanted solicitations
+- Harmful or completely unwanted emails
+
+Email Content: "{}"
+Metadata: "{}"
+
+Analyze the email content and classify it appropriately. Focus on:
+1. Whether it requires personal action
+2. Whether it contains valuable information
+3. Whether it's useful for reference
+4. Whether it's low-value noise
+5. Whether it's harmful/unwanted
+
+Respond with a JSON object in this exact format:
 {{
-  "category": "one_of_the_categories_above",
+  "category": "ActionRequired|InterestingInfo|Reference|Noise|Spam",
   "score": 0.95,
   "explanation": "Brief explanation of why this email belongs to this category"
 }}
 
 Ensure the score is between 0.0 and 1.0, where 1.0 means completely confident.
 Only respond with the JSON object, no additional text."#,
-            from,
-            to.join(", "),
-            sent,
-            subject,
-            body
+            cleaned_content,
+            metadata
         )
     }
 
@@ -185,7 +208,7 @@ Only respond with the JSON object, no additional text."#,
     /// Validate that the classification category is one of the expected values.
     fn validate_category(&self, category: &str) -> Result<(), ClassificationError> {
         const VALID_CATEGORIES: &[&str] = &[
-            "work", "personal", "promotional", "spam", "newsletter", "urgent"
+            "ActionRequired", "InterestingInfo", "Reference", "Noise", "Spam"
         ];
 
         if VALID_CATEGORIES.contains(&category) {

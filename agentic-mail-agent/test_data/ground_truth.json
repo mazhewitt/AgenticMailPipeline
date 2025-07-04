@@ -1,0 +1,367 @@
+{
+  "email_ground_truth": {
+    "created_at": "2025-07-04T13:30:00Z",
+    "description": "Ground truth classification metadata for AI-powered Gmail agent test emails",
+    "classification_categories": {
+      "ActionRequired": "Something I really need to respond to, schedule, or deal with myself",
+      "InterestingInfo": "Not actionable, but possibly interesting to me (e.g., news, updates, opportunities)",
+      "Reference": "Useful to keep but not urgent or interesting (e.g., receipts, travel info, confirmations)",
+      "Noise": "Not useful (e.g., generic newsletters, social notifications, low-value promotions)",
+      "Spam": "Unwanted or truly spammy"
+    },
+    "test_emails": [
+      {
+        "file": "email_001.json",
+        "id": "197d58a707880c5f",
+        "subject": "Some of the fees you pay will change soon",
+        "snippet": "It's now cheaper for you to do some things with Wise",
+        "category": "Reference",
+        "reason": "Wise fee change notification - useful to keep for reference but not urgent"
+      },
+      {
+        "file": "email_002.json",
+        "id": "197d57dff2c1eada",
+        "subject": "[Avery Williams/AgenticMailPipeline] Run failed: CI - main (5f97a2d)",
+        "snippet": "[Avery Williams/AgenticMailPipeline] CI workflow run CI: All jobs have failed",
+        "category": "ActionRequired",
+        "reason": "GitHub CI/CD failure notification requires immediate attention to fix build issues"
+      },
+      {
+        "file": "email_003.json",
+        "id": "197d576488dd6e4b",
+        "subject": "[Avery Williams/AgenticMailPipeline] Run failed: CI - main (b03a4e3)",
+        "snippet": "[Avery Williams/AgenticMailPipeline] CI workflow run CI: All jobs have failed",
+        "category": "ActionRequired",
+        "reason": "Another CI failure notification requiring action to resolve build problems"
+      },
+      {
+        "file": "email_004.json",
+        "id": "197d55fcdb864020",
+        "subject": "Mazda, follow Casey Johnson - CEO at Google",
+        "snippet": "See your recommendations",
+        "category": "Noise",
+        "reason": "LinkedIn connection suggestion - social network promotional content with low value"
+      },
+      {
+        "file": "email_005.json",
+        "id": "197d5297dd1b0ada",
+        "subject": "Re: Tomorrow - 5.7",
+        "snippet": "Hi Alex Smith & Cameron Garcia Thank you for letting us know - looks as if you are lucky",
+        "category": "Reference",
+        "reason": "Personal correspondence about BBQ - neighborly communication worth keeping"
+      },
+      {
+        "file": "email_006.json",
+        "id": "197d51fda01f7716",
+        "subject": "[mazhewitt/AgenticMailPipeline] Run failed: CI - main (a8e5b26)",
+        "snippet": "[mazhewitt/AgenticMailPipeline] CI workflow run CI: All jobs have failed",
+        "category": "ActionRequired",
+        "reason": "CI failure notification requiring immediate attention to fix build issues"
+      },
+      {
+        "file": "email_007.json",
+        "id": "197d4f8051b975ba",
+        "subject": "Schule Riverside: Neue Nachricht",
+        "snippet": "escola Schule Riverside Sehr geehrte Frau Morgan Jones Casey Johnson hat Ihnen eine Nachricht",
+        "category": "ActionRequired",
+        "reason": "School communication about class structure - requires reading and potential response"
+      },
+      {
+        "file": "email_008.json",
+        "id": "197d4ad9965e2d57",
+        "subject": "Your receipt from Anthropic, PBC #2648-7395-5067",
+        "snippet": "Your receipt from Anthropic, PBC #2648-7395-5067",
+        "category": "Reference",
+        "reason": "Anthropic payment receipt - financial record useful to keep for accounting"
+      },
+      {
+        "file": "email_009.json",
+        "id": "197d4ac1d2d399f4",
+        "subject": "Economics: The Home Office 'is to blame for the \"Avery Williamswave\"'",
+        "snippet": "Your digest of the week's leading financial news from The Spectator",
+        "category": "InterestingInfo",
+        "reason": "Economic newsletter with analysis content - informative but not actionable"
+      },
+      {
+        "file": "email_010.json",
+        "id": "197d4aa41b5ae380",
+        "subject": "Protect yourself from scams",
+        "snippet": "Recent Prime Subscription Scams",
+        "category": "InterestingInfo",
+        "reason": "Amazon security alert about scams - useful information for awareness"
+      },
+      {
+        "file": "email_011.json",
+        "id": "197d485644cad069",
+        "subject": "EasyRide purchase receipt – your journeys on 03.07.2025",
+        "snippet": "Click here for the web view of this e-mailing. Hello Jordan Brown Thank you for travelling",
+        "category": "Reference",
+        "reason": "Swiss transport receipt - travel expense record useful for accounting"
+      },
+      {
+        "file": "email_012.json",
+        "id": "197d440b89e6bd76",
+        "subject": "Re: Tomorrow - 5.7",
+        "snippet": "Cool, thanks! On Fri, 4 Jul 2025 at 08:47, Morgan Jones wrote: Thx. Drop by for a drink",
+        "category": "Reference",
+        "reason": "Follow-up to BBQ conversation - neighborly communication worth keeping"
+      },
+      {
+        "file": "email_013.json",
+        "id": "197d430f2bde39b7",
+        "subject": "Re: Tomorrow - 5.7",
+        "snippet": "Thx. Drop by for a drink anytime if you are around. Morgan Jones 116 Park Avenue",
+        "category": "Reference",
+        "reason": "BBQ organization thread - neighborly communication worth keeping"
+      },
+      {
+        "file": "email_014.json",
+        "id": "197d41e558628d16",
+        "subject": "Your receipt from Anthropic, PBC #2162-8635-4473",
+        "snippet": "Your receipt from Anthropic, PBC #2162-8635-4473",
+        "category": "Reference",
+        "reason": "Another Anthropic payment receipt - financial record for accounting"
+      },
+      {
+        "file": "email_015.json",
+        "id": "197d41dcbfca48cd",
+        "subject": "New login from macOS (Safari)",
+        "snippet": "We noticed a login to your Link account from a new device.",
+        "category": "InterestingInfo",
+        "reason": "Security notification about new device login - worth monitoring but no action needed"
+      },
+      {
+        "file": "email_016.json",
+        "id": "197d41ce3c0cf467",
+        "subject": "Secure link to log in to Anthropic Console | 2025-07-04 08:25:50",
+        "snippet": "Let's get you signed in Sign in with the secure link below",
+        "category": "Reference",
+        "reason": "Login link email - temporary access link for reference"
+      },
+      {
+        "file": "email_017.json",
+        "id": "197d41bac3baa59f",
+        "subject": "Secure link to log in to Anthropic Console | 2025-07-04 08:24:30",
+        "snippet": "Let's get you signed in Sign in with the secure link below Sign in to Anthropic Console",
+        "category": "Reference",
+        "reason": "Another login link email - temporary access link for reference"
+      },
+      {
+        "file": "email_018.json",
+        "id": "197d41b03629a2d9",
+        "subject": "Your receipt from Anthropic, PBC #2461-9818-4176",
+        "snippet": "Your receipt from Anthropic, PBC #2461-9818-4176",
+        "category": "Reference",
+        "reason": "Claude Pro subscription receipt - financial record for accounting"
+      },
+      {
+        "file": "email_019.json",
+        "id": "197d419c9c139c91",
+        "subject": "Welcome to the Pro plan",
+        "snippet": "Thanks for starting your Pro subscription Your payment method has been charged.",
+        "category": "Reference",
+        "reason": "Claude Pro welcome email - service confirmation worth keeping"
+      },
+      {
+        "file": "email_020.json",
+        "id": "197d416f85ba467a",
+        "subject": "Secure link to log in to Claude.ai | 2025-07-04 08:19:22",
+        "snippet": "Let's get you signed in Sign in with the secure link below Sign in to Claude.ai",
+        "category": "Reference",
+        "reason": "Claude.ai login link - temporary access link for reference"
+      },
+      {
+        "file": "email_021.json",
+        "id": "197d40dd69e6c292",
+        "subject": "Re: Tomorrow - 5.7",
+        "snippet": "Have fun! Avery Williams On Fri, 4 Jul 2025, 07:41 Morgan Jones, wrote: Good morning all",
+        "category": "Reference",
+        "reason": "BBQ conversation thread - neighborly communication worth keeping"
+      },
+      {
+        "file": "email_022.json",
+        "id": "197d402e6a6617f7",
+        "subject": "Re: Tomorrow - 5.7",
+        "snippet": "Thank for letting us know, have fun! Riley Davis and Morgan Jones",
+        "category": "Reference",
+        "reason": "BBQ conversation thread - neighborly communication worth keeping"
+      },
+      {
+        "file": "email_023.json",
+        "id": "197d3f486c7e5a73",
+        "subject": "Tomorrow - 5.7",
+        "snippet": "Good morning all Just a heads up that tomorrow evening we are hosting a bbq for around 20-25",
+        "category": "Reference",
+        "reason": "Original BBQ announcement - neighborly communication worth keeping"
+      },
+      {
+        "file": "email_024.json",
+        "id": "197d3d116e4fa8f1",
+        "subject": "Bis zu 80% Reduktion auf Ihre Maschine!",
+        "snippet": "Profitieren Sie von exklusiven Vorteilen mit dem Maschinen-Abo",
+        "category": "Noise",
+        "reason": "Nespresso promotional email - generic marketing content with low value"
+      },
+      {
+        "file": "email_025.json",
+        "id": "197d3c311da0e97c",
+        "subject": "Ready for shipping: Parcel from Digitec Galaxus AG",
+        "snippet": "Post Logo «My consignments» Your consignment will soon be on its way Hello Jordan Brown",
+        "category": "Reference",
+        "reason": "Package shipping notification - useful tracking information to keep"
+      },
+      {
+        "file": "email_026.json",
+        "id": "197d363efc67b2e2",
+        "subject": "To pair with what you purchased",
+        "snippet": "We've got these picks for you",
+        "category": "Noise",
+        "reason": "AliExpress product recommendation - generic promotional email with low value"
+      },
+      {
+        "file": "email_027.json",
+        "id": "197d363efc67b2e2",
+        "subject": "To pair with what you purchased",
+        "snippet": "We've got these picks for you",
+        "category": "Noise",
+        "reason": "Duplicate AliExpress recommendation - generic promotional content"
+      },
+      {
+        "file": "email_028.json",
+        "id": "197d24e3369c7475",
+        "subject": "On Tech: A.I. videos have never been better. Can you tell what's real?",
+        "snippet": "Plus, the narrowing of Morgan Jones and Casey Johnson's philanthropy.",
+        "category": "InterestingInfo",
+        "reason": "NY Times tech newsletter with AI content - informative industry news"
+      },
+      {
+        "file": "email_029.json",
+        "id": "197d210763e96613",
+        "subject": "📍 Cameron Garcia was at 166 Elm Street, Georgetown, WA 10066...",
+        "snippet": "it's pasture-cutting day in these parts… 📍 Cameron Garcia was at Dýrafjörður",
+        "category": "Noise",
+        "reason": "Facebook location notification - social media notification with minimal value"
+      },
+      {
+        "file": "email_030.json",
+        "id": "197d1eba2d095026",
+        "subject": "We're updating our T&Cs 📣",
+        "snippet": "Review our new terms and conditions Hi Avery Williams, We're making some updates",
+        "category": "Reference",
+        "reason": "Revolut terms update - legal notice worth keeping for reference"
+      },
+      {
+        "file": "email_031.json",
+        "id": "197d1b910945186d",
+        "subject": "You have 1 new message",
+        "snippet": "You have 1 new message",
+        "category": "Noise",
+        "reason": "LinkedIn message notification - social platform notification with low urgency"
+      },
+      {
+        "file": "email_032.json",
+        "id": "197d1b1c0482b34a",
+        "subject": "You have 426 notifications about Riley Davis and others",
+        "snippet": "Avery Williams, see your unread messages and other notifications about Casey Johnson",
+        "category": "Noise",
+        "reason": "Facebook notification digest - social media notifications with minimal value"
+      },
+      {
+        "file": "email_033.json",
+        "id": "197d143b11bba1be",
+        "subject": "💬 Mazda, add Casey Johnson",
+        "snippet": "Senior Software Engg Test Automation - at EPAM Systems",
+        "category": "Noise",
+        "reason": "LinkedIn connection suggestion - social network promotional content"
+      },
+      {
+        "file": "email_034.json",
+        "id": "197d13f1658d8cf2",
+        "subject": "Your guide to The Athletic.",
+        "snippet": "Explore in-depth, personalized sports journalism.",
+        "category": "Noise",
+        "reason": "NY Times Athletic promotional email - subscription marketing content"
+      },
+      {
+        "file": "email_036.json",
+        "id": "197d135f45889314",
+        "subject": "📄 Morgan Jones posted an update",
+        "snippet": "Casey Johnson is my new idol 📄 Morgan Jones posted an update.",
+        "category": "Noise",
+        "reason": "Facebook post notification - social media update with minimal value"
+      },
+      {
+        "file": "email_037.json",
+        "id": "197d0fdb801307c7",
+        "subject": "Updates to our RevPoints terms and conditions 📣",
+        "snippet": "RevPoints T&Cs are changing Hi Avery Williams, We're updating the RevPoints T&Cs.",
+        "category": "Reference",
+        "reason": "Revolut RevPoints terms update - service change notice worth keeping"
+      },
+      {
+        "file": "email_038.json",
+        "id": "197d0fc155ac25f8",
+        "subject": "⚽ Der Ball rollt",
+        "snippet": "Bleiben Sie dran mit unserem Sommerangebot",
+        "category": "Noise",
+        "reason": "German newspaper promotional email - marketing content for subscription"
+      },
+      {
+        "file": "email_039.json",
+        "id": "197d0e0c330ab661",
+        "subject": "Neuigkeiten vom Riley Davis #12",
+        "snippet": "Dass ich es mit dem Fussball habe, wissen Sie bereits.",
+        "category": "InterestingInfo",
+        "reason": "Init7 company newsletter with industry updates - informative business content"
+      },
+      {
+        "file": "email_040.json",
+        "id": "197d0d0fec247167",
+        "subject": "Es ist zurück - das LOQED Touch Smart Lock",
+        "snippet": "Jetzt noch besser! Das LOQED Touch Smart Lock ist zurück und jetzt sogar noch besser!",
+        "category": "Noise",
+        "reason": "Smart lock product promotion - marketing email for specific product"
+      },
+      {
+        "file": "email_041.json",
+        "id": "197d0c47abc4a84a",
+        "subject": "Don't Forget to Transfer Your UEFA Women's EURO 2025 Tickets...",
+        "snippet": "Transfer Reminder Dear Alex Smith, We noticed that you haven't yet transferred",
+        "category": "ActionRequired",
+        "reason": "UEFA ticket transfer reminder - requires action to transfer or resell tickets"
+      },
+      {
+        "file": "email_042.json",
+        "id": "197d0be0e22b846b",
+        "subject": "Neuigkeiten vom Riley Davis #12",
+        "snippet": "Dass ich es mit dem Fussball habe, wissen Sie bereits.",
+        "category": "InterestingInfo",
+        "reason": "Duplicate Init7 newsletter - informative business content"
+      },
+      {
+        "file": "email_043.json",
+        "id": "197d03d7f851eb57",
+        "subject": "Delivered: Consignment from Liechtensteinische Post AG",
+        "snippet": "Post Logo «My consignments» Your consignment has arrived Hello Jordan Brown",
+        "category": "Reference",
+        "reason": "Package delivery confirmation - useful delivery record to keep"
+      },
+      {
+        "file": "email_044.json",
+        "id": "197d028c4f6afff1",
+        "subject": "Festival Da Jazz 2025, WOW Museum, Mountain Calling #24...",
+        "snippet": "Hallo Avery Williams Deine TICKETINO Highlights: Jetzt Tickets sichern & unvergessliche",
+        "category": "InterestingInfo",
+        "reason": "Event ticket newsletter with cultural events - potentially interesting opportunities"
+      }
+    ],
+    "statistics": {
+      "total_emails": 43,
+      "ActionRequired": 4,
+      "InterestingInfo": 6,
+      "Reference": 19,
+      "Noise": 14,
+      "Spam": 0
+    }
+  }
+}

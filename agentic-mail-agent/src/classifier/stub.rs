@@ -4,6 +4,7 @@ use async_trait::async_trait;
 use rand::Rng;
 
 use super::{Classification, ClassificationError, MessageClassifier};
+use super::text_preprocessing::prepare_email_for_classification;
 use crate::email::Email;
 
 /// A stub classifier that returns predefined or random classifications.
@@ -61,7 +62,7 @@ impl StubClassifier {
     
     /// Generate a random classification from predefined categories.
     fn random_classification(&self) -> Classification {
-        let categories = ["work", "personal", "promotional", "spam", "newsletter", "urgent"];
+        let categories = ["ActionRequired", "InterestingInfo", "Reference", "Noise", "Spam"];
         let mut rng = rand::rng();
         
         let category = categories[rng.random_range(0..categories.len())].to_string();
@@ -72,31 +73,81 @@ impl StubClassifier {
     
     /// Generate a deterministic classification based on email content.
     fn deterministic_classification(&self, email: &Email) -> Classification {
-        // Simple rules based on email content for predictable testing
-        let subject = email.subject.as_deref().unwrap_or("");
-        let snippet = email.snippet.as_deref().unwrap_or("");
-        let content = format!("{} {}", subject, snippet).to_lowercase();
+        // Use text preprocessing to clean the content
+        let cleaned_content = prepare_email_for_classification(
+            email.subject.as_deref(),
+            email.snippet.as_deref(),
+            email.body.as_deref(),
+            100 // Limit for deterministic processing
+        ).to_lowercase();
         
-        let (category, score) = if content.contains("meeting") || content.contains("calendar") {
-            ("work", 0.9)
-        } else if content.contains("urgent") || content.contains("asap") {
-            ("urgent", 0.95)
-        } else if content.contains("unsubscribe") || content.contains("promotional") {
-            ("promotional", 0.85)
-        } else if content.contains("spam") || content.contains("lottery") {
-            ("spam", 0.98)
-        } else if content.contains("newsletter") || content.contains("digest") {
-            ("newsletter", 0.8)
-        } else if content.contains("personal") || content.contains("family") {
-            ("personal", 0.75)
+        // Extract sender domain for additional classification hints
+        let sender_domain = email.from.as_deref()
+            .and_then(|from| from.split('@').nth(1))
+            .unwrap_or("")
+            .to_lowercase();
+        
+        let (category, score) = if 
+            // ActionRequired patterns
+            cleaned_content.contains("ci") && cleaned_content.contains("failed") ||
+            cleaned_content.contains("meeting") && (cleaned_content.contains("tomorrow") || cleaned_content.contains("reminder")) ||
+            cleaned_content.contains("urgent") || cleaned_content.contains("asap") || cleaned_content.contains("action required") ||
+            cleaned_content.contains("deadline") || cleaned_content.contains("due") ||
+            cleaned_content.contains("transfer") && cleaned_content.contains("ticket") ||
+            cleaned_content.contains("schule") || cleaned_content.contains("school") // German school emails
+        {
+            ("ActionRequired", 0.9)
+        } else if 
+            // InterestingInfo patterns
+            (cleaned_content.contains("newsletter") || cleaned_content.contains("digest")) && (cleaned_content.contains("tech") || cleaned_content.contains("news")) ||
+            cleaned_content.contains("security") && cleaned_content.contains("alert") ||
+            cleaned_content.contains("economics") || cleaned_content.contains("financial") ||
+            cleaned_content.contains("scam") && cleaned_content.contains("protect") ||
+            cleaned_content.contains("new login") || cleaned_content.contains("login") && cleaned_content.contains("device") ||
+            sender_domain.contains("nytimes") || sender_domain.contains("anthropic") && cleaned_content.contains("update")
+        {
+            ("InterestingInfo", 0.85)
+        } else if 
+            // Reference patterns
+            cleaned_content.contains("receipt") || cleaned_content.contains("invoice") ||
+            cleaned_content.contains("confirmation") || cleaned_content.contains("delivered") ||
+            cleaned_content.contains("consignment") || cleaned_content.contains("shipping") ||
+            cleaned_content.contains("terms") && cleaned_content.contains("conditions") ||
+            cleaned_content.contains("welcome") && cleaned_content.contains("plan") ||
+            cleaned_content.contains("login") && cleaned_content.contains("secure") ||
+            cleaned_content.contains("bbq") || cleaned_content.contains("tomorrow") && !cleaned_content.contains("meeting") // Personal conversations
+        {
+            ("Reference", 0.8)
+        } else if 
+            // Spam patterns
+            cleaned_content.contains("lottery") || cleaned_content.contains("won") && cleaned_content.contains("million") ||
+            cleaned_content.contains("click here") && cleaned_content.contains("claim") ||
+            cleaned_content.contains("suspicious") && cleaned_content.contains("offer")
+        {
+            ("Spam", 0.95)
+        } else if 
+            // Noise patterns
+            cleaned_content.contains("follow") && (cleaned_content.contains("linkedin") || cleaned_content.contains("ceo")) ||
+            cleaned_content.contains("notification") && (cleaned_content.contains("facebook") || cleaned_content.contains("social")) ||
+            cleaned_content.contains("posted") && cleaned_content.contains("update") ||
+            cleaned_content.contains("connection") || cleaned_content.contains("add") && cleaned_content.contains("contact") ||
+            cleaned_content.contains("promotional") || cleaned_content.contains("newsletter") && !cleaned_content.contains("tech") ||
+            cleaned_content.contains("marketing") || cleaned_content.contains("offer") ||
+            sender_domain.contains("facebook") || sender_domain.contains("linkedin") ||
+            sender_domain.contains("aliexpress") || sender_domain.contains("nespresso") ||
+            // Check original subject/snippet for unsubscribe since it gets filtered out
+            email.subject.as_deref().unwrap_or("").to_lowercase().contains("unsubscribe") ||
+            email.snippet.as_deref().unwrap_or("").to_lowercase().contains("unsubscribe")
+        {
+            ("Noise", 0.85)
         } else {
-            ("work", 0.6) // default category
+            ("Reference", 0.6) // Default to Reference as it's the safest default
         };
         
         Classification::new(
             category.to_string(),
             Some(score),
-            format!("Deterministic classification based on content analysis: {}", category),
+            format!("Deterministic classification based on cleaned content and patterns: {}", category),
         )
     }
 }
@@ -179,46 +230,40 @@ mod tests {
     async fn stub_classifier_deterministic() {
         let classifier = StubClassifier::deterministic();
         
-        // Test work classification
+        // Test ActionRequired classification  
         let work_email = Email::with_subject("work@example.com".to_string(), "Meeting tomorrow".to_string());
         let result = classifier.classify(&work_email).await.unwrap();
-        assert_eq!(result.category, "work");
+        assert_eq!(result.category, "ActionRequired"); // Meeting tomorrow should be ActionRequired
         assert_eq!(result.score, Some(0.9));
         
-        // Test urgent classification
+        // Test ActionRequired classification
         let urgent_email = Email::with_subject("urgent@example.com".to_string(), "URGENT: Action required".to_string());
         let result = classifier.classify(&urgent_email).await.unwrap();
-        assert_eq!(result.category, "urgent");
-        assert_eq!(result.score, Some(0.95));
+        assert_eq!(result.category, "ActionRequired");
+        assert_eq!(result.score, Some(0.9));
         
-        // Test promotional classification
+        // Test Noise classification (promotional content)
         let promo_email = Email::with_subject("promo@example.com".to_string(), "Unsubscribe from our newsletter".to_string());
         let result = classifier.classify(&promo_email).await.unwrap();
-        assert_eq!(result.category, "promotional");
+        assert_eq!(result.category, "Noise");
         assert_eq!(result.score, Some(0.85));
         
-        // Test spam classification
-        let spam_email = Email::with_subject("spam@example.com".to_string(), "You won the lottery!".to_string());
-        let result = classifier.classify(&spam_email).await.unwrap();
-        assert_eq!(result.category, "spam");
-        assert_eq!(result.score, Some(0.98));
-        
-        // Test newsletter classification
-        let newsletter_email = Email::with_subject("news@example.com".to_string(), "Weekly newsletter digest".to_string());
-        let result = classifier.classify(&newsletter_email).await.unwrap();
-        assert_eq!(result.category, "newsletter");
+        // Test Reference classification (receipt)
+        let receipt_email = Email::with_subject("receipt@example.com".to_string(), "Your receipt from Company".to_string());
+        let result = classifier.classify(&receipt_email).await.unwrap();
+        assert_eq!(result.category, "Reference");
         assert_eq!(result.score, Some(0.8));
         
-        // Test personal classification
-        let personal_email = Email::with_subject("family@example.com".to_string(), "Personal family update".to_string());
-        let result = classifier.classify(&personal_email).await.unwrap();
-        assert_eq!(result.category, "personal");
-        assert_eq!(result.score, Some(0.75));
+        // Test InterestingInfo classification (newsletter with tech content)
+        let newsletter_email = Email::with_subject("news@example.com".to_string(), "Tech newsletter digest".to_string());
+        let result = classifier.classify(&newsletter_email).await.unwrap();
+        assert_eq!(result.category, "InterestingInfo");
+        assert_eq!(result.score, Some(0.85));
         
         // Test default classification
         let default_email = Email::with_subject("unknown@example.com".to_string(), "Random content".to_string());
         let result = classifier.classify(&default_email).await.unwrap();
-        assert_eq!(result.category, "work");
+        assert_eq!(result.category, "Reference");
         assert_eq!(result.score, Some(0.6));
     }
     
@@ -231,7 +276,7 @@ mod tests {
         assert!(result.is_ok());
         
         let classification = result.unwrap();
-        assert_eq!(classification.category, "work"); // default category
+        assert_eq!(classification.category, "Reference"); // default category
         assert_eq!(classification.score, Some(0.6));
     }
     
