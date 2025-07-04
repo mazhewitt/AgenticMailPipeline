@@ -7,10 +7,12 @@ mod stub;
 mod langchain;
 mod text_preprocessing;
 mod hybrid;
+mod mock_ollama;
 
 pub use stub::StubClassifier;
 pub use langchain::{LangChainClassifier, LangChainConfig};
 pub use hybrid::HybridClassifier;
+pub use mock_ollama::{MockOllamaClassifier, RecordedResponse, RecordedResponses};
 pub use text_preprocessing::{
     clean_html_for_classification,
     clean_text_for_classification,
@@ -24,7 +26,7 @@ use crate::email::Email;
 /// 
 /// Contains the classification category, optional confidence score,
 /// and the raw LLM response for debugging and audit purposes.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct Classification {
     /// The classified category (e.g., "work", "personal", "promotional", "spam")
     pub category: String,
