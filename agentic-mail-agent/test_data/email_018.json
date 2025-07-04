@@ -1,0 +1,13 @@
+{
+  "id": "197d41b03629a2d9",
+  "subject": "Your receipt from Anthropic, PBC #2461-9818-4176",
+  "snippet": "Your receipt from Anthropic, PBC #2461-9818-4176 ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏",
+  "from": "\"Anthropic, PBC\" <team26@example.com>",
+  "to": [
+    "team2@sample.net"
+  ],
+  "sent": "Fri, 4 Jul 2025 06:23:45 +0000",
+  "body": "Anthropic, PBC  (https://www.anthropic.com/)\r\n\r\nAnthropic, PBC\r\n\r\nReceipt from Anthropic, PBC $21.62 Paid July 3, 2025 (invoice illustration [https://stripe-images.s3.amazonaws.com/emails/invoices_invoice_illustration.png]) Download invoice (https://pay.stripe.com/invoice/acct_1MExQ9BjIQrRQnux/live_YWNjdF8xTUV4UTlCaklRclJRbnV4LF9TY0hadHpnSUpmNDZxVTFVcWRzZDlZQjJEa1hFcW1oLDE0MjE1MTAyMA0200JZ9qM159/pdf?s=em) Download receipt (https://dashboard.stripe.com/receipts/invoices/CAcQARoXChVhY2N0XzFNRXhROUJqSVFyUlFudXgo7OadwwYyBjk4z4wuOjovFjGvnAS6TxSazgC7n7rGxffd7rX4z9ft14IMTQjiaKb-0iJxXtDjyOikuDKUQoo/pdf?s=em) Receipt number 2461-9818-4176 Invoice number C1YGAJFG-0001 Payment method - 3708\r\n\r\nReceipt #2461-9818-4176 Jul 3 – Aug 3, 2025 Claude Pro Qty 1 $20.00 Subtotal $20.00 Total excluding tax $20.00 Tax (8.1%) $1.62 Total $21.62 Amount paid $21.62 Questions? Visit our support site (https://support.anthropic.com/).\r\n\r\nPowered by    stripe logo (https://stripe.com)  |   Learn more about Stripe Billing (https://stripe.com/billing)",
+  "downloaded_at": "2025-07-04T13:13:43.514125+00:00",
+  "file_index": 18
+}

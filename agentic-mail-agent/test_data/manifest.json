@@ -1,0 +1,22 @@
+{
+  "created_at": "2025-07-04T12:30:00Z",
+  "total_emails": 50,
+  "description": "Anonymized test emails for CI/CD testing - all PII has been replaced with fake data",
+  "anonymization_date": "2025-07-04T12:30:00Z",
+  "emails": [
+    {
+      "file_index": 1,
+      "filename": "email_001.json",
+      "id": "197d55fcdb864020",
+      "subject": "Mazda, follow Alex Smith - CEO at Google",
+      "has_snippet": true
+    },
+    {
+      "file_index": 2,
+      "filename": "email_002.json",
+      "id": "197d55fcdb864021",
+      "subject": "Weekly Newsletter - Important Updates",
+      "has_snippet": true
+    }
+  ]
+}

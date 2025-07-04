@@ -1,0 +1,13 @@
+{
+  "id": "197d03d7f851eb57",
+  "subject": "Delivered: Consignment from Liechtensteinische Post AG",
+  "snippet": "Post Logo «My consignments» Your consignment has arrived Hello Jordan Brown We have delivered the following consignment. Consignment from Switzerland Track the consignment go to Delivered on Thursday,",
+  "from": "Post CH Ltd - Consignment status info <team56@example.com>",
+  "to": [
+    "team2@sample.net"
+  ],
+  "sent": "Thu, 3 Jul 2025 14:22:31 +0200 (CEST)",
+  "body": "Post Logo «My consignments» Your consignment has arrived Hello Jordan Brown We have delivered the following consignment. Consignment from Switzerland Track the consignment go to Delivered on Thursday,",
+  "downloaded_at": "2025-07-04T13:13:43.521797+00:00",
+  "file_index": 43
+}

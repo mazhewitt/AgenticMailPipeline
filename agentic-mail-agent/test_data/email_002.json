@@ -1,0 +1,13 @@
+{
+  "id": "197d57dff2c1eada",
+  "subject": "[Avery Williams/AgenticMailPipeline] Run failed: CI - main (5f97a2d)",
+  "snippet": "[Avery Williams/AgenticMailPipeline] CI workflow run CI: All jobs have failed View workflow run CI / build Failed in 6 seconds annotations for CI / build 5 — You are receiving this because you are",
+  "from": "Avery Williams <info4@test.org>",
+  "to": [
+    "\"Avery Williams/AgenticMailPipeline\" <admin5@demo.co.uk>"
+  ],
+  "sent": "Fri, 04 Jul 2025 05:51:31 -0700",
+  "body": "[Avery Williams/AgenticMailPipeline] CI workflow run\r\n\r\nRepository: Avery Williams/AgenticMailPipeline\r\nWorkflow: CI\r\nDuration: 11.0 seconds\r\nFinished: 2025-07-04 12:51:11 UTC\r\n\r\nView results: https://github.com/Avery Williams/AgenticMailPipeline/actions/runs/16074207789\r\n\r\nJobs:\r\n  * build failed (5 annotations)\r\n\r\n-- \r\nYou are receiving this because you are subscribed to this thread.\r\nManage your GitHub Actions notifications: https://github.com/settings/notifications\r\n",
+  "downloaded_at": "2025-07-04T13:13:43.509744+00:00",
+  "file_index": 2
+}
