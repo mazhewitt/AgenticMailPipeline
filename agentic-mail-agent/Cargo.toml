@@ -27,3 +27,4 @@ lazy_static = "1.4"
 chrono = { version = "0.4", features = ["serde"] }
 log = "0.4"
 env_logger = "0.11"
+html2text = "0.4.1"

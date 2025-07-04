@@ -418,7 +418,7 @@ mod tests {
         let config = LangChainConfig::default();
         
         assert_eq!(config.ollama_url, "http://localhost:11434");
-        assert_eq!(config.model, "llama3:8b");
+        assert_eq!(config.model, "llama3.1:8b");
         assert_eq!(config.temperature, 0.1);
     }
 }

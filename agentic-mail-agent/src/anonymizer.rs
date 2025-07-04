@@ -14,6 +14,7 @@ use langchain_rust::{
     llm::{openai::{OpenAI, OpenAIConfig}, ollama::client::Ollama},
     language_models::llm::LLM,
 };
+use html2text::from_read;
 
 /// Find the nearest character boundary for safe string slicing
 fn find_char_boundary_helper(text: &str, position: usize) -> usize {
@@ -118,7 +119,7 @@ impl AnonymizationConfig {
             model,
             temperature: 0.1, // Low temperature for consistent PII detection
             ollama_host: "http://localhost:11434".to_string(),
-            llm_timeout_secs: 60,
+            llm_timeout_secs: 120,
         })
     }
     
@@ -184,102 +185,75 @@ impl PiiDetector {
         Ok(Self { llm, config })
     }
     
+    /// Clean text to make it more readable for the LLM
+    fn clean_text_for_llm(&self, text: &str) -> String {
+        text
+            // Remove excessive whitespace and control characters
+            .chars()
+            .filter(|c| !c.is_control() || c.is_whitespace())
+            .collect::<String>()
+            // Normalize whitespace
+            .split_whitespace()
+            .collect::<Vec<&str>>()
+            .join(" ")
+            // Remove common email artifacts
+            .replace("[\u{200b}\u{200c}\u{200d}\u{feff}]", "") // Zero-width characters
+            .replace("‌​‍‎‏﻿", "") // More zero-width characters
+    }
+
     /// Use LLM to detect PII entities in the given text
     pub async fn detect_pii(&self, text: &str) -> Result<Vec<PiiEntity>, Box<dyn std::error::Error>> {
+        let plain_text = from_read(text.as_bytes(), 80);
+        
+        // Clean up the text to make it more readable for the LLM
+        let cleaned_text = self.clean_text_for_llm(&plain_text);
+        
+        // Look for meaningful content by finding text with actual words
+        let words: Vec<&str> = cleaned_text.split_whitespace().collect();
+        let meaningful_text = if words.len() > 50 {
+            // Take first 50 words to get meaningful content while keeping size manageable
+            words[..50].join(" ")
+        } else {
+            cleaned_text.clone()
+        };
+        
+        // Debug: print the converted text to see what we're sending to the LLM (if in debug mode)
+        #[cfg(debug_assertions)]
+        eprintln!("Converting HTML to text. Original length: {}, Plain text length: {}, Meaningful text length: {}", text.len(), plain_text.len(), meaningful_text.len());
+        
         let prompt = format!(
-            r#"SYSTEM: You are a PII extraction robot. You ONLY output JSON arrays. NO explanations, NO markdown, NO conversations.
+            r#"You are a name extraction assistant. Extract all person names from this email text.
 
-TASK: Extract ALL personally identifiable information (PII) from email text. Return ONLY valid JSON array.
+IMPORTANT: Return ONLY a JSON array of strings containing the names. No explanations or other text.
 
-CRITICAL: You must find ALL instances of PII. Missing any PII will cause the email to fail processing.
+Example: ["John Smith", "Mary Johnson"]
 
-FIND ALL of these PII types:
-- Full names of people (first/last names, titles)
-- Email addresses (ALL email addresses including domains)
-- Phone numbers (any format)
-- Physical addresses (street, city, state, zip)
-- Company/organization names
-- Usernames and handles
-- Domain names and URLs
-- Financial information
-- Account numbers and IDs
-
-SPECIFIC EXAMPLES - YOU MUST DETECT ALL OF THESE:
-
-1. Names and Titles:
-   - "John Smith", "Mary Johnson", "Dr. Williams", "Ms. Chen", "CEO Sarah Brown"
-
-2. Email Addresses (CRITICAL - find ALL):
-   - "john@company.com", "user@gmail.com", "contact@domain.org"
-   - "notifications@github.com", "hello@news.smood.ch"
-   - In headers: "John <john@test.com>", "support@example.com"
-
-3. Phone Numbers (ALL formats):
-   - "+1-555-123-4567", "(555) 123-4567", "555.123.4567", "1234567890"
-   - "555-1234", "123 456 7890"
-
-4. Usernames/Handles:
-   - "mazhewitt", "user123", "@username", "john_doe"
-
-5. Company/Organization Names:
-   - "Google", "Microsoft Corp", "Acme Inc", "GitHub", "Smood"
-   - Domain companies: "example.com", "github.com", "smood.ch"
-
-6. Addresses:
-   - "123 Main St", "456 Oak Avenue, Springfield", "New York, NY 10001"
-
-7. URLs and Domains:
-   - "https://github.com/user/repo", "www.example.com", "smood.ch"
-
-8. Financial Info:
-   - "4111-1111-1111-1111", "Account #12345", "$1,000"
-
-EXAMPLE INPUT:
-"From: John Smith <john@github.com>
-To: mazhewitt@gmail.com
-Subject: [user/repo] Build failed
-Hi mazhewitt, your build at https://github.com/user/repo failed.
-Call support at +1-555-123-4567."
-
-EXAMPLE OUTPUT (MUST find ALL of these):
-[
-  {{"type": "name", "text": "John Smith"}},
-  {{"type": "email", "text": "john@github.com"}},
-  {{"type": "email", "text": "mazhewitt@gmail.com"}},
-  {{"type": "username", "text": "mazhewitt"}},
-  {{"type": "username", "text": "user"}},
-  {{"type": "company", "text": "github.com"}},
-  {{"type": "url", "text": "https://github.com/user/repo"}},
-  {{"type": "phone", "text": "+1-555-123-4567"}}
-]
-
-INSTRUCTIONS:
-- Extract EXACT text as it appears
-- Include partial emails/domains (e.g., "@github.com" if in an email)
-- Find usernames even without @ symbol
-- Detect company names in domains and URLs
-- Be extremely thorough - missing PII fails the email
-
-WARNING: OUTPUT MUST BE VALID JSON ARRAY ONLY. NO TEXT. NO EXPLANATIONS. NO MARKDOWN.
-IF YOU OUTPUT ANYTHING OTHER THAN A JSON ARRAY, THE SYSTEM WILL FAIL.
-
-EMAIL TEXT:
+Email text:
 {}
 
-JSON:"#,
-            text
+JSON array:"#,
+            meaningful_text
         );
+        
+        #[cfg(debug_assertions)]
+        eprintln!("Sending prompt to LLM: {}", prompt);
         
         let timeout_duration = Duration::from_secs(self.config.llm_timeout_secs);
         let response = timeout(timeout_duration, self.llm.invoke(&prompt)).await
             .map_err(|_| "LLM request timed out")?
             .map_err(|e| format!("LLM request failed: {}", e))?;
         
+        #[cfg(debug_assertions)]
+        eprintln!("LLM response: {}", response);
+        
         // Parse JSON response
         let llm_entities = self.parse_pii_response(&response)?;
         
-        // Find all positions for each detected PII text in Rust
+        // Find all positions for each detected PII text in the ORIGINAL text (not shortened)
         let entities = self.find_all_positions(text, llm_entities);
+        
+        #[cfg(debug_assertions)]
+        eprintln!("Found {} PII entities: {:?}", entities.len(), entities);
         
         Ok(entities)
     }
@@ -427,7 +401,7 @@ JSON:"#,
     fn parse_pii_response(&self, response: &str) -> Result<Vec<LlmPiiEntity>, Box<dyn std::error::Error>> {
         // Clean the response - sometimes LLMs add markdown or extra text
         let mut cleaned_response = response.trim();
-        
+
         // Remove common LLM prefixes
         let prefixes = ["JSON output:", "Here's the JSON:", "```json", "```", "JSON array:"];
         for prefix in &prefixes {
@@ -435,20 +409,57 @@ JSON:"#,
                 cleaned_response = cleaned_response[prefix.len()..].trim();
             }
         }
-        
+
         // Remove ending markers
         if cleaned_response.ends_with("```") {
             cleaned_response = cleaned_response.trim_end_matches("```").trim();
         }
-        
+
         // Find the JSON array - look for complete arrays
-        let json_arrays = self.extract_json_arrays(cleaned_response);
-        
+        let json_arrays = self.extract_json_arrays(&cleaned_response);
+
         for json_str in &json_arrays {
             // Clean JSON comments (LLMs sometimes add them)
             let cleaned_json = self.remove_json_comments(json_str);
-            
-            // First try to parse as LlmPiiEntity, assuming the LLM used the correct field names
+
+            // First, try to parse as a simple array of strings
+            if let Ok(names) = serde_json::from_str::<Vec<String>>(&cleaned_json) {
+                let mut entities = Vec::new();
+                for full_name in names {
+                    // Add the full name
+                    entities.push(LlmPiiEntity {
+                        pii_type: "name".to_string(),
+                        text: full_name.clone(),
+                    });
+                    
+                    // Also add individual name parts (first name, last name, hyphenated parts)
+                    let name_parts: Vec<&str> = full_name.split_whitespace().collect();
+                    for part in name_parts {
+                        if part.len() > 1 { // Only consider meaningful name parts
+                            entities.push(LlmPiiEntity {
+                                pii_type: "name".to_string(),
+                                text: part.to_string(),
+                            });
+                            
+                            // Also handle hyphenated names like "Hewitt-Fry"
+                            if part.contains('-') {
+                                let hyphen_parts: Vec<&str> = part.split('-').collect();
+                                for hyphen_part in hyphen_parts {
+                                    if hyphen_part.len() > 1 {
+                                        entities.push(LlmPiiEntity {
+                                            pii_type: "name".to_string(),
+                                            text: hyphen_part.to_string(),
+                                        });
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                return Ok(entities);
+            }
+
+            // If that fails, try to parse as LlmPiiEntity, assuming the LLM used the correct field names
             match serde_json::from_str::<Vec<LlmPiiEntity>>(&cleaned_json) {
                 Ok(entities) => return Ok(entities),
                 Err(_) => {
@@ -471,31 +482,36 @@ JSON:"#,
                 }
             }
         }
-        
+
         Err(format!("Failed to parse any valid JSON from LLM response. Response was: {}", cleaned_response).into())
     }
     
-    fn extract_json_arrays(&self, text: &str) -> Vec<String> {
-        let mut arrays = Vec::new();
-        let mut current_array = String::new();
+    /// Extract JSON arrays from the LLM response text
+    pub fn extract_json_arrays(&self, text: &str) -> Vec<String> {
+        const MAX_RESPONSE_LENGTH: usize = 1_048_576; // 1MB
+        const MAX_ARRAY_LENGTH: usize = 1_048_576; // 1MB
+        const MAX_ARRAYS: usize = 100;
+
         let mut in_string = false;
         let mut escape_next = false;
-        
-        // Safety limits to prevent memory explosion
-        let max_response_length = 100_000; // 100KB limit
-        let max_array_length = 50_000; // 50KB per array
-        let max_arrays = 10; // Maximum number of arrays to extract
-        
-        let safe_text = if text.len() > max_response_length {
-            eprintln!("Warning: LLM response too large ({} chars), truncating", text.len());
-            &text[..max_response_length]
+        let mut current_array = String::new();
+        let mut arrays: Vec<String> = Vec::new();
+        let mut bracket_count = 0;
+        let mut in_array = false;
+
+        let safe_text = if text.len() > MAX_RESPONSE_LENGTH {
+            eprintln!(
+                "Warning: LLM response too large ({} chars), truncating",
+                text.len()
+            );
+            &text[..MAX_RESPONSE_LENGTH]
         } else {
             text
         };
-        
+
         for ch in safe_text.chars() {
             // Safety check: prevent arrays from growing too large
-            if current_array.len() > max_array_length {
+            if current_array.len() > MAX_ARRAY_LENGTH {
                 eprintln!("Warning: JSON array too large, truncating");
                 if in_array {
                     // Try to close the array and save what we have
@@ -505,9 +521,9 @@ JSON:"#,
                 }
                 break;
             }
-            
+
             // Safety check: prevent too many arrays
-            if arrays.len() >= max_arrays {
+            if arrays.len() >= MAX_ARRAYS {
                 eprintln!("Warning: Too many JSON arrays found, stopping extraction");
                 break;
             }
@@ -519,14 +535,14 @@ JSON:"#,
                 continue;
             }
             
-            if ch == '\\' && in_string {
+            if ch == '\'' && in_string {
                 if in_array {
                     current_array.push(ch);
                 }
                 escape_next = true;
                 continue;
             }
-            
+
             if ch == '"' && !escape_next {
                 in_string = !in_string;
                 if in_array {
@@ -534,24 +550,23 @@ JSON:"#,
                 }
                 continue;
             }
-            
+
             if !in_string {
                 if ch == '[' {
-                    if in_array {
-                        current_array.push(ch);
+                    if !in_array {
+                        in_array = true;
+                        current_array.clear();
                     }
-                    //bracket_count += 1;
-                    if in_array {
-                        current_array.push(ch);
-                    }
+                    current_array.push(ch);
+                    bracket_count += 1;
                 } else if ch == ']' {
                     if in_array {
                         current_array.push(ch);
-                    }
-                    //bracket_count -= 1;
-                    if bracket_count == 0 && in_array {
-                        arrays.push(current_array.clone());
-                        current_array.clear();
+                        bracket_count -= 1;
+                        if bracket_count == 0 {
+                            in_array = false;
+                            arrays.push(current_array.clone());
+                        }
                     }
                 } else if in_array {
                     current_array.push(ch);
@@ -560,7 +575,6 @@ JSON:"#,
                 current_array.push(ch);
             }
         }
-        
         arrays
     }
     
@@ -664,6 +678,8 @@ impl PiiReplacer {
     
     /// Replace PII entities in text with fake data
     pub fn replace_pii(&mut self, text: &str, entities: &[PiiEntity]) -> Result<String, Box<dyn std::error::Error>> {
+        #[cfg(debug_assertions)]
+        eprintln!("Starting replacement with {} entities", entities.len());
         let mut result = text.to_string();
         let mut offset = 0i32; // Track how text length changes due to replacements
         
@@ -672,6 +688,8 @@ impl PiiReplacer {
         sorted_entities.sort_by_key(|e| e.start);
         
         for entity in sorted_entities {
+            #[cfg(debug_assertions)]
+            eprintln!("Processing entity: {:?}", entity);
             let fake_value = self.generate_fake_value(&entity.pii_type, &entity.text);
             
             // Calculate adjusted positions due to previous replacements

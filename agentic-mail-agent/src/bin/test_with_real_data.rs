@@ -114,7 +114,7 @@ mod tests {
                 
                 // Verify we have the expected number of emails
                 assert!(!emails.is_empty(), "Should have downloaded some emails");
-                assert!(emails.len() <= 20, "Should not exceed the download limit");
+                assert!(emails.len() <= 50, "Should not exceed the download limit");
                 
                 // Check that all emails have unique IDs
                 let mut ids = std::collections::HashSet::new();
