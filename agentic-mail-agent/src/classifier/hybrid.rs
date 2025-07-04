@@ -111,7 +111,21 @@ impl HybridClassifier {
         }
 
         // High-confidence Noise patterns
-        if sender_domain.contains("facebook") || sender_domain.contains("linkedin") {
+        
+        // Marketing and promotional domains
+        if sender_domain.contains("noreply") || sender_domain.contains("no-reply") ||
+           sender_domain.contains("marketing") || sender_domain.contains("mailchimp") ||
+           sender_domain.contains("sendgrid") || sender_domain.contains("constantcontact") {
+            return Some(Classification::new(
+                "Noise".to_string(),
+                Some(0.92),
+                "High-confidence rule: Marketing/promotional domain".to_string(),
+            ));
+        }
+
+        // Social media platforms
+        if sender_domain.contains("facebook") || sender_domain.contains("linkedin") ||
+           sender_domain.contains("twitter") || sender_domain.contains("instagram") {
             return Some(Classification::new(
                 "Noise".to_string(),
                 Some(0.88),
@@ -119,6 +133,28 @@ impl HybridClassifier {
             ));
         }
 
+        // Promotional phrases with high confidence
+        if (cleaned_content.contains("limited time") && cleaned_content.contains("offer")) ||
+           (cleaned_content.contains("exclusive") && cleaned_content.contains("deal")) ||
+           (cleaned_content.contains("flash sale") || cleaned_content.contains("special offer")) {
+            return Some(Classification::new(
+                "Noise".to_string(),
+                Some(0.90),
+                "High-confidence rule: Promotional language detected".to_string(),
+            ));
+        }
+
+        // Product recommendations and shopping suggestions
+        if cleaned_content.contains("to pair with") || 
+           (cleaned_content.contains("you might like") || cleaned_content.contains("recommended for you")) {
+            return Some(Classification::new(
+                "Noise".to_string(),
+                Some(0.88),
+                "High-confidence rule: Product recommendation".to_string(),
+            ));
+        }
+
+        // Social connection and engagement patterns
         if cleaned_content.contains("follow") && cleaned_content.contains("ceo") {
             return Some(Classification::new(
                 "Noise".to_string(),
@@ -132,6 +168,17 @@ impl HybridClassifier {
                 "Noise".to_string(),
                 Some(0.87),
                 "High-confidence rule: Facebook notification".to_string(),
+            ));
+        }
+
+        // Generic newsletters (exclude tech/security)
+        if cleaned_content.contains("newsletter") && 
+           !cleaned_content.contains("tech") && !cleaned_content.contains("security") && 
+           !cleaned_content.contains("ai") {
+            return Some(Classification::new(
+                "Noise".to_string(),
+                Some(0.82),
+                "High-confidence rule: Generic newsletter content".to_string(),
             ));
         }
 
@@ -272,7 +319,27 @@ impl MessageClassifier for HybridClassifier {
                 Some(0.75),
                 "Fallback rule: Terms and conditions update".to_string(),
             ))
-        } else if cleaned_content.contains("unsubscribe") || sender_domain.contains("marketing") {
+        } else if 
+            // Expanded fallback Noise patterns
+            cleaned_content.contains("unsubscribe") || 
+            sender_domain.contains("marketing") ||
+            cleaned_content.contains("offer") ||
+            cleaned_content.contains("deal") ||
+            cleaned_content.contains("sale") ||
+            cleaned_content.contains("discount") ||
+            cleaned_content.contains("promotion") ||
+            cleaned_content.contains("subscribe") ||
+            cleaned_content.contains("newsletter") && !cleaned_content.contains("tech") && !cleaned_content.contains("ai") && !cleaned_content.contains("security") ||
+            cleaned_content.contains("weekly") && !cleaned_content.contains("security") ||
+            cleaned_content.contains("monthly") && !cleaned_content.contains("security") ||
+            cleaned_content.contains("digest") && !cleaned_content.contains("tech") ||
+            sender_domain.contains("shopify") || sender_domain.contains("etsy") ||
+            // Location/event patterns
+            cleaned_content.contains("near you") || cleaned_content.contains("in your area") ||
+            // Social engagement patterns  
+            cleaned_content.contains("people you may know") || cleaned_content.contains("suggested") ||
+            cleaned_content.contains("follow") || cleaned_content.contains("connection")
+        {
             Ok(Classification::new(
                 "Noise".to_string(),
                 Some(0.70),

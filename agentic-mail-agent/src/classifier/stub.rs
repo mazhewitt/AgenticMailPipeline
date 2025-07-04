@@ -98,8 +98,9 @@ impl StubClassifier {
         {
             ("ActionRequired", 0.9)
         } else if 
-            // InterestingInfo patterns
-            (cleaned_content.contains("newsletter") || cleaned_content.contains("digest")) && (cleaned_content.contains("tech") || cleaned_content.contains("news")) ||
+            // InterestingInfo patterns - must come before general newsletter patterns
+            (cleaned_content.contains("newsletter") || cleaned_content.contains("digest")) && (cleaned_content.contains("tech") || cleaned_content.contains("ai") || cleaned_content.contains("news")) ||
+            cleaned_content.contains("tech") && cleaned_content.contains("newsletter") ||
             cleaned_content.contains("security") && cleaned_content.contains("alert") ||
             cleaned_content.contains("economics") || cleaned_content.contains("financial") ||
             cleaned_content.contains("scam") && cleaned_content.contains("protect") ||
@@ -126,16 +127,60 @@ impl StubClassifier {
         {
             ("Spam", 0.95)
         } else if 
-            // Noise patterns
+            // Noise patterns - Marketing and promotional content
+            
+            // Marketing domains and senders
+            sender_domain.contains("noreply") || sender_domain.contains("no-reply") ||
+            sender_domain.contains("marketing") || sender_domain.contains("mailchimp") || 
+            sender_domain.contains("sendgrid") || sender_domain.contains("constantcontact") ||
+            sender_domain.contains("mailgun") || sender_domain.contains("campaign") ||
+            
+            // Social media platforms and notifications
+            sender_domain.contains("facebook") || sender_domain.contains("linkedin") ||
+            sender_domain.contains("twitter") || sender_domain.contains("instagram") ||
+            sender_domain.contains("social") || sender_domain.contains("notifications") ||
+            
+            // E-commerce and retail promotional domains  
+            sender_domain.contains("aliexpress") || sender_domain.contains("nespresso") ||
+            sender_domain.contains("shopify") || sender_domain.contains("etsy") ||
+            
+            // Promotional phrase patterns
+            cleaned_content.contains("limited time") || cleaned_content.contains("exclusive") ||
+            cleaned_content.contains("deal") || cleaned_content.contains("discount") ||
+            cleaned_content.contains("offer") || cleaned_content.contains("sale") ||
+            cleaned_content.contains("flash sale") || cleaned_content.contains("special offer") ||
+            cleaned_content.contains("promotion") || cleaned_content.contains("promotional") ||
+            
+            // Social media engagement patterns
             cleaned_content.contains("follow") && (cleaned_content.contains("linkedin") || cleaned_content.contains("ceo")) ||
             cleaned_content.contains("notification") && (cleaned_content.contains("facebook") || cleaned_content.contains("social")) ||
             cleaned_content.contains("posted") && cleaned_content.contains("update") ||
             cleaned_content.contains("connection") || cleaned_content.contains("add") && cleaned_content.contains("contact") ||
-            cleaned_content.contains("promotional") || cleaned_content.contains("newsletter") && !cleaned_content.contains("tech") ||
-            cleaned_content.contains("marketing") || cleaned_content.contains("offer") ||
-            sender_domain.contains("facebook") || sender_domain.contains("linkedin") ||
-            sender_domain.contains("aliexpress") || sender_domain.contains("nespresso") ||
-            // Check original subject/snippet for unsubscribe since it gets filtered out
+            cleaned_content.contains("people you may know") || cleaned_content.contains("suggested") ||
+            cleaned_content.contains("someone liked") || cleaned_content.contains("new followers") ||
+            
+            // Product recommendation patterns
+            cleaned_content.contains("to pair with") || cleaned_content.contains("you might like") ||
+            cleaned_content.contains("recommended for you") || cleaned_content.contains("based on your") ||
+            cleaned_content.contains("complete your") || cleaned_content.contains("accessories") ||
+            cleaned_content.contains("wishlist") && cleaned_content.contains("sale") ||
+            
+            // Newsletter patterns (excluding tech/security/AI newsletters)
+            cleaned_content.contains("newsletter") && !cleaned_content.contains("tech") && !cleaned_content.contains("ai") && !cleaned_content.contains("security") ||
+            cleaned_content.contains("weekly digest") && !cleaned_content.contains("tech") && !cleaned_content.contains("ai") ||
+            cleaned_content.contains("monthly update") && !cleaned_content.contains("security") && !cleaned_content.contains("tech") ||
+            
+            // Generic promotional language
+            cleaned_content.contains("marketing") || cleaned_content.contains("subscribe") ||
+            cleaned_content.contains("shop now") || cleaned_content.contains("buy now") ||
+            cleaned_content.contains("while supplies last") || cleaned_content.contains("hurry") ||
+            cleaned_content.contains("don't miss") || cleaned_content.contains("act now") ||
+            
+            // Location-based promotional patterns
+            cleaned_content.contains("events near you") || cleaned_content.contains("in your area") ||
+            cleaned_content.contains("local events") || cleaned_content.contains("near your location") ||
+            
+            // Check original subject/snippet for unsubscribe since it gets filtered out in preprocessing
             email.subject.as_deref().unwrap_or("").to_lowercase().contains("unsubscribe") ||
             email.snippet.as_deref().unwrap_or("").to_lowercase().contains("unsubscribe")
         {
