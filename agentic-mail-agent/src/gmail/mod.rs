@@ -63,35 +63,124 @@ impl GmailAuthConfig {
         }
     }
     
-    /// Create GmailAuthConfig from environment variables.
+    /// Create GmailAuthConfig from environment variables with sensible defaults.
+    /// 
+    /// This method looks for environment variables first, but falls back to
+    /// default paths relative to the project root if the variables aren't set.
     pub fn from_env() -> Result<Self, GmailClientError> {
-        let client_secret_path = std::env::var("GMAIL_CLIENT_SECRET_JSON")
-            .map_err(|_| GmailClientError::config("GMAIL_CLIENT_SECRET_JSON environment variable not set"))?;
-        let token_path = std::env::var("GMAIL_TOKEN_JSON")
-            .map_err(|_| GmailClientError::config("GMAIL_TOKEN_JSON environment variable not set"))?;
+        // Try environment variables first
+        let client_secret_path = match std::env::var("GMAIL_CLIENT_SECRET_JSON") {
+            Ok(path) => path,
+            Err(_) => {
+                // Fall back to default path relative to project root
+                Self::find_default_path("secrets/client-secret.json")?
+            }
+        };
+        
+        let token_path = match std::env::var("GMAIL_TOKEN_JSON") {
+            Ok(path) => path,
+            Err(_) => {
+                // Fall back to default path relative to project root
+                Self::find_default_path("secrets/token.json")?
+            }
+        };
+        
         Ok(Self::new(client_secret_path, token_path))
     }
     
-    /// Validate that the required files exist.
-    pub fn validate_files(&self) -> Result<(), GmailClientError> {
-        use std::path::Path;
+    /// Find default path by looking in parent directories for the secrets folder.
+    fn find_default_path(relative_path: &str) -> Result<String, GmailClientError> {
+        use std::path::PathBuf;
         
-        let secret_path = Path::new(&self.client_secret_path);
+        let current_dir = std::env::current_dir()
+            .map_err(|_| GmailClientError::config("Could not determine current directory"))?;
+        
+        // Look for secrets directory in current dir and parent directories
+        let mut search_dir = current_dir.as_path();
+        let mut tried_paths = Vec::new();
+        
+        for _ in 0..5 { // Limit search to 5 levels up
+            let candidate = search_dir.join(relative_path);
+            tried_paths.push(candidate.clone());
+            
+            if candidate.exists() {
+                return Ok(candidate.to_string_lossy().to_string());
+            }
+            
+            // Try one level up
+            if let Some(parent) = search_dir.parent() {
+                search_dir = parent;
+            } else {
+                break;
+            }
+        }
+        
+        // If not found, provide helpful error message with all searched locations
+        let tried_list: Vec<String> = tried_paths.iter()
+            .map(|p| format!("  - {}", p.display()))
+            .collect();
+        
+        Err(GmailClientError::config(format!(
+            "Gmail credentials not found. Searched for {} in:\n{}\n\nTo set up Gmail credentials:\n  1. Run: ./setup_gmail_auth.sh (from project root)\n  2. Or set environment variables:\n     export GMAIL_CLIENT_SECRET_JSON=/path/to/client-secret.json\n     export GMAIL_TOKEN_JSON=/path/to/token.json",
+            relative_path,
+            tried_list.join("\n")
+        )))
+    }
+    
+    /// Validate that the required files exist and have valid content.
+    pub fn validate_files(&self) -> Result<(), GmailClientError> {
+        
+        // Check client secret file
+        let secret_path = std::path::Path::new(&self.client_secret_path);
         if !secret_path.exists() {
             return Err(GmailClientError::config(format!(
-                "Client secret file not found: {}", 
+                "Client secret file not found: {}\n\nTo fix this:\n  1. Download OAuth2 client secret from Google Cloud Console\n  2. Save it as: {}\n  3. Or run: ./setup_gmail_auth.sh", 
+                self.client_secret_path,
                 self.client_secret_path
             )));
         }
         
-        // For token file, we only check if the parent directory exists
-        // The token file itself may not exist on first run
-        let token_path = Path::new(&self.token_path);
-        if let Some(parent) = token_path.parent() {
-            if !parent.exists() {
+        // Validate client secret content
+        if let Err(e) = std::fs::read_to_string(&self.client_secret_path) {
+            return Err(GmailClientError::config(format!(
+                "Cannot read client secret file {}: {}", 
+                self.client_secret_path, e
+            )));
+        }
+        
+        // Check token file
+        let token_path = std::path::Path::new(&self.token_path);
+        if !token_path.exists() {
+            return Err(GmailClientError::config(format!(
+                "Token file not found: {}\n\nTo fix this:\n  1. Run: ./setup_gmail_auth.sh\n  2. This will authenticate with Google and create the token file", 
+                self.token_path
+            )));
+        }
+        
+        // Validate token content
+        match std::fs::read_to_string(&self.token_path) {
+            Ok(content) => {
+                if content.trim().is_empty() {
+                    return Err(GmailClientError::config(format!(
+                        "Token file is empty: {}\n\nTo fix this:\n  1. Delete the empty file: rm {}\n  2. Run: ./setup_gmail_auth.sh", 
+                        self.token_path,
+                        self.token_path
+                    )));
+                }
+                
+                // Try to parse as JSON to ensure it's valid
+                if let Err(_) = serde_json::from_str::<serde_json::Value>(&content) {
+                    return Err(GmailClientError::config(format!(
+                        "Token file contains invalid JSON: {}\n\nTo fix this:\n  1. Delete the corrupt file: rm {}\n  2. Run: ./setup_gmail_auth.sh", 
+                        self.token_path,
+                        self.token_path
+                    )));
+                }
+            }
+            Err(e) => {
                 return Err(GmailClientError::config(format!(
-                    "Token file directory not found: {}", 
-                    parent.display()
+                    "Cannot read token file {}: {}", 
+                    self.token_path, e
                 )));
             }
         }
