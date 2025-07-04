@@ -11,8 +11,7 @@
 //!   cargo run --bin orchestrated_pii_anonymize -- --input-dir test_data --output-dir anonymized_safe_data
 //!   cargo run --bin orchestrated_pii_anonymize -- --backend ollama --model mistral --input-dir test_data --output-dir anonymized_safe_data
 
-use agentic_mail_agent::pii_orchestrator::PiiOrchestrator;
-use agentic_mail_agent::anonymizer::LlmBackend;
+use agentic_mail_agent::anonymizer::{PiiOrchestrator, AnonymizationConfig, LlmBackend, PiiReplacer};
 use serde_json;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -147,8 +146,10 @@ async fn async_main() -> Result<(), Box<dyn std::error::Error>> {
     // Create output directory
     fs::create_dir_all(&args.output_dir)?;
     
-    // Initialize PII orchestrator
-    let mut orchestrator = PiiOrchestrator::new(args.backend, args.model)?;
+    // Initialize PII orchestrator and replacer with new configuration
+    let config = AnonymizationConfig::new(args.backend, args.model)?;
+    let orchestrator = PiiOrchestrator::new(config).await?;
+    let mut replacer = PiiReplacer::new();
     
     // Process each email
     let mut processed_count = 0;
@@ -162,44 +163,35 @@ async fn async_main() -> Result<(), Box<dyn std::error::Error>> {
         // Convert to JSON string
         let email_json = serde_json::to_string_pretty(email)?;
         
-        // Anonymize using orchestrator
-        match orchestrator.anonymize_email(&email_json) {
-            Ok(result) => {
-                // Verify no PII remains (excluding generated fake data)
-                let verification = orchestrator.verify_no_pii(&result.anonymized_text, &result.replacement_log);
+        // Step 1: Detect PII using the new orchestrator
+        match orchestrator.detect_all_pii(&email_json).await {
+            Ok(detected_entities) => {
+                // Step 2: Clear previous replacement log
+                replacer.clear_replacement_log();
                 
-                if !verification.is_clean {
-                    println!("⚠️  Warning: Found {} remaining PII items after anonymization", verification.found_pii.len());
-                    for pii in &verification.found_pii {
-                        println!("   - {}: {}", pii.pii_type, pii.text);
-                    }
+                // Step 3: Replace PII with fake data
+                let anonymized_text = replacer.replace_pii_with_fallback(&email_json, &detected_entities)?;
+                
+                let pii_count = detected_entities.len();
+                let replacement_count = replacer.get_replacement_log().len();
+                
+                if pii_count > 0 {
+                    println!("✅ Clean ({} PII items anonymized)", replacement_count);
                 } else {
-                    println!("✅ Clean ({})", 
-                        if result.replacement_log.is_empty() { 
-                            "no PII found".to_string() 
-                        } else { 
-                            format!("{} PII items anonymized", result.replacement_log.len())
-                        }
-                    );
+                    println!("✅ Clean (no PII found)");
                 }
                 
-                total_pii_found += result.replacement_log.len();
-                
-                // Try to parse back to ensure it's still valid, but don't fail if it's not
-                match serde_json::from_str::<TestEmail>(&result.anonymized_text) {
-                    Ok(_) => {
-                        // JSON is valid
-                    }
-                    Err(e) => {
-                        println!("⚠️  Warning: Anonymized JSON has parsing issues: {}", e);
-                        println!("   Continuing with potentially malformed JSON...");
-                    }
+                // Debug: Show what was detected vs what was replaced
+                if pii_count != replacement_count {
+                    println!("   ⚠️  Note: Detected {} PII items, replaced {}", pii_count, replacement_count);
                 }
+                
+                total_pii_found += replacement_count;
                 
                 // Save anonymized email
                 let output_filename = format!("email_{:03}.json", index + 1);
                 let output_path = args.output_dir.join(&output_filename);
-                fs::write(&output_path, &result.anonymized_text)?;
+                fs::write(&output_path, &anonymized_text)?;
                 
                 processed_count += 1;
             }

@@ -9,20 +9,24 @@ pub struct PhoneDetector {
 }
 
 impl PhoneDetector {
-    /// Create a new phone detector with common US phone number patterns
+    /// Create a new phone detector with US and international phone number patterns
     pub fn new() -> Self {
         let patterns = vec![
             // Phone with extension: 555-123-4567 ext 1234 (check this first to avoid partial matches)
             Regex::new(r"\d{3}-\d{3}-\d{4}\s+ext\s+\d{1,4}").unwrap(),
-            // +1-555-123-4567
+            // International: +41 79 706 7378 (Swiss), +44 20 1234 5678 (UK), etc.
+            Regex::new(r"\+\d{1,4}\s\d{1,4}\s\d{1,4}\s\d{1,4}").unwrap(),
+            // International compact: +41797067378
+            Regex::new(r"\+\d{8,15}").unwrap(),
+            // +1-555-123-4567 (US with country code)
             Regex::new(r"\+1-\d{3}-\d{3}-\d{4}").unwrap(),
-            // (555) 123-4567
+            // (555) 123-4567 (US)
             Regex::new(r"\(\d{3}\)\s?\d{3}-\d{4}").unwrap(),
-            // 555-123-4567
+            // 555-123-4567 (US)
             Regex::new(r"\d{3}-\d{3}-\d{4}").unwrap(),
-            // 555.123.4567
+            // 555.123.4567 (US)
             Regex::new(r"\d{3}\.\d{3}\.\d{4}").unwrap(),
-            // 5551234567 (10 digits)
+            // 5551234567 (10 digits, US)
             Regex::new(r"\b\d{10}\b").unwrap(),
         ];
         
@@ -92,25 +96,34 @@ impl PhoneDetector {
     fn is_valid_base_phone_number(&self, phone: &str) -> bool {
         // Extract just the digits
         let digits: String = phone.chars().filter(|c| c.is_ascii_digit()).collect();
+        let digit_count = digits.len();
+        
+        // International phone numbers (with + prefix)
+        if phone.starts_with('+') {
+            // International numbers should have 7-15 digits total
+            if digit_count >= 7 && digit_count <= 15 {
+                return true;
+            }
+        }
         
         // US phone numbers should have 10 digits (or 11 with country code)
-        let digit_count = digits.len();
-        if digit_count != 10 && digit_count != 11 {
-            return false;
+        if digit_count == 10 || digit_count == 11 {
+            // If 11 digits, should start with 1 (US country code)
+            if digit_count == 11 && !digits.starts_with('1') {
+                return false;
+            }
+            
+            // Area code shouldn't start with 0 or 1 for US numbers
+            let area_code_start = if digit_count == 11 { 1 } else { 0 };
+            if let Some(area_code_first_digit) = digits.chars().nth(area_code_start) {
+                if area_code_first_digit == '0' || area_code_first_digit == '1' {
+                    return false;
+                }
+            }
+            
+            return true;
         }
         
-        // If 11 digits, should start with 1 (US country code)
-        if digit_count == 11 && !digits.starts_with('1') {
-            return false;
-        }
-        
-        // Area code shouldn't start with 0 or 1
-        let area_code_start = if digit_count == 11 { 1 } else { 0 };
-        let area_code_first_digit = digits.chars().nth(area_code_start).unwrap();
-        if area_code_first_digit == '0' || area_code_first_digit == '1' {
-            return false;
-        }
-        
-        true
+        false
     }
 }

@@ -115,4 +115,15 @@ mod tests {
         assert_eq!(entities.len(), 1);
         assert_eq!(entities[0].text, "555-123-4567 ext 1234");
     }
+
+    #[test]
+    fn test_detect_swiss_phone_number() {
+        let detector = PhoneDetector::new();
+        let text = "Swiss number: +41 79 706 7378";
+        let entities = detector.detect_phone_numbers(text);
+        
+        assert_eq!(entities.len(), 1);
+        assert_eq!(entities[0].pii_type, "phone");
+        assert_eq!(entities[0].text, "+41 79 706 7378");
+    }
 }

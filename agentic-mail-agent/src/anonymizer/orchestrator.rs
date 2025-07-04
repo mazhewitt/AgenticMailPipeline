@@ -3,7 +3,7 @@
 use crate::anonymizer::{
     config::AnonymizationConfig,
     types::PiiEntity,
-    regex_tools::PhoneDetector,
+    regex_tools::{PhoneDetector, EmailDetector, LocationDetector},
     llm_tools::AddressDetector,
     detection::PiiDetector, // For name detection
 };
@@ -12,6 +12,8 @@ use crate::anonymizer::{
 pub struct PiiOrchestrator {
     // Regex-based tools for structured PII
     phone_detector: PhoneDetector,
+    email_detector: EmailDetector,
+    location_detector: LocationDetector,
     
     // LLM-based tools for contextual PII
     address_detector: AddressDetector,
@@ -23,6 +25,8 @@ impl PiiOrchestrator {
     pub async fn new(config: AnonymizationConfig) -> Result<Self, Box<dyn std::error::Error>> {
         // Initialize regex-based detectors (fast, deterministic)
         let phone_detector = PhoneDetector::new();
+        let email_detector = EmailDetector::new();
+        let location_detector = LocationDetector::new();
         
         // Initialize LLM-based detectors (intelligent, contextual)
         let address_detector = AddressDetector::new(config.clone()).await?;
@@ -30,6 +34,8 @@ impl PiiOrchestrator {
         
         Ok(Self {
             phone_detector,
+            email_detector,
+            location_detector,
             address_detector,
             name_detector,
         })
@@ -42,6 +48,12 @@ impl PiiOrchestrator {
         // Step 1: Use regex tools for structured PII (fast and accurate)
         let phone_entities = self.phone_detector.detect_phone_numbers(text);
         all_entities.extend(phone_entities);
+        
+        let email_entities = self.email_detector.detect_emails(text);
+        all_entities.extend(email_entities);
+        
+        let location_entities = self.location_detector.detect_locations(text);
+        all_entities.extend(location_entities);
         
         #[cfg(debug_assertions)]
         eprintln!("Regex tools found {} entities", all_entities.len());
@@ -90,7 +102,9 @@ impl PiiOrchestrator {
                     
                     // Prefer longer matches, or regex tools over LLM for structured data
                     if entity.text.len() > existing.text.len() 
-                        || (entity.pii_type == "phone" && existing.pii_type == "name") {
+                        || (entity.pii_type == "phone" && existing.pii_type == "name")
+                        || (entity.pii_type == "email" && existing.pii_type == "name")
+                        || (entity.pii_type == "location" && existing.pii_type == "name") {
                         deduplicated[existing_idx] = entity;
                     }
                 }
@@ -103,9 +117,9 @@ impl PiiOrchestrator {
     /// Get statistics about detection performance
     pub fn get_detection_stats(&self) -> DetectionStats {
         DetectionStats {
-            regex_tools_count: 1, // phone detector
+            regex_tools_count: 3, // phone, email, and location detectors
             llm_tools_count: 2,   // address and name detectors
-            total_tools_count: 3,
+            total_tools_count: 5,
         }
     }
 }

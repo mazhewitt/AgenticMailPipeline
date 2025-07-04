@@ -15,6 +15,7 @@ impl FakeDataGenerator {
             "email" => self.generate_fake_email(original_value, seed),
             "phone" => self.generate_fake_phone(seed),
             "address" => self.generate_fake_address(seed),
+            "location" => self.generate_fake_location(original_value, seed),
             "company" => self.generate_fake_company(seed),
             _ => format!("[REDACTED_{}]", pii_type.to_uppercase()),
         }
@@ -31,19 +32,34 @@ impl FakeDataGenerator {
     }
     
     fn generate_fake_email(&self, original: &str, seed: usize) -> String {
-        // Preserve the domain structure but anonymize
-        if let Some(at_pos) = original.find('@') {
-            let domain = &original[at_pos + 1..];
-            let fake_username = "user".to_string() + &(seed + 1).to_string();
-            
-            // If it's a common domain, keep it; otherwise anonymize
-            if domain.ends_with(".com") || domain.ends_with(".org") || domain.ends_with(".edu") {
-                format!("{}@example.com", fake_username)
-            } else {
-                format!("{}@{}", fake_username, domain)
-            }
+        // Always use fake domains to prevent any real email leakage
+        let clean_original = original.trim_matches(|c| c == '<' || c == '>' || c == '"');
+        let _normalized_original = clean_original
+            .replace("[at]", "@")
+            .replace("(at)", "@")
+            .replace("[dot]", ".")
+            .replace("(dot)", ".");
+        
+        let fake_domains = ["example.com", "test.org", "sample.net", "demo.co.uk", "fake.ch"];
+        let usernames = ["user", "contact", "admin", "info", "support", "team"];
+        
+        let domain_idx = (seed * 7) % fake_domains.len();
+        let username_idx = (seed * 11) % usernames.len();
+        let number = (seed % 999) + 1;
+        
+        // Preserve HTML/quote formatting if present
+        let fake_email = format!("{}{}@{}", usernames[username_idx], number, fake_domains[domain_idx]);
+        
+        if original.starts_with('<') && original.ends_with('>') {
+            format!("<{}>", fake_email)
+        } else if original.starts_with('"') && original.ends_with('"') {
+            format!("\"{}\"", fake_email)
+        } else if original.contains("[at]") {
+            fake_email.replace("@", " [at] ").replace(".", " [dot] ")
+        } else if original.contains("(at)") {
+            fake_email.replace("@", " (at) ").replace(".", " (dot) ")
         } else {
-            format!("user{}@example.com", seed + 1)
+            fake_email
         }
     }
     
@@ -71,6 +87,33 @@ impl FakeDataGenerator {
             number, streets[street_idx], cities[city_idx], states[state_idx],
             10000 + (seed % 90000)
         )
+    }
+    
+    fn generate_fake_location(&self, original: &str, seed: usize) -> String {
+        // Handle different types of location data
+        if original.chars().next().unwrap_or(' ').is_ascii_digit() {
+            // Looks like postal code + city
+            let fake_postal_codes = ["1000", "2000", "3000", "4000", "5000"];
+            let fake_cities = ["Springfield", "Riverside", "Franklin", "Georgetown", "Clinton"];
+            
+            let postal_idx = (seed * 7) % fake_postal_codes.len();
+            let city_idx = (seed * 11) % fake_cities.len();
+            
+            format!("{} {}", fake_postal_codes[postal_idx], fake_cities[city_idx])
+        } else if original.contains("mann") || original.contains("gasse") || 
+                  original.contains("strasse") || original.contains("str") {
+            // Looks like a street address
+            let fake_streets = ["Main Street", "Oak Avenue", "First Street", "Park Avenue", "Elm Street"];
+            let street_idx = (seed * 13) % fake_streets.len();
+            let number = 100 + (seed % 900);
+            
+            format!("{} {}", number, fake_streets[street_idx])
+        } else {
+            // Assume it's a city name
+            let fake_cities = ["Springfield", "Riverside", "Franklin", "Georgetown", "Clinton", "Centerville"];
+            let city_idx = (seed * 17) % fake_cities.len();
+            fake_cities[city_idx].to_string()
+        }
     }
     
     fn generate_fake_company(&self, seed: usize) -> String {

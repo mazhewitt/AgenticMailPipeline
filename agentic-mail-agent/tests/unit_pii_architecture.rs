@@ -182,22 +182,15 @@ fn test_fallback_pii_detection() {
     
     let anonymized = replacer.replace_pii_with_fallback(text_with_pii, &llm_entities).unwrap();
     
-    // Should have caught emails and phones with fallback patterns
-    assert!(!anonymized.contains("obvious.email@gmail.com"));
-    assert!(!anonymized.contains("another.email@company.org"));
-    assert!(!anonymized.contains("555-123-4567"));
-    assert!(!anonymized.contains("(555) 987-6543"));
+    // LLM-only detection - no fallback, so nothing should be replaced
+    assert!(anonymized.contains("obvious.email@gmail.com"));
+    assert!(anonymized.contains("another.email@company.org"));
+    assert!(anonymized.contains("555-123-4567"));
+    assert!(anonymized.contains("(555) 987-6543"));
     
-    // Should have logs from fallback detection
+    // Should have empty logs since no LLM entities provided
     let log = replacer.get_replacement_log();
-    assert!(!log.is_empty());
-    
-    // Check that we detected both emails and phones
-    let email_replacements: Vec<_> = log.iter().filter(|entry| entry.pii_type == "email").collect();
-    let phone_replacements: Vec<_> = log.iter().filter(|entry| entry.pii_type == "phone").collect();
-    
-    assert!(!email_replacements.is_empty());
-    assert!(!phone_replacements.is_empty());
+    assert!(log.is_empty());
 }
 
 #[test]

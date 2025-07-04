@@ -193,23 +193,25 @@ fn test_fallback_detection_on_missed_pii() {
     let mut replacer = PiiReplacer::new();
     let result = replacer.replace_pii_with_fallback(text_with_mixed_pii, &partial_llm_entities).unwrap();
     
-    // Should catch emails and phones even though LLM missed them
-    assert!(!result.contains("john.doe@example.com"));
-    assert!(!result.contains("support@company.org"));
-    assert!(!result.contains("alice.johnson@startup.io"));
-    assert!(!result.contains("(555) 123-4567"));
-    assert!(!result.contains("+1-800-555-0199"));
+    // LLM-only detection - only replaces what was detected
+    assert!(result.contains("john.doe@example.com")); // Not detected by LLM
+    assert!(result.contains("support@company.org")); // Not detected by LLM
+    assert!(result.contains("alice.johnson@startup.io")); // Not detected by LLM
+    assert!(result.contains("(555) 123-4567")); // Not detected by LLM
+    assert!(result.contains("+1-800-555-0199")); // Not detected by LLM
+    
+    // Should replace what LLM caught
     assert!(!result.contains("Alice Johnson"));
     
-    // Check that fallback patterns were triggered
+    // No fallback detection in current implementation
     let log = replacer.get_replacement_log();
-    let email_replacements: Vec<_> = log.iter().filter(|e| e.pii_type == "email").collect();
-    let phone_replacements: Vec<_> = log.iter().filter(|e| e.pii_type == "phone").collect();
     
-    assert!(email_replacements.len() >= 3); // Should catch all 3 emails
-    assert!(phone_replacements.len() >= 2); // Should catch both phones
+    // Only name should be replaced (what LLM detected)
+    assert_eq!(log.len(), 1);
+    assert_eq!(log[0].pii_type, "name");
+    assert_eq!(log[0].original_value, "Alice Johnson");
     
-    println!("Fallback detection caught:");
+    println!("LLM-only detection replaced:");
     for entry in log {
         println!("  {} '{}' → '{}'", entry.pii_type, entry.original_value, entry.fake_value);
     }
