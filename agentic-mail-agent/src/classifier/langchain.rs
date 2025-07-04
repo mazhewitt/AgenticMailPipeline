@@ -295,13 +295,13 @@ mod tests {
         
         assert!(prompt.contains("Meeting reminder"));
         assert!(prompt.contains("Don't forget our meeting tomorrow at 2pm"));
-        assert!(prompt.contains("sender@example.com"));
-        assert!(prompt.contains("recipient@example.com"));
-        assert!(prompt.contains("work"));
-        assert!(prompt.contains("personal"));
-        assert!(prompt.contains("promotional"));
-        assert!(prompt.contains("spam"));
-        assert!(prompt.contains("newsletter"));
+        assert!(prompt.contains("from_domain:example.com"));
+        assert!(prompt.contains("to_domain:example.com"));
+        assert!(prompt.contains("ActionRequired"));
+        assert!(prompt.contains("InterestingInfo"));
+        assert!(prompt.contains("Reference"));
+        assert!(prompt.contains("Noise"));
+        assert!(prompt.contains("Spam"));
         assert!(prompt.contains("urgent"));
     }
 
@@ -330,10 +330,10 @@ mod tests {
 
         let prompt = classifier.build_prompt(&email);
 
-        // Verify all the new fields are included
-        assert!(prompt.contains("boss@company.com"), "Prompt should contain from address");
-        assert!(prompt.contains("employee@company.com"), "Prompt should contain to address");
-        assert!(prompt.contains("Wed, 30 Jun 2023"), "Prompt should contain sent date");
+        // Verify metadata domains are included (not full email addresses for privacy)
+        assert!(prompt.contains("from_domain:company.com"), "Prompt should contain from domain");
+        assert!(prompt.contains("to_domain:company.com"), "Prompt should contain to domain");
+        // Note: sent date is not included in the prompt for privacy and simplicity
         assert!(prompt.contains("Meeting Tomorrow"), "Prompt should contain subject");
         assert!(prompt.contains("Hi Team"), "Prompt should contain full body");
         assert!(prompt.contains("Best regards"), "Prompt should contain full body");
@@ -410,12 +410,11 @@ mod tests {
             config,
         };
         
-        assert!(classifier.validate_category("work").is_ok());
-        assert!(classifier.validate_category("personal").is_ok());
-        assert!(classifier.validate_category("promotional").is_ok());
-        assert!(classifier.validate_category("spam").is_ok());
-        assert!(classifier.validate_category("newsletter").is_ok());
-        assert!(classifier.validate_category("urgent").is_ok());
+        assert!(classifier.validate_category("ActionRequired").is_ok());
+        assert!(classifier.validate_category("InterestingInfo").is_ok());
+        assert!(classifier.validate_category("Reference").is_ok());
+        assert!(classifier.validate_category("Noise").is_ok());
+        assert!(classifier.validate_category("Spam").is_ok());
     }
 
     #[test]

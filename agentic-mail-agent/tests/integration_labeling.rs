@@ -2,7 +2,7 @@
 
 use agentic_mail_agent::email::Email;
 use agentic_mail_agent::classifier::{MessageClassifier, StubClassifier};
-use agentic_mail_agent::action_router::{RuleBasedRouter, ActionRouter, EmailAction};
+use agentic_mail_agent::action_executor::{ActionExecutor, StubActionExecutor};
 use agentic_mail_agent::labeler::{StubLabeler, EmailLabeler};
 
 #[tokio::test]
@@ -19,42 +19,21 @@ async fn test_end_to_end_labeling_pipeline() {
     let classification = classifier.classify(&email).await
         .expect("Classification should succeed");
     
-    assert_eq!(classification.category, "work");
+    assert_eq!(classification.category, "ActionRequired"); // Meeting = ActionRequired
     assert_eq!(classification.score, Some(0.9));
 
-    // Route to actions
-    let router = RuleBasedRouter::new();
-    let routing_result = router.route(&email, &classification).await
-        .expect("Routing should succeed");
+    // Execute actions (label and archive)
+    let action_executor = StubActionExecutor::new();
+    let result = action_executor.execute_actions(&email, &classification).await
+        .expect("Action execution should succeed");
 
-    // Verify we get the expected actions
-    assert!(routing_result.actions.iter().any(|action| {
-        matches!(action, EmailAction::Label { label } if label == "AGENT_WORK")
-    }));
+    // Verify action execution results
+    assert_eq!(result.message_id, "test-123");
+    assert_eq!(result.label_applied, "AGENT_ACTIONREQUIRED");
+    assert!(!result.archived); // ActionRequired emails should not be archived
+    assert!(result.actions_taken.iter().any(|action| action.contains("Applied label")));
+    assert!(result.actions_taken.iter().any(|action| action.contains("Kept in inbox")));
 
-    // Execute labeling actions
-    let labeler = StubLabeler::new();
-    let mut labeling_results = Vec::new();
-
-    for action in &routing_result.actions {
-        if let EmailAction::Label { label } = action {
-            let result = labeler.apply_label(&email.id, label).await
-                .expect("Labeling should succeed");
-            labeling_results.push(result);
-        }
-    }
-
-    // Verify labeling results
-    assert_eq!(labeling_results.len(), 1);
-    let labeling_result = &labeling_results[0];
-    assert_eq!(labeling_result.message_id, "test-123");
-    assert_eq!(labeling_result.label, "AGENT_WORK");
-    assert!(labeling_result.created_new_label);
-    assert!(labeling_result.description.contains("Created and applied new label"));
-
-    // Verify the label was actually applied
-    assert!(labeler.message_has_label("test-123", "AGENT_WORK"));
-    assert!(labeler.get_existing_labels().contains(&"AGENT_WORK".to_string()));
 }
 
 #[tokio::test]
@@ -68,29 +47,17 @@ async fn test_urgent_email_labeling() {
     let classifier = StubClassifier::deterministic();
     let classification = classifier.classify(&email).await.unwrap();
     
-    // Should be classified as urgent
-    assert_eq!(classification.category, "urgent");
+    // Should be classified as ActionRequired
+    assert_eq!(classification.category, "ActionRequired");
 
-    let router = RuleBasedRouter::new();
-    let routing_result = router.route(&email, &classification).await.unwrap();
+    // Execute actions
+    let action_executor = StubActionExecutor::new();
+    let result = action_executor.execute_actions(&email, &classification).await.unwrap();
 
-    // Should have high priority actions
-    assert!(routing_result.has_high_priority_actions());
-
-    // Should include AGENT_URGENT label
-    assert!(routing_result.actions.iter().any(|action| {
-        matches!(action, EmailAction::Label { label } if label == "AGENT_URGENT")
-    }));
-
-    // Apply labels
-    let labeler = StubLabeler::new();
-    for action in &routing_result.actions {
-        if let EmailAction::Label { label } = action {
-            labeler.apply_label(&email.id, label).await.unwrap();
-        }
-    }
-
-    assert!(labeler.message_has_label("urgent-456", "AGENT_URGENT"));
+    // Verify results
+    assert_eq!(result.message_id, "urgent-456");
+    assert_eq!(result.label_applied, "AGENT_ACTIONREQUIRED");
+    assert!(!result.archived); // ActionRequired should not be archived
 }
 
 #[tokio::test]
@@ -104,28 +71,18 @@ async fn test_spam_email_labeling() {
     let classifier = StubClassifier::deterministic();
     let classification = classifier.classify(&email).await.unwrap();
     
-    // This email should get low confidence and be marked as needs review
-    // (the stub classifier assigns low confidence to certain suspicious content)
-    assert_eq!(classification.category, "work"); // Stub classifier defaults to work
-    assert_eq!(classification.score, Some(0.6)); // Low confidence
+    // This email should be classified as Reference (fallback for unmatched content)
+    assert_eq!(classification.category, "Reference"); // Falls back to Reference
+    assert_eq!(classification.score, Some(0.6)); // Default score
 
-    let router = RuleBasedRouter::new();
-    let routing_result = router.route(&email, &classification).await.unwrap();
+    // Execute actions
+    let action_executor = StubActionExecutor::new();
+    let result = action_executor.execute_actions(&email, &classification).await.unwrap();
 
-    // Should be marked for review due to low confidence
-    assert!(routing_result.actions.iter().any(|action| {
-        matches!(action, EmailAction::Label { label } if label == "AGENT_NEEDS_REVIEW")
-    }));
-
-    // Apply labels
-    let labeler = StubLabeler::new();
-    for action in &routing_result.actions {
-        if let EmailAction::Label { label } = action {
-            labeler.apply_label(&email.id, label).await.unwrap();
-        }
-    }
-
-    assert!(labeler.message_has_label("spam-789", "AGENT_NEEDS_REVIEW"));
+    // Verify results
+    assert_eq!(result.message_id, "spam-789");
+    assert_eq!(result.label_applied, "AGENT_REFERENCE");
+    assert!(result.archived); // Reference should be archived
 }
 
 #[tokio::test]
@@ -139,25 +96,16 @@ async fn test_newsletter_email_labeling() {
     let classifier = StubClassifier::deterministic();
     let classification = classifier.classify(&email).await.unwrap();
     
-    assert_eq!(classification.category, "newsletter");
+    assert_eq!(classification.category, "InterestingInfo"); // Newsletter with "news" = InterestingInfo
 
-    let router = RuleBasedRouter::new();
-    let routing_result = router.route(&email, &classification).await.unwrap();
+    // Execute actions
+    let action_executor = StubActionExecutor::new();
+    let result = action_executor.execute_actions(&email, &classification).await.unwrap();
 
-    // Should include AGENT_NEWSLETTER label
-    assert!(routing_result.actions.iter().any(|action| {
-        matches!(action, EmailAction::Label { label } if label == "AGENT_NEWSLETTER")
-    }));
-
-    // Apply labels
-    let labeler = StubLabeler::new();
-    for action in &routing_result.actions {
-        if let EmailAction::Label { label } = action {
-            labeler.apply_label(&email.id, label).await.unwrap();
-        }
-    }
-
-    assert!(labeler.message_has_label("newsletter-101", "AGENT_NEWSLETTER"));
+    // Verify results
+    assert_eq!(result.message_id, "newsletter-101");
+    assert_eq!(result.label_applied, "AGENT_INTERESTINGINFO");
+    assert!(result.archived); // InterestingInfo should be archived
 }
 
 #[tokio::test]
