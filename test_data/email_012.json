@@ -1,0 +1,13 @@
+{
+  "id": "197d41dcbfca48cd",
+  "subject": "New login from macOS (Safari)",
+  "snippet": "We noticed a login to your Link account from a new device. ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏",
+  "from": "Link <admin41@example.com>",
+  "to": [
+    "info22@sample.net"
+  ],
+  "sent": "Fri, 4 Jul 2025 06:26:50 +0000",
+  "body": "New login detected\r\n\r\nWe noticed a login to your Link account from a new device. If this was you, no further action is needed.\r\n\r\n- Device: macOS (Safari)\r\n\r\n- Location: Riverside, Riverside, Switzerland\r\n\r\n- When: July 4, 2025 at 6:26:46 AM UTC\r\n\r\n- How: Verified with one-time passcode sent to phone\r\n\r\nIf this was not you, log in to your Link account and review your purchases (https://app.link.com/purchases) for suspicious activity. If you notice any signs that your account might be compromised, contact us (https://support.link.com/questions/why-did-i-receive-a-new-device-login-email-from-link) for assistance.\r\n\r\n===\r\n\r\nIf you believe you are getting this email in error or want to close your Link account, please visit our support site (https://support.link.com). To learn more about Link, please visit link.com (https://link.com).\r\n\r\n\r\nLink by Stripe\r\nStripe Payments Europe, Limited The One Building, Lower Grand Canal St, Dublin, D02 H210, Ireland",
+  "downloaded_at": "2025-07-04T12:30:52.600348+00:00",
+  "file_index": 12
+}

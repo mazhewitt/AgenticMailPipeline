@@ -81,8 +81,13 @@ criterion/
 
 # Test data with potentially sensitive email content
 # (Run 'cargo run --bin download_test_data' to regenerate locally)
-test_data/
-**/test_data/
+# NOTE: /test_data/ is now safe anonymized data for CI
+raw_test_data/
+**/raw_test_data/
+temp_test_data/
+**/temp_test_data/
+live_test_data/
+**/live_test_data/
 test_emails/
 **/test_emails/
 temp_expanded_data/
