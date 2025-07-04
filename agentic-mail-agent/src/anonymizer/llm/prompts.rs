@@ -21,6 +21,29 @@ JSON array:"#,
         )
     }
     
+    /// Generate a prompt for extracting addresses from email text
+    pub fn extract_addresses(email_text: &str) -> String {
+        format!(
+            r#"You are an address extraction assistant. Extract all physical addresses from this email text.
+
+IMPORTANT: Return ONLY a JSON array of strings containing the addresses. No explanations or other text.
+
+Include:
+- Street addresses (123 Main St, City, ST 12345)
+- PO Boxes (PO Box 1234, City, ST 12345)
+- Apartment/Suite addresses (456 Oak Ave Apt 2B, City, ST 12345)
+- International addresses with postal codes
+
+Example: ["123 Main Street, Anytown, CA 12345", "PO Box 567, Springfield, IL 62701"]
+
+Email text:
+{}
+
+JSON array:"#,
+            email_text
+        )
+    }
+    
     /// Generate a prompt for extracting general PII from email text
     pub fn extract_pii(email_text: &str) -> String {
         format!(

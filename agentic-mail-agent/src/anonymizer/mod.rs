@@ -13,6 +13,9 @@ pub mod text;
 pub mod detection;
 pub mod replacement;
 pub mod pipeline;
+pub mod regex_tools;
+pub mod llm_tools;
+pub mod orchestrator;
 
 // Re-export main public API
 pub use types::{PiiEntity, LlmPiiEntity, ReplacementLogEntry, AnonymizationResult, LlmBackend};
@@ -20,3 +23,6 @@ pub use config::AnonymizationConfig;
 pub use pipeline::AnonymizationPipeline;
 pub use detection::PiiDetector;
 pub use replacement::PiiReplacer;
+pub use regex_tools::PhoneDetector;
+pub use llm_tools::AddressDetector;
+pub use orchestrator::{PiiOrchestrator, DetectionStats};
