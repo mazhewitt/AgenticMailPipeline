@@ -214,6 +214,19 @@ The system includes a flexible email classification module that can categorize e
 
 ---
 
+## 🎯 Current Status
+
+The project includes **50 fully anonymized test emails** for CI/testing purposes. These emails have been processed through the PII anonymization pipeline to replace all sensitive information with realistic fake data while preserving email structure and content for testing.
+
+**Test Data Features:**
+- 50 diverse email examples covering all classification categories
+- All PII anonymized: names, emails, phone numbers, addresses
+- Safe for CI/CD pipelines and public repositories
+- Realistic fake data maintains testing validity
+- Comprehensive coverage for classifier training and validation
+
+---
+
 ## ✨ Features
 
 ### 🤖 AI-Powered Email Classification
@@ -221,6 +234,13 @@ The system includes a flexible email classification module that can categorize e
 - **Multiple Classifiers**: Choose between deterministic stub classifier or AI-powered LLM classifier
 - **Privacy-First**: All LLM processing happens locally - no cloud AI services
 - **Semantic Understanding**: LLM classifier understands context beyond simple keyword matching
+
+### 🔒 PII Anonymization Pipeline
+- **Intelligent PII Detection**: Uses local LLMs to detect names, emails, phone numbers, addresses
+- **Safe Test Data Generation**: Anonymize emails for CI/testing without privacy concerns
+- **Dual-Stage Processing**: LLM detection + Rust-based replacement with realistic fake data
+- **Audit Trails**: Complete traceability of all anonymization operations
+- **Multiple Backends**: Support for Ollama (local) and OpenAI (cloud) models
 
 ### 📧 Email Processing Pipeline
 - **Gmail Integration**: Secure OAuth2 authentication with read-only permissions
@@ -268,13 +288,26 @@ CLASSIFIER_TYPE=langchain cargo run --bin agentic-mail-agent
 For detailed setup instructions, see:
 - [Gmail Setup Guide](GMAIL_SETUP.md) - Configure Gmail API access
 - [LLM Classification Guide](LLM_CLASSIFICATION_GUIDE.md) - Set up local AI classification
+- [PII Anonymization Guide](PII_ANONYMIZATION_GUIDE.md) - Create safe test data with PII anonymization
 
 ## Utilities
 
+### Setup & Authentication
 - `./setup_gmail_auth.sh` - Complete OAuth2 setup automation
 - `./check_setup.sh` - Verify current setup status
+- `./set_gmail_env.sh` - Set Gmail environment variables
+
+### Testing & Development
 - `./test_integration.sh` - Comprehensive testing
 - `./test_setup.sh` - Demo mode testing
+- `./demo_pii_pipeline.sh` - Demonstrate PII anonymization pipeline
+- `./test_pii_pipeline.sh` - Test PII anonymization functionality
+
+### Data Management
+- `cargo run --bin download_test_data` - Download emails for testing
+- `cargo run --bin orchestrated_pii_anonymize` - Anonymize emails for safe CI use
+- `cargo run --bin check_anonymized_data` - Verify anonymization quality
+- `cargo run --bin test_with_real_data` - Test classifier with real data
 
 ## License
 MIT

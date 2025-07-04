@@ -19,24 +19,35 @@ Before using this tool, make sure you have set up Gmail API authentication:
 
 ## Usage
 
-To download the first 20 emails from your inbox:
+To download emails from your inbox (default: 20 emails):
 
 ```bash
 cargo run --bin download_test_data
+```
+
+To download a specific number of emails:
+
+```bash
+EMAIL_COUNT=50 cargo run --bin download_test_data
 ```
 
 ## Configuration
 
 You can customize the behavior using environment variables:
 
+- `EMAIL_COUNT`: Number of emails to download (default: 20)
 - `TEST_DATA_DIR`: Directory to save test data files (default: `test_data`)
 - `GMAIL_CLIENT_SECRET_JSON`: Path to OAuth2 client secret JSON file
 - `GMAIL_TOKEN_JSON`: Path to OAuth2 token JSON file
 
-Example with custom output directory:
+Example with custom settings:
 ```bash
-TEST_DATA_DIR=my_test_emails cargo run --bin download_test_data
+EMAIL_COUNT=50 TEST_DATA_DIR=my_test_emails cargo run --bin download_test_data
 ```
+
+## Current Test Data
+
+The repository includes 50 pre-downloaded and anonymized emails in the `test_data/` directory. These emails have been processed through the PII anonymization pipeline to remove all sensitive information while preserving structure for testing.
 
 ## Output
 

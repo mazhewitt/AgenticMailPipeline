@@ -53,8 +53,10 @@ See `./secrets/client-secret-template.json` for a complete template.
 export GMAIL_CLIENT_SECRET_JSON="./secrets/client-secret.json"
 export GMAIL_TOKEN_JSON="./secrets/token.json"
 
-# Run the OAuth2 setup utility
-cargo run --bin auth_setup
+# Run the OAuth2 setup script (automated)
+./setup_gmail_auth.sh
+
+# Or set up manually if needed
 ```
 
 ### 3. Set Environment Variables
