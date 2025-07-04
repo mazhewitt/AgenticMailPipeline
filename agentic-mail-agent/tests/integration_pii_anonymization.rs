@@ -90,7 +90,7 @@ My name is Obvious Person and I live at 123 Obvious Street.
     
     // Test with empty LLM entities (simulating LLM failure)
     let llm_entities = vec![];
-    let anonymized = replacer.replace_pii_with_fallback(text_with_obvious_pii, &llm_entities).unwrap();
+    let anonymized = replacer.replace_pii(text_with_obvious_pii, &llm_entities).unwrap();
     
     // LLM-only detection - no fallback, so obvious patterns remain
     assert!(anonymized.contains("obvious.email@gmail.com"));

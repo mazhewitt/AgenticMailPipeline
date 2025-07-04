@@ -105,7 +105,7 @@ fn test_complete_email_anonymization_workflow() {
     
     // Step 3: Apply anonymization with fallback
     let mut replacer = PiiReplacer::new();
-    let anonymized_text = replacer.replace_pii_with_fallback(&full_text, &detected_entities).unwrap();
+    let anonymized_text = replacer.replace_pii(&full_text, &detected_entities).unwrap();
     
     println!("Anonymized text:");
     println!("{}", anonymized_text);
@@ -191,7 +191,7 @@ fn test_fallback_detection_on_missed_pii() {
     ];
     
     let mut replacer = PiiReplacer::new();
-    let result = replacer.replace_pii_with_fallback(text_with_mixed_pii, &partial_llm_entities).unwrap();
+    let result = replacer.replace_pii(text_with_mixed_pii, &partial_llm_entities).unwrap();
     
     // LLM-only detection - only replaces what was detected
     assert!(result.contains("john.doe@example.com")); // Not detected by LLM

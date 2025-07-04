@@ -31,7 +31,7 @@ impl AnonymizationPipeline {
         let detected_entities = self.detector.detect_pii(text).await?;
         
         // Step 2: Replace PII with fake data (LLM-only, no fallback)
-        let anonymized_text = self.replacer.replace_pii_with_fallback(text, &detected_entities)?;
+        let anonymized_text = self.replacer.replace_pii(text, &detected_entities)?;
         
         // Step 3: Return comprehensive result
         Ok(AnonymizationResult {

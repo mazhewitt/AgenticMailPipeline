@@ -78,12 +78,7 @@ impl PiiReplacer {
         Ok(result)
     }
     
-    /// Replace PII entities in text with fake data (LLM-only, no fallback)
-    pub fn replace_pii_with_fallback(&mut self, text: &str, llm_entities: &[PiiEntity]) -> Result<String, Box<dyn std::error::Error>> {
-        // No fallback - LLM detection only. If LLM fails, the email should fail anonymization.
-        self.replace_pii(text, llm_entities)
-    }
-    
+     
     /// Generate a fake value for the given PII type, maintaining consistency
     fn generate_fake_value(&mut self, pii_type: &str, original_value: &str) -> String {
         // Check cache for consistency

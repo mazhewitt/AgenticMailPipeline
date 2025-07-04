@@ -170,7 +170,7 @@ async fn async_main() -> Result<(), Box<dyn std::error::Error>> {
                 replacer.clear_replacement_log();
                 
                 // Step 3: Replace PII with fake data
-                let anonymized_text = replacer.replace_pii_with_fallback(&email_json, &detected_entities)?;
+                let anonymized_text = replacer.replace_pii(&email_json, &detected_entities)?;
                 
                 let pii_count = detected_entities.len();
                 let replacement_count = replacer.get_replacement_log().len();

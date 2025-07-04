@@ -180,7 +180,7 @@ fn test_fallback_pii_detection() {
     // Empty LLM entities (simulating LLM failure or missing detection)
     let llm_entities = vec![];
     
-    let anonymized = replacer.replace_pii_with_fallback(text_with_pii, &llm_entities).unwrap();
+    let anonymized = replacer.replace_pii(text_with_pii, &llm_entities).unwrap();
     
     // LLM-only detection - no fallback, so nothing should be replaced
     assert!(anonymized.contains("obvious.email@gmail.com"));
