@@ -6,7 +6,7 @@
 mod gmail;
 mod stub;
 
-pub use gmail::GmailLabeler;
+pub use gmail::{GmailLabeler, LabelInfo};
 pub use stub::StubLabeler;
 
 use async_trait::async_trait;

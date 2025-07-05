@@ -236,6 +236,117 @@ impl EmailLabeler for GmailLabeler {
     }
 }
 
+impl GmailLabeler {
+    /// List all labels in the Gmail account
+    pub async fn list_all_labels(&self) -> Result<Vec<LabelInfo>, LabelingError> {
+        let labels_result = self.gmail_client.hub
+            .users()
+            .labels_list("me")
+            .doit()
+            .await
+            .map_err(|e| LabelingError::gmail_api(format!(
+                "Failed to list labels: {}", e
+            )))?;
+
+        let labels = labels_result.1.labels.unwrap_or_default();
+        
+        let label_infos = labels
+            .into_iter()
+            .filter_map(|label| {
+                let name = label.name?;
+                let id = label.id?;
+                Some(LabelInfo { name, id })
+            })
+            .collect();
+
+        Ok(label_infos)
+    }
+
+    /// Delete a label by its ID
+    pub async fn delete_label(&self, label_id: &str) -> Result<(), LabelingError> {
+        self.gmail_client.hub
+            .users()
+            .labels_delete("me", label_id)
+            .doit()
+            .await
+            .map_err(|e| LabelingError::gmail_api(format!(
+                "Failed to delete label {}: {}", label_id, e
+            )))?;
+
+        // Remove from cache if present
+        let mut cache = self.label_cache.lock().unwrap();
+        cache.retain(|_, cached_id| cached_id != label_id);
+
+        Ok(())
+    }
+
+    /// Get all labels applied to a specific email
+    pub async fn get_email_labels(&self, message_id: &str) -> Result<Vec<LabelInfo>, LabelingError> {
+        let message_result = self.gmail_client.hub
+            .users()
+            .messages_get("me", message_id)
+            .doit()
+            .await
+            .map_err(|e| LabelingError::gmail_api(format!(
+                "Failed to get message {}: {}", message_id, e
+            )))?;
+
+        let message = message_result.1;
+        let label_ids = message.label_ids.unwrap_or_default();
+
+        // Get all labels to map IDs to names
+        let all_labels = self.list_all_labels().await?;
+        let id_to_label: std::collections::HashMap<String, String> = all_labels
+            .iter()
+            .map(|label| (label.id.clone(), label.name.clone()))
+            .collect();
+
+        let email_labels = label_ids
+            .into_iter()
+            .filter_map(|id| {
+                id_to_label.get(&id).map(|name| LabelInfo {
+                    id: id.clone(),
+                    name: name.clone(),
+                })
+            })
+            .collect();
+
+        Ok(email_labels)
+    }
+
+    /// Get all emails with a specific label
+    pub async fn get_emails_by_label(&self, label_name: &str) -> Result<Vec<String>, LabelingError> {
+        // First get the label ID
+        let label_id = self.get_or_create_label_id(label_name).await?;
+
+        // Search for messages with this label
+        let messages_result = self.gmail_client.hub
+            .users()
+            .messages_list("me")
+            .add_label_ids(&label_id)
+            .doit()
+            .await
+            .map_err(|e| LabelingError::gmail_api(format!(
+                "Failed to list messages with label '{}': {}", label_name, e
+            )))?;
+
+        let messages = messages_result.1.messages.unwrap_or_default();
+        let message_ids = messages
+            .into_iter()
+            .filter_map(|msg| msg.id)
+            .collect();
+
+        Ok(message_ids)
+    }
+}
+
+/// Information about a Gmail label
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct LabelInfo {
+    pub name: String,
+    pub id: String,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
