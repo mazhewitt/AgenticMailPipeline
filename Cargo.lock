@@ -25,6 +25,7 @@ dependencies = [
  "base64 0.22.1",
  "chrono",
  "env_logger",
+ "futures",
  "google-gmail1",
  "html2text",
  "hyper 1.6.0",
