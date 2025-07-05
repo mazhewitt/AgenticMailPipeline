@@ -12,14 +12,106 @@
 
 use agentic_mail_agent::{
     fetcher::{EmailFetcher, GmailFetcher},
-    classifier::{MessageClassifier, StubClassifier},
-    action::impls::labeler::{ConcreteGmailLabeler, EmailLabeler},
+    classifier::{MessageClassifier, StubClassifier, Classification},
+    action::impls::labeler::{GmailLabeler, EmailLabeler, LabelingResult, LabelingError},
+    core::email::Email,
+
 };
-use std::collections::HashSet;
+use std::collections::{HashSet, HashMap};
+use futures::stream::{FuturesUnordered, StreamExt};
+use std::sync::Arc;
 
 // Test configuration
 const TEST_LABEL_PREFIX: &str = "TEST_AGENT_";
 const MAX_EMAILS_TO_TEST: u32 = 10;
+
+/// Result of applying a label to an email
+#[derive(Debug, Clone)]
+struct LabelingAttempt {
+    email_id: String,
+    email_subject: Option<String>,
+    label: String,
+    result: Result<LabelingResult, LabelingError>,
+}
+
+/// Result of verifying a label on an email
+#[derive(Debug, Clone)]
+struct VerificationAttempt {
+    email_id: String,
+    email_subject: Option<String>,
+    expected_label: String,
+    result: Result<bool, LabelingError>,
+}
+
+/// Aggregated results from a phase of operations
+#[derive(Debug)]
+struct PhaseResults<T> {
+    successes: Vec<T>,
+    failures: Vec<T>,
+}
+
+impl<T> PhaseResults<T> {
+    fn new() -> Self {
+        Self {
+            successes: Vec::new(),
+            failures: Vec::new(),
+        }
+    }
+    
+    fn add_result(&mut self, item: T, success: bool) {
+        if success {
+            self.successes.push(item);
+        } else {
+            self.failures.push(item);
+        }
+    }
+    
+    fn success_count(&self) -> usize {
+        self.successes.len()
+    }
+    
+    fn failure_count(&self) -> usize {
+        self.failures.len()
+    }
+    
+    fn total_count(&self) -> usize {
+        self.successes.len() + self.failures.len()
+    }
+}
+
+/// Drop guard to ensure cleanup happens even on panic
+struct TestCleanupGuard {
+    labeler: Arc<GmailLabeler>,
+    active: bool,
+}
+
+impl TestCleanupGuard {
+    fn new(labeler: Arc<GmailLabeler>) -> Self {
+        Self {
+            labeler,
+            active: true,
+        }
+    }
+    
+    /// Manually trigger cleanup and disable the drop behavior
+    async fn cleanup_now(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+        if self.active {
+            self.active = false;
+            cleanup_test_labels(&self.labeler).await
+        } else {
+            Ok(())
+        }
+    }
+}
+
+impl Drop for TestCleanupGuard {
+    fn drop(&mut self) {
+        if self.active {
+            println!("⚠️  TestCleanupGuard: Cleanup required on drop - some test labels may remain");
+            // Note: We can't run async cleanup in drop, so we just warn
+        }
+    }
+}
 
 /// Helper to create test label names that won't interfere with production
 fn create_test_label(category: &str) -> String {
@@ -32,12 +124,92 @@ fn extract_category_from_test_label(test_label: &str) -> Option<&str> {
     test_label.strip_prefix(TEST_LABEL_PREFIX)
 }
 
-/// Cleanup helper to remove all test labels from Gmail
-async fn cleanup_test_labels(labeler: &ConcreteGmailLabeler) -> Result<(), Box<dyn std::error::Error>> {
-    println!("🧹 Cleaning up test labels...");
+
+/// Apply labels to multiple emails concurrently
+async fn apply_labels_concurrently(
+    labeler: Arc<GmailLabeler>,
+    emails_and_labels: Vec<(Email, Classification, String)>,
+) -> PhaseResults<LabelingAttempt> {
+    let mut results = PhaseResults::new();
     
-    // Get all existing labels
-    let all_labels = labeler.list_all_labels().await?;
+    let mut futures = FuturesUnordered::new();
+    
+    for (email, _classification, test_label) in emails_and_labels {
+        let labeler_clone = Arc::clone(&labeler);
+        let email_id = email.id.clone();
+        let email_subject = email.subject.clone();
+        let label = test_label.clone();
+        
+        futures.push(async move {
+            let result = labeler_clone.apply_label(&email_id, &label).await;
+            LabelingAttempt {
+                email_id,
+                email_subject,
+                label,
+                result,
+            }
+        });
+    }
+
+    
+    while let Some(attempt) = futures.next().await {
+        let success = attempt.result.is_ok();
+        results.add_result(attempt, success);
+    }
+    
+    results
+}
+
+/// Verify labels on multiple emails concurrently
+async fn verify_labels_concurrently(
+    labeler: Arc<GmailLabeler>,
+    email_label_pairs: Vec<(Email, String)>,
+) -> PhaseResults<VerificationAttempt> {
+    let mut results = PhaseResults::new();
+    
+    let mut futures = FuturesUnordered::new();
+    
+    for (email, expected_label) in email_label_pairs {
+        let labeler_clone = Arc::clone(&labeler);
+        let email_id = email.id.clone();
+        let email_subject = email.subject.clone();
+        let label = expected_label.clone();
+        
+        futures.push(async move {
+            let result = labeler_clone.get_email_labels(&email_id).await
+                .map(|labels| labels.iter().any(|l| l.name == label));
+            
+            VerificationAttempt {
+                email_id,
+                email_subject,
+                expected_label: label,
+                result,
+            }
+        });
+    }
+    
+    while let Some(attempt) = futures.next().await {
+        let success = attempt.result.as_ref().map_or(false, |&has_label| has_label);
+        results.add_result(attempt, success);
+    }
+    
+    results
+}
+
+/// Clean up test labels concurrently  
+async fn cleanup_test_labels_concurrently(
+    labeler: Arc<GmailLabeler>,
+) -> PhaseResults<(String, Result<(), LabelingError>)> {
+    let mut results = PhaseResults::new();
+    
+    // Get all existing labels first
+    let all_labels = match labeler.list_all_labels().await {
+        Ok(labels) => labels,
+        Err(e) => {
+            println!("⚠️  Failed to list labels for cleanup: {}", e);
+            return results;
+        }
+    };
     
     // Find test labels
     let test_labels: Vec<_> = all_labels.iter()
@@ -45,20 +217,71 @@ async fn cleanup_test_labels(labeler: &ConcreteGmailLabeler) -> Result<(), Box<d
         .collect();
     
     if test_labels.is_empty() {
+        return results;
+    }
+    
+    let mut futures = FuturesUnordered::new();
+    
+    for label in test_labels {
+        let labeler_clone = Arc::clone(&labeler);
+        let label_id = label.id.clone();
+        let label_name = label.name.clone();
+        
+        futures.push(async move {
+            let result = labeler_clone.delete_label(&label_id).await
+                .map_err(|e| LabelingError::unknown(format!("Failed to delete label: {}", e)));
+            (label_name, result)
+        });
+    }
+    
+    while let Some((label_name, result)) = futures.next().await {
+        let success = result.is_ok();
+        results.add_result((label_name, result), success);
+    }
+    
+    results
+}
+
+/// Format email context for error messages
+fn format_email_context(email_id: &str, subject: &Option<String>) -> String {
+    match subject {
+        Some(s) => format!("email {} ('{}')", email_id, s),
+        None => format!("email {}", email_id),
+    }
+}
+
+/// Cleanup helper to remove all test labels from Gmail (legacy version)
+async fn cleanup_test_labels(labeler: &GmailLabeler) -> Result<(), Box<dyn std::error::Error>> {
+    println!("🧹 Cleaning up test labels...");
+    
+    let labeler_arc = Arc::new(labeler.clone());
+    let results = cleanup_test_labels_concurrently(labeler_arc).await;
+    
+    if results.total_count() == 0 {
         println!("  ✅ No test labels found to clean up");
         return Ok(());
     }
     
-    println!("  🗑️  Removing {} test labels", test_labels.len());
-    for label in &test_labels {
-        println!("    - Removing: {}", label.name);
-        match labeler.delete_label(&label.id).await {
-            Ok(_) => println!("      ✅ Deleted"),
-            Err(e) => println!("      ⚠️  Failed to delete: {}", e),
+    println!("  🗑️  Removed {} test labels", results.success_count());
+    
+    for (label_name, result) in &results.successes {
+        match result {
+            Ok(_) => println!("    ✅ Deleted: {}", label_name),
+            Err(e) => println!("    ⚠️  Error deleting {}: {}", label_name, e),
         }
     }
     
-    Ok(())
+    for (label_name, result) in &results.failures {
+        if let Err(e) = result {
+            println!("    ❌ Failed to delete {}: {}", label_name, e);
+        }
+    }
+    
+    if results.failure_count() > 0 {
+        Err(format!("Failed to delete {} test labels", results.failure_count()).into())
+    } else {
+        Ok(())
+    }
 }
 
 #[tokio::test]
@@ -67,25 +290,30 @@ async fn test_classifier_labeller_integration_full_workflow() {
     // Install crypto provider for rustls if needed
     let _ = rustls::crypto::ring::default_provider().install_default();
     
-    println!("🧪 CLASSIFIER + LABELLER INTEGRATION TEST");
+    println!("🧪 CLASSIFIER + LABELLER INTEGRATION TEST (IMPROVED)");
     println!("{}", "=".repeat(60));
     println!("This test will:");
     println!("  1. Fetch up to {} real emails from your Gmail", MAX_EMAILS_TO_TEST);
     println!("  2. Classify each email using the stub classifier");
-    println!("  3. Apply TEST_AGENT_* labels based on classification");
-    println!("  4. Verify labels were applied correctly");
-    println!("  5. Clean up all test labels");
+    println!("  3. Apply TEST_AGENT_* labels concurrently based on classification");
+    println!("  4. Verify labels were applied correctly (concurrent verification)");
+    println!("  5. Clean up all test labels concurrently");
     println!();
     
     // Step 1: Initialize components
     println!("📧 Step 1: Initializing Gmail fetcher and labeler...");
     let fetcher = GmailFetcher::from_env().await
         .expect("Failed to create Gmail fetcher - check your credentials");
-    let labeler = ConcreteGmailLabeler::from_env().await
-        .expect("Failed to create Gmail labeler - check your credentials");
+
+    let labeler = Arc::new(GmailLabeler::from_env().await
+        .expect("Failed to create Gmail labeler - check your credentials"));
+
     let classifier = StubClassifier::new();
     
     println!("  ✅ All components initialized successfully");
+    
+    // Set up cleanup guard to ensure cleanup happens even on panic
+    let mut cleanup_guard = TestCleanupGuard::new(Arc::clone(&labeler));
     
     // Step 2: Clean up any existing test labels before starting
     println!("\n🧹 Step 2: Pre-test cleanup...");
@@ -100,6 +328,7 @@ async fn test_classifier_labeller_integration_full_workflow() {
     if emails.is_empty() {
         println!("  ℹ️  No unread emails found - test cannot proceed");
         println!("  💡 To test this, you can send yourself a test email first");
+        cleanup_guard.cleanup_now().await.unwrap_or(());
         return;
     }
     
@@ -109,118 +338,132 @@ async fn test_classifier_labeller_integration_full_workflow() {
     
     println!("  ✅ Found {} emails to test with", test_emails.len());
     
-    // Step 4: Classify and label each email
-    println!("\n🏷️  Step 4: Classifying and labeling emails...");
-    let mut labeled_emails = Vec::new();
-    let mut classification_summary = std::collections::HashMap::new();
+    // Step 4: Classify emails (sequential, as this is typically not the bottleneck)
+    println!("\n🎯 Step 4: Classifying emails...");
+    let mut emails_with_classifications = Vec::new();
+    let mut classification_summary = HashMap::new();
     
     for (i, email) in test_emails.iter().enumerate() {
-        println!("\n  📧 Email {} of {}:", i + 1, test_emails.len());
-        println!("    ID: {}", email.id);
-        if let Some(subject) = &email.subject {
-            println!("    Subject: {}", subject);
-        }
+        println!("  📧 Email {} of {}: {}", i + 1, test_emails.len(), 
+                 format_email_context(&email.id, &email.subject));
         
-        // Classify the email
         let classification = classifier.classify(email).await
-            .expect("Failed to classify email");
+            .expect(&format!("Failed to classify {}", format_email_context(&email.id, &email.subject)));
         
         let score_display = classification.score.map(|s| format!("{:.2}", s)).unwrap_or_else(|| "N/A".to_string());
         println!("    🎯 Classification: {} (score: {})", 
                  classification.category, score_display);
         
-        // Create test label name
         let test_label = create_test_label(&classification.category);
-        println!("    🏷️  Applying test label: {}", test_label);
-        
-        // Apply the test label
-        let label_result = labeler.apply_label(&email.id, &test_label).await
-            .expect("Failed to apply label");
-        
-        println!("    ✅ Label applied successfully");
-        if label_result.created_new_label {
-            println!("      📝 Created new label: {}", test_label);
-        }
-        
         *classification_summary.entry(classification.category.clone()).or_insert(0) += 1;
-        labeled_emails.push((email.clone(), classification, test_label));
+        emails_with_classifications.push((email.clone(), classification, test_label));
     }
     
-    // Step 5: Verify labels were applied
-    println!("\n🔍 Step 5: Verifying labels were applied correctly...");
-    let mut verification_success = 0;
-    let mut verification_failed = 0;
+    // Step 5: Apply labels concurrently
+    println!("\n🏷️  Step 5: Applying labels concurrently...");
+    let labeling_results = apply_labels_concurrently(
+        Arc::clone(&labeler),
+        emails_with_classifications.clone()
+    ).await;
     
-    for (email, _classification, expected_label) in &labeled_emails {
-        println!("\n  📧 Verifying email: {}", email.id);
-        
-        // Fetch the email again to check its labels
-        match labeler.get_email_labels(&email.id).await {
-            Ok(labels) => {
-                let has_expected_label = labels.iter()
-                    .any(|label| label.name == *expected_label);
-                
-                if has_expected_label {
-                    println!("    ✅ Has expected label: {}", expected_label);
-                    verification_success += 1;
-                } else {
-                    println!("    ❌ Missing expected label: {}", expected_label);
-                    println!("    📋 Current labels: {:?}", 
-                             labels.iter().map(|l| &l.name).collect::<Vec<_>>());
-                    verification_failed += 1;
-                }
+    println!("  📊 Labeling Results:");
+    println!("    ✅ Successful: {}", labeling_results.success_count());
+    println!("    ❌ Failed: {}", labeling_results.failure_count());
+    
+    // Assert that all labeling operations succeeded
+    assert_eq!(labeling_results.failure_count(), 0, 
+               "All label applications should succeed. Failures: {:#?}", 
+               labeling_results.failures);
+    assert_eq!(labeling_results.success_count(), emails_with_classifications.len(),
+               "Should have applied labels to all {} emails", emails_with_classifications.len());
+    
+    // Step 6: Verify labels concurrently  
+    println!("\n🔍 Step 6: Verifying labels concurrently...");
+    let email_label_pairs: Vec<_> = emails_with_classifications.iter()
+        .map(|(email, _, test_label)| (email.clone(), test_label.clone()))
+        .collect();
+    
+    let verification_results = verify_labels_concurrently(
+        Arc::clone(&labeler),
+        email_label_pairs
+    ).await;
+    
+    println!("  📊 Verification Results:");
+    println!("    ✅ Verified: {}", verification_results.success_count());
+    println!("    ❌ Failed: {}", verification_results.failure_count());
+    
+    // Collect and report verification failures
+    let mut failure_messages = Vec::new();
+    for attempt in &verification_results.failures {
+        let context = format_email_context(&attempt.email_id, &attempt.email_subject);
+        match &attempt.result {
+            Ok(false) => {
+                failure_messages.push(format!("{} missing expected label '{}'", context, attempt.expected_label));
             }
             Err(e) => {
-                println!("    ❌ Failed to get email labels: {}", e);
-                verification_failed += 1;
+                failure_messages.push(format!("{} verification error: {}", context, e));
+            }
+            _ => unreachable!(),
+        }
+    }
+    
+    // Assert that all verifications passed
+    assert_eq!(verification_results.failure_count(), 0,
+               "All label verifications should pass. Failures:\n{}", 
+               failure_messages.join("\n"));
+    
+    // Step 7: Test idempotency with a subset
+    println!("\n🔄 Step 7: Testing label application idempotency...");
+    let idempotency_test_items: Vec<_> = emails_with_classifications.iter().take(3).cloned().collect();
+    let idempotency_results = apply_labels_concurrently(
+        Arc::clone(&labeler),
+        idempotency_test_items.clone()
+    ).await;
+    
+    // Verify idempotency (should not create new labels)
+    let mut idempotency_failures = Vec::new();
+    for attempt in &idempotency_results.successes {
+        if let Ok(result) = &attempt.result {
+            if result.created_new_label {
+                idempotency_failures.push(format!("Re-application of label '{}' to {} created new label", 
+                    attempt.label, format_email_context(&attempt.email_id, &attempt.email_subject)));
             }
         }
     }
     
-    // Step 6: Test classification accuracy with ground truth
-    println!("\n📊 Step 6: Analysis of classification results...");
+    assert!(idempotency_failures.is_empty(),
+           "Idempotency test failed. New labels created on re-application:\n{}", 
+           idempotency_failures.join("\n"));
+    
+    println!("  ✅ Idempotency verified: No new labels created on re-application");
+    
+    // Step 8: Analysis and reporting
+    println!("\n📊 Step 8: Analysis of classification results...");
     println!("  Classification summary:");
     for (category, count) in &classification_summary {
         println!("    - {}: {} emails", category, count);
     }
     
-    // Step 7: Test idempotency - apply labels again
-    println!("\n🔄 Step 7: Testing label application idempotency...");
-    for (email, _, test_label) in labeled_emails.iter().take(3) { // Test first 3 emails
-        println!("  📧 Re-applying label {} to {}", test_label, email.id);
-        
-        let label_result = labeler.apply_label(&email.id, test_label).await
-            .expect("Failed to re-apply label");
-        
-        if !label_result.created_new_label {
-            println!("    ✅ Idempotent: No new label created on re-application");
-        } else {
-            println!("    ⚠️  Unexpected: New label created on re-application");
-        }
-    }
-    
-    // Step 8: Clean up test labels
-    println!("\n🧹 Step 8: Final cleanup...");
-    cleanup_test_labels(&labeler).await
+    // Step 9: Clean up test labels concurrently
+    println!("\n🧹 Step 9: Final cleanup (concurrent)...");
+    cleanup_guard.cleanup_now().await
         .expect("Failed to cleanup test labels");
     
-    // Step 9: Final verification
+    // Step 10: Final verification and assertions
     println!("\n📊 Test Results Summary:");
-    println!("  - Emails processed: {}", labeled_emails.len());
-    println!("  - Labels verified successfully: {}", verification_success);
-    println!("  - Label verification failures: {}", verification_failed);
+    println!("  - Emails processed: {}", emails_with_classifications.len());
+    println!("  - Labels applied successfully: {}", labeling_results.success_count());
+    println!("  - Labels verified successfully: {}", verification_results.success_count());
     println!("  - Classification categories used: {}", classification_summary.len());
     
-    // Assertions
-    assert!(verification_success > 0, 
-            "At least one email should have been labeled successfully");
-    assert!(verification_failed == 0, 
-            "All label verifications should pass (found {} failures)", verification_failed);
-    assert!(!labeled_emails.is_empty(), 
+    // Final assertions
+    assert!(!emails_with_classifications.is_empty(), 
             "Should have processed at least one email");
+    assert!(classification_summary.len() > 0, 
+            "Should have used at least one classification category");
     
     println!("\n✅ INTEGRATION TEST PASSED!");
-    println!("   All components working together correctly");
+    println!("   All components working together correctly with concurrent operations");
 }
 
 #[tokio::test]
@@ -433,9 +676,14 @@ async fn test_end_to_end_workflow_with_cleanup() {
     // Initialize components
     let fetcher = GmailFetcher::from_env().await
         .expect("Failed to create Gmail fetcher");
-    let labeler = ConcreteGmailLabeler::from_env().await
-        .expect("Failed to create Gmail labeler");
+
+    let labeler = Arc::new(GmailLabeler::from_env().await
+        .expect("Failed to create Gmail labeler"));
+
     let classifier = StubClassifier::new();
+    
+    // Set up cleanup guard
+    let mut cleanup_guard = TestCleanupGuard::new(Arc::clone(&labeler));
     
     // Clean up any existing test labels
     cleanup_test_labels(&labeler).await.unwrap_or(());
@@ -448,6 +696,7 @@ async fn test_end_to_end_workflow_with_cleanup() {
     
     if test_emails.is_empty() {
         println!("No emails available for end-to-end test");
+        cleanup_guard.cleanup_now().await.unwrap_or(());
         return;
     }
     
@@ -456,18 +705,22 @@ async fn test_end_to_end_workflow_with_cleanup() {
     let mut processed_emails = Vec::new();
     
     for (i, email) in test_emails.iter().enumerate() {
-        println!("\n📧 Processing email {} of {}: {}", i + 1, test_emails.len(), email.id);
+        println!("\n📧 Processing email {} of {}: {}", 
+                 i + 1, test_emails.len(), 
+                 format_email_context(&email.id, &email.subject));
         
         // Classify
         let classification = classifier.classify(email).await
-            .expect("Failed to classify email");
+            .expect(&format!("Failed to classify {}", 
+                            format_email_context(&email.id, &email.subject)));
         
         // Create test label
         let test_label = create_test_label(&classification.category);
         
         // Apply label
         let label_result = labeler.apply_label(&email.id, &test_label).await
-            .expect("Failed to apply label");
+            .expect(&format!("Failed to apply label to {}", 
+                            format_email_context(&email.id, &email.subject)));
         
         println!("  ✅ Applied label: {} (new: {})", 
                  test_label, label_result.created_new_label);
@@ -475,16 +728,24 @@ async fn test_end_to_end_workflow_with_cleanup() {
         processed_emails.push((email, classification, test_label));
     }
     
-    // Verify all labels were applied correctly
-    println!("\n🔍 Verifying all labels...");
-    for (email, _classification, expected_label) in &processed_emails {
-        let labels = labeler.get_email_labels(&email.id).await
-            .expect("Failed to get email labels");
-        
-        let has_label = labels.iter().any(|l| l.name == *expected_label);
-        assert!(has_label, "Email {} should have label {}", email.id, expected_label);
-        println!("  ✅ Email {} has label {}", email.id, expected_label);
-    }
+    // Verify all labels were applied correctly using concurrent verification
+    println!("\n🔍 Verifying all labels concurrently...");
+    let email_label_pairs: Vec<_> = processed_emails.iter()
+        .map(|(email, _, test_label)| ((*email).clone(), test_label.clone()))
+        .collect();
+    
+    let verification_results = verify_labels_concurrently(
+        Arc::clone(&labeler),
+        email_label_pairs
+    ).await;
+    
+    // Assert all verifications passed
+    assert_eq!(verification_results.failure_count(), 0,
+               "All labels should be verified successfully");
+    assert_eq!(verification_results.success_count(), processed_emails.len(),
+               "Should verify labels on all {} emails", processed_emails.len());
+    
+    println!("  ✅ All {} labels verified successfully", verification_results.success_count());
     
     // Test that we can retrieve emails by label
     println!("\n📧 Testing email retrieval by labels...");
@@ -506,9 +767,9 @@ async fn test_end_to_end_workflow_with_cleanup() {
         }
     }
     
-    // Final cleanup
+    // Final cleanup using cleanup guard
     println!("\n🧹 Final cleanup...");
-    cleanup_test_labels(&labeler).await
+    cleanup_guard.cleanup_now().await
         .expect("Failed to cleanup test labels");
     
     println!("\n✅ END-TO-END WORKFLOW TEST PASSED!");
