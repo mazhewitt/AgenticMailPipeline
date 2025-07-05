@@ -13,7 +13,7 @@
 use agentic_mail_agent::{
     fetcher::{EmailFetcher, GmailFetcher},
     classifier::{MessageClassifier, StubClassifier, Classification},
-    action::impls::labeler::{GmailLabeler, EmailLabeler, LabelingResult, LabelingError},
+    action::impls::labeler::{ConcreteGmailLabeler, EmailLabeler, LabelingResult, LabelingError},
     core::email::Email,
 
 };
@@ -81,12 +81,12 @@ impl<T> PhaseResults<T> {
 
 /// Drop guard to ensure cleanup happens even on panic
 struct TestCleanupGuard {
-    labeler: Arc<GmailLabeler>,
+    labeler: Arc<ConcreteGmailLabeler>,
     active: bool,
 }
 
 impl TestCleanupGuard {
-    fn new(labeler: Arc<GmailLabeler>) -> Self {
+    fn new(labeler: Arc<ConcreteGmailLabeler>) -> Self {
         Self {
             labeler,
             active: true,
@@ -127,7 +127,7 @@ fn extract_category_from_test_label(test_label: &str) -> Option<&str> {
 
 /// Apply labels to multiple emails concurrently
 async fn apply_labels_concurrently(
-    labeler: Arc<GmailLabeler>,
+    labeler: Arc<ConcreteGmailLabeler>,
     emails_and_labels: Vec<(Email, Classification, String)>,
 ) -> PhaseResults<LabelingAttempt> {
     let mut results = PhaseResults::new();
@@ -162,7 +162,7 @@ async fn apply_labels_concurrently(
 
 /// Verify labels on multiple emails concurrently
 async fn verify_labels_concurrently(
-    labeler: Arc<GmailLabeler>,
+    labeler: Arc<ConcreteGmailLabeler>,
     email_label_pairs: Vec<(Email, String)>,
 ) -> PhaseResults<VerificationAttempt> {
     let mut results = PhaseResults::new();
@@ -198,7 +198,7 @@ async fn verify_labels_concurrently(
 
 /// Clean up test labels concurrently  
 async fn cleanup_test_labels_concurrently(
-    labeler: Arc<GmailLabeler>,
+    labeler: Arc<ConcreteGmailLabeler>,
 ) -> PhaseResults<(String, Result<(), LabelingError>)> {
     let mut results = PhaseResults::new();
     
@@ -251,7 +251,7 @@ fn format_email_context(email_id: &str, subject: &Option<String>) -> String {
 }
 
 /// Cleanup helper to remove all test labels from Gmail (legacy version)
-async fn cleanup_test_labels(labeler: &GmailLabeler) -> Result<(), Box<dyn std::error::Error>> {
+async fn cleanup_test_labels(labeler: &ConcreteGmailLabeler) -> Result<(), Box<dyn std::error::Error>> {
     println!("🧹 Cleaning up test labels...");
     
     let labeler_arc = Arc::new(labeler.clone());
@@ -305,7 +305,7 @@ async fn test_classifier_labeller_integration_full_workflow() {
     let fetcher = GmailFetcher::from_env().await
         .expect("Failed to create Gmail fetcher - check your credentials");
 
-    let labeler = Arc::new(GmailLabeler::from_env().await
+    let labeler = Arc::new(ConcreteGmailLabeler::from_env().await
         .expect("Failed to create Gmail labeler - check your credentials"));
 
     let classifier = StubClassifier::new();
@@ -677,7 +677,7 @@ async fn test_end_to_end_workflow_with_cleanup() {
     let fetcher = GmailFetcher::from_env().await
         .expect("Failed to create Gmail fetcher");
 
-    let labeler = Arc::new(GmailLabeler::from_env().await
+    let labeler = Arc::new(ConcreteGmailLabeler::from_env().await
         .expect("Failed to create Gmail labeler"));
 
     let classifier = StubClassifier::new();
