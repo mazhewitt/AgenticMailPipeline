@@ -72,8 +72,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                         }
                     }
                 }
-                "stub" | _ => {
+                "stub" => {
                     println!("🎯 Using deterministic stub classifier");
+                    Box::new(StubClassifier::deterministic())
+                }
+                _ => {
+                    println!("🎯 Unknown classifier type, using deterministic stub classifier");
                     Box::new(StubClassifier::deterministic())
                 }
             };

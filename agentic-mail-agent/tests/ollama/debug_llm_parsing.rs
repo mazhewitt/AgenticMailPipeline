@@ -3,6 +3,7 @@
 use agentic_mail_agent::anonymizer::{AnonymizationPipeline, AnonymizationConfig, LlmBackend};
 
 #[tokio::test]
+#[ignore = "requires running ollama server"]
 async fn debug_llm_parsing() {
     let config = AnonymizationConfig {
         backend: LlmBackend::Ollama,

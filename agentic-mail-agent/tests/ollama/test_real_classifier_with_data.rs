@@ -70,6 +70,7 @@ mod tests {
     use super::*;
 
     #[tokio::test]
+    #[ignore = "requires running ollama server"]
     async fn test_real_classifier_with_sample_emails() {
         println!("🤖 Testing Real LLM Classifier with Downloaded Gmail Data");
         println!("=======================================================");
@@ -139,7 +140,7 @@ mod tests {
                     
                     // Check if score is within valid range (if present)
                     if let Some(score) = classification.score {
-                        assert!(score >= 0.0 && score <= 1.0, "Score should be between 0 and 1");
+                        assert!((0.0..=1.0).contains(&score), "Score should be between 0 and 1");
                     }
                 }
                 Err(e) => {
@@ -169,6 +170,7 @@ mod tests {
     }
 
     #[tokio::test]
+    #[ignore = "requires running ollama server"]
     async fn test_classifier_category_distribution() {
         println!("📊 Testing Classification Category Distribution");
         println!("==============================================");
@@ -253,7 +255,8 @@ mod tests {
         }
     }
 
-    #[tokio::test] 
+    #[tokio::test]
+    #[ignore = "requires running ollama server"]
     async fn test_classifier_consistency() {
         println!("🔄 Testing Classification Consistency");
         println!("====================================");

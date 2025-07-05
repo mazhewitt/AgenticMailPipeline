@@ -2,6 +2,7 @@ use std::fs;
 use agentic_mail_agent::test_data_utils::*;
 
 #[derive(serde::Deserialize)]
+#[allow(dead_code)]
 struct TestEmail {
     id: String,
     subject: Option<String>,

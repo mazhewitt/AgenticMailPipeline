@@ -1,4 +1,4 @@
-//! Unit tests - no external dependencies (57 tests)
+//! Unit tests - no external dependencies (61 tests)
 //! 
 //! These tests can run quickly in any environment without requiring
 //! external services like Ollama or Gmail API access. Includes:
@@ -22,5 +22,7 @@ mod test_action_execution;
 mod test_ground_truth_mock;
 mod test_mock_ollama_classifier;
 mod test_noise_detection_patterns;
+mod test_pii_replacement_unit;
+mod test_stub_classifier_accuracy;
 mod unit_pii_architecture;
 mod unit_test_data_utils;

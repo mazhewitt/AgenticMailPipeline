@@ -38,7 +38,7 @@ mod tests {
         let text = "Ship from 123 First St, City, ST 12345 to 456 Second Ave, Town, ST 67890";
         let entities = detector.detect_addresses(text).await.unwrap();
         
-        assert!(entities.len() >= 1); // LLM might detect 1 or 2 addresses
+        assert!(!entities.is_empty()); // LLM might detect 1 or 2 addresses
         assert_eq!(entities[0].pii_type, "address");
     }
 

@@ -17,7 +17,7 @@
 //! 2. Run: cargo test --test ollama record_classifier_ground_truth_responses  
 //! 3. Create unit tests using MockOllamaClassifier with recorded files
 //! 
-//! Run with: cargo test --test ollama
+//! Run with: cargo test --test ollama -- --ignored
 
 mod address_detector;
 mod debug_llm_parsing;

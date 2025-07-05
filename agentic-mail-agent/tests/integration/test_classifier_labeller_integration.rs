@@ -27,6 +27,7 @@ fn create_test_label(category: &str) -> String {
 }
 
 /// Helper to extract original category from test label
+#[allow(dead_code)]
 fn extract_category_from_test_label(test_label: &str) -> Option<&str> {
     test_label.strip_prefix(TEST_LABEL_PREFIX)
 }
@@ -215,7 +216,7 @@ async fn test_classifier_labeller_integration_full_workflow() {
             "At least one email should have been labeled successfully");
     assert!(verification_failed == 0, 
             "All label verifications should pass (found {} failures)", verification_failed);
-    assert!(labeled_emails.len() > 0, 
+    assert!(!labeled_emails.is_empty(), 
             "Should have processed at least one email");
     
     println!("\n✅ INTEGRATION TEST PASSED!");

@@ -67,6 +67,7 @@ fn load_all_test_emails() -> Result<Vec<TestDataEmail>, Box<dyn std::error::Erro
 }
 
 /// Analyze sender domains to understand email source diversity
+#[allow(dead_code)]
 fn analyze_sender_domains(emails: &[TestDataEmail]) -> HashMap<String, Vec<String>> {
     let mut domain_categories = HashMap::new();
     
@@ -86,6 +87,7 @@ fn analyze_sender_domains(emails: &[TestDataEmail]) -> HashMap<String, Vec<Strin
 }
 
 /// Extract domain from email address
+#[allow(dead_code)]
 fn extract_domain(email_addr: &str) -> String {
     if let Some(at_pos) = email_addr.rfind('@') {
         let domain_part = &email_addr[at_pos + 1..];
@@ -97,6 +99,7 @@ fn extract_domain(email_addr: &str) -> String {
 }
 
 /// Classify emails into expected categories based on content analysis
+#[allow(dead_code)]
 fn categorize_emails_by_content(emails: &[TestDataEmail]) -> HashMap<String, Vec<String>> {
     let mut categories = HashMap::new();
     
@@ -116,6 +119,7 @@ fn categorize_emails_by_content(emails: &[TestDataEmail]) -> HashMap<String, Vec
 }
 
 /// Basic content-based classification
+#[allow(dead_code)]
 fn classify_email_content(subject: &str, from: &str, body: &str) -> String {
     let subject_lower = subject.to_lowercase();
     let from_lower = from.to_lowercase();
@@ -247,7 +251,7 @@ mod tests {
                 for classification in &classifications {
                     assert!(!classification.category.is_empty(), "Category should not be empty");
                     if let Some(score) = classification.score {
-                        assert!(score >= 0.0 && score <= 1.0, 
+                        assert!((0.0..=1.0).contains(&score), 
                             "Score should be between 0 and 1");
                     }
                 }

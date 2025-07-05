@@ -25,6 +25,7 @@ struct TestEmail {
 
 /// Test that emails with imperfect replacement get failed/marked as such
 #[tokio::test]
+#[ignore = "requires running ollama server"]
 async fn test_email_should_fail_on_imperfect_replacement() {
     // This is a wrapper function that should fail emails that don't achieve 100% replacement
     

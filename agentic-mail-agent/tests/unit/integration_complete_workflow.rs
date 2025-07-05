@@ -1,6 +1,5 @@
 /// Complete integration test demonstrating the new PII anonymization pipeline
 /// This test shows the full workflow without requiring an actual LLM connection
-
 use agentic_mail_agent::anonymizer::{
     PiiEntity, PiiReplacer
 };

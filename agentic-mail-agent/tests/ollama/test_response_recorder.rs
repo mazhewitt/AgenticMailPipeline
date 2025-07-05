@@ -11,6 +11,7 @@ use agentic_mail_agent::core::email::Email;
 
 /// Record responses from classifier ground truth tests
 #[tokio::test]
+#[ignore = "requires running ollama server"]
 async fn record_classifier_ground_truth_responses() {
     // Load ground truth data
     let ground_truth = load_ground_truth_data();
@@ -68,6 +69,7 @@ async fn record_classifier_ground_truth_responses() {
 
 /// Record responses from hybrid classifier tests
 #[tokio::test]
+#[ignore = "requires running ollama server"]
 async fn record_hybrid_classifier_responses() {
     let ground_truth = load_ground_truth_data();
     
@@ -122,6 +124,7 @@ async fn record_hybrid_classifier_responses() {
 
 /// Record individual email classification examples for unit tests
 #[tokio::test]
+#[ignore = "requires running ollama server"]
 async fn record_individual_examples() {
     // Create real classifier if available
     let real_classifier: Box<dyn MessageClassifier + Send + Sync> = 
