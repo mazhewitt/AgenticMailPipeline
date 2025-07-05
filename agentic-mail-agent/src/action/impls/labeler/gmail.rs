@@ -59,7 +59,8 @@ fn gmail_api_error_to_labeling_error(error: GmailApiError) -> LabelingError {
 ///     Ok(())
 /// }
 /// ```
-pub struct GmailLabeler<T: GmailApi> {
+#[derive(Clone)]
+pub struct GmailLabeler<T: GmailApi + Clone> {
     gmail_api: T,
     /// Cache of label name -> label ID mappings
     label_cache: Arc<Mutex<HashMap<String, String>>>,
@@ -103,7 +104,7 @@ impl ConcreteGmailLabeler {
     }
 }
 
-impl<T: GmailApi> GmailLabeler<T> {
+impl<T: GmailApi + Clone> GmailLabeler<T> {
     /// Create a new GmailLabeler with a custom GmailApi implementation.
     /// 
     /// This constructor is primarily used for testing with mock implementations.
@@ -190,7 +191,7 @@ impl<T: GmailApi> GmailLabeler<T> {
 }
 
 #[async_trait]
-impl<T: GmailApi> EmailLabeler for GmailLabeler<T> {
+impl<T: GmailApi + Clone> EmailLabeler for GmailLabeler<T> {
     async fn apply_label(&self, message_id: &str, label: &str) -> Result<LabelingResult, LabelingError> {
         // Validate inputs
         if message_id.is_empty() {
@@ -244,7 +245,7 @@ impl<T: GmailApi> EmailLabeler for GmailLabeler<T> {
     }
 }
 
-impl<T: GmailApi> GmailLabeler<T> {
+impl<T: GmailApi + Clone> GmailLabeler<T> {
     /// List all labels in the Gmail account
     pub async fn list_all_labels(&self) -> Result<Vec<LabelInfo>, LabelingError> {
         let labels = self.gmail_api
@@ -336,25 +337,25 @@ mod tests {
     use google_gmail1::api::{Label, Message};
 
     /// Mock implementation of GmailApi for testing
-    #[derive(Debug)]
+    #[derive(Debug, Clone)]
     pub struct MockGmailApi {
         /// Stored labels by ID
-        labels: AsyncMutex<HashMap<String, Label>>,
+        labels: Arc<AsyncMutex<HashMap<String, Label>>>,
         /// Stored messages by ID
-        messages: AsyncMutex<HashMap<String, Message>>,
+        messages: Arc<AsyncMutex<HashMap<String, Message>>>,
         /// Next ID to assign to new labels
-        next_label_id: AsyncMutex<u32>,
+        next_label_id: Arc<AsyncMutex<u32>>,
         /// Track API call counts for verification
-        call_counts: AsyncMutex<HashMap<String, u32>>,
+        call_counts: Arc<AsyncMutex<HashMap<String, u32>>>,
     }
 
     impl MockGmailApi {
         pub fn new() -> Self {
             Self {
-                labels: AsyncMutex::new(HashMap::new()),
-                messages: AsyncMutex::new(HashMap::new()),
-                next_label_id: AsyncMutex::new(1),
-                call_counts: AsyncMutex::new(HashMap::new()),
+                labels: Arc::new(AsyncMutex::new(HashMap::new())),
+                messages: Arc::new(AsyncMutex::new(HashMap::new())),
+                next_label_id: Arc::new(AsyncMutex::new(1)),
+                call_counts: Arc::new(AsyncMutex::new(HashMap::new())),
             }
         }
 

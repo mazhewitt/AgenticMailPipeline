@@ -57,6 +57,22 @@ path = "tests/gmail/mod.rs"
 name = "integration"
 path = "tests/integration/mod.rs"
 
+[[bin]]
+name = "test_readonly_integration"
+path = "test_readonly_integration.rs"
+
+[[bin]]
+name = "test_fast_integration"
+path = "test_fast_integration.rs"
+
+[[bin]]
+name = "test_step_by_step"
+path = "test_step_by_step.rs"
+
+[[bin]]
+name = "test_auth_quick"
+path = "test_auth_quick.rs"
+
 # Custom build commands for CI/CD pipeline
 [package.metadata.scripts]
 # Full CI pipeline: test, clippy, audit

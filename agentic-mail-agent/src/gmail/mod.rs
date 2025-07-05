@@ -250,16 +250,22 @@ impl GmailClient {
             .build();
 
         let executor = google_gmail1::hyper_util::rt::TokioExecutor::new();
-        let auth = InstalledFlowAuthenticator::with_client(
-            secret,
-            InstalledFlowReturnMethod::HTTPRedirect,
-            google_gmail1::yup_oauth2::client::CustomHyperClientBuilder::from(
-                google_gmail1::hyper_util::client::legacy::Client::builder(executor).build(connector.clone()),
-            ),
+        
+        // Add timeout to authentication build process to prevent hanging
+        let auth = tokio::time::timeout(
+            std::time::Duration::from_secs(60), // 60 second timeout for auth
+            InstalledFlowAuthenticator::with_client(
+                secret,
+                InstalledFlowReturnMethod::HTTPRedirect,
+                google_gmail1::yup_oauth2::client::CustomHyperClientBuilder::from(
+                    google_gmail1::hyper_util::client::legacy::Client::builder(executor).build(connector.clone()),
+                ),
+            )
+            .persist_tokens_to_disk(&config.token_path)
+            .build()
         )
-        .persist_tokens_to_disk(&config.token_path)
-        .build()
         .await
+        .map_err(|_| GmailClientError::auth("OAuth2 authentication timed out after 60 seconds".to_string()))?
         .map_err(|e| GmailClientError::auth(format!(
             "Failed to build authenticator: {e}"
         )))?;
@@ -279,45 +285,61 @@ impl GmailClient {
 #[async_trait]
 impl GmailApi for GmailClient {
     async fn list_labels(&self) -> GmailApiResult<Vec<Label>> {
-        let result = self.hub
-            .users()
-            .labels_list("me")
-            .doit()
-            .await
-            .map_err(|e| GmailApiError::api(format!("Failed to list labels: {e}")))?;
+        let result = tokio::time::timeout(
+            std::time::Duration::from_secs(30), // 30 second timeout for API calls
+            self.hub
+                .users()
+                .labels_list("me")
+                .doit()
+        )
+        .await
+        .map_err(|_| GmailApiError::api("Gmail API call timed out after 30 seconds".to_string()))?
+        .map_err(|e| GmailApiError::api(format!("Failed to list labels: {e}")))?;
 
         Ok(result.1.labels.unwrap_or_default())
     }
 
     async fn create_label(&self, label: Label) -> GmailApiResult<Label> {
-        let result = self.hub
-            .users()
-            .labels_create(label, "me")
-            .doit()
-            .await
-            .map_err(|e| GmailApiError::api(format!("Failed to create label: {e}")))?;
+        let result = tokio::time::timeout(
+            std::time::Duration::from_secs(30), // 30 second timeout for API calls
+            self.hub
+                .users()
+                .labels_create(label, "me")
+                .doit()
+        )
+        .await
+        .map_err(|_| GmailApiError::api("Gmail API call timed out after 30 seconds".to_string()))?
+        .map_err(|e| GmailApiError::api(format!("Failed to create label: {e}")))?;
 
         Ok(result.1)
     }
 
     async fn delete_label(&self, label_id: &str) -> GmailApiResult<()> {
-        self.hub
-            .users()
-            .labels_delete("me", label_id)
-            .doit()
-            .await
-            .map_err(|e| GmailApiError::api(format!("Failed to delete label {label_id}: {e}")))?;
+        tokio::time::timeout(
+            std::time::Duration::from_secs(30), // 30 second timeout for API calls
+            self.hub
+                .users()
+                .labels_delete("me", label_id)
+                .doit()
+        )
+        .await
+        .map_err(|_| GmailApiError::api("Gmail API call timed out after 30 seconds".to_string()))?
+        .map_err(|e| GmailApiError::api(format!("Failed to delete label {label_id}: {e}")))?;
 
         Ok(())
     }
 
     async fn get_message(&self, message_id: &str) -> GmailApiResult<Message> {
-        let result = self.hub
-            .users()
-            .messages_get("me", message_id)
-            .doit()
-            .await
-            .map_err(|e| GmailApiError::api(format!("Failed to get message {message_id}: {e}")))?;
+        let result = tokio::time::timeout(
+            std::time::Duration::from_secs(30), // 30 second timeout for API calls
+            self.hub
+                .users()
+                .messages_get("me", message_id)
+                .doit()
+        )
+        .await
+        .map_err(|_| GmailApiError::api("Gmail API call timed out after 30 seconds".to_string()))?
+        .map_err(|e| GmailApiError::api(format!("Failed to get message {message_id}: {e}")))?;
 
         Ok(result.1)
     }
@@ -333,14 +355,18 @@ impl GmailApi for GmailClient {
             remove_label_ids,
         };
 
-        let result = self.hub
-            .users()
-            .messages_modify(modify_request, "me", message_id)
-            .doit()
-            .await
-            .map_err(|e| GmailApiError::api(format!(
-                "Failed to modify labels for message {message_id}: {e}"
-            )))?;
+        let result = tokio::time::timeout(
+            std::time::Duration::from_secs(30), // 30 second timeout for API calls
+            self.hub
+                .users()
+                .messages_modify(modify_request, "me", message_id)
+                .doit()
+        )
+        .await
+        .map_err(|_| GmailApiError::api("Gmail API call timed out after 30 seconds".to_string()))?
+        .map_err(|e| GmailApiError::api(format!(
+            "Failed to modify labels for message {message_id}: {e}"
+        )))?;
 
         Ok(result.1)
     }
@@ -362,10 +388,13 @@ impl GmailApi for GmailClient {
             request = request.max_results(max);
         }
 
-        let result = request
-            .doit()
-            .await
-            .map_err(|e| GmailApiError::api(format!("Failed to list messages: {e}")))?;
+        let result = tokio::time::timeout(
+            std::time::Duration::from_secs(30), // 30 second timeout for API calls
+            request.doit()
+        )
+        .await
+        .map_err(|_| GmailApiError::api("Gmail API call timed out after 30 seconds".to_string()))?
+        .map_err(|e| GmailApiError::api(format!("Failed to list messages: {e}")))?;
 
         let message_ids = result.1.messages
             .unwrap_or_default()

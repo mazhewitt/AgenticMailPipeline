@@ -295,11 +295,15 @@ impl EmailFetcher for GmailFetcher {
         use gmail1::api::ListMessagesResponse;
 
         // List unread messages using the shared Gmail client
-        let list_result = self.gmail_client.hub.users().messages_list(GMAIL_USER_ID)
-            .add_label_ids(UNREAD_LABEL)
-            .max_results(DEFAULT_MAX_RESULTS)
-            .doit()
-            .await;
+        let list_result = tokio::time::timeout(
+            std::time::Duration::from_secs(30), // 30 second timeout for API calls
+            self.gmail_client.hub.users().messages_list(GMAIL_USER_ID)
+                .add_label_ids(UNREAD_LABEL)
+                .max_results(DEFAULT_MAX_RESULTS)
+                .doit()
+        )
+        .await
+        .map_err(|_| FetchError::network("Gmail API call timed out after 30 seconds".to_string()))?;
         let message_list = match list_result {
             Ok((_, ListMessagesResponse { messages: Some(msgs), .. })) => msgs,
             Ok((_, _)) => Vec::new(),
@@ -308,15 +312,23 @@ impl EmailFetcher for GmailFetcher {
 
         // Fetch each unread message in full format to extract subject and body
         let mut emails = Vec::new();
-        for msg in message_list {
+        for (i, msg) in message_list.iter().enumerate() {
             if let Some(msg_id) = &msg.id {
-                // Fetch full message
-                let full = self.gmail_client.hub
-                    .users()
-                    .messages_get(GMAIL_USER_ID, msg_id)
-                    .format("full")
-                    .doit()
-                    .await;
+                // Add rate limiting delay between requests (except for first request)
+                if i > 0 {
+                    tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+                }
+                // Fetch full message with timeout
+                let full = tokio::time::timeout(
+                    std::time::Duration::from_secs(30), // 30 second timeout for individual message fetch
+                    self.gmail_client.hub
+                        .users()
+                        .messages_get(GMAIL_USER_ID, msg_id)
+                        .format("full")
+                        .doit()
+                )
+                .await
+                .map_err(|_| FetchError::network(format!("Gmail API call timed out for message {}", msg_id)))?;
                 
                 let message = match full {
                     Ok((_, m)) => m,
@@ -345,10 +357,14 @@ impl EmailFetcher for GmailFetcher {
         let safe_limit = std::cmp::min(max_results, 100);
 
         // List messages from inbox without any label filters
-        let list_result = self.gmail_client.hub.users().messages_list(GMAIL_USER_ID)
-            .max_results(safe_limit)
-            .doit()
-            .await;
+        let list_result = tokio::time::timeout(
+            std::time::Duration::from_secs(30), // 30 second timeout for API calls
+            self.gmail_client.hub.users().messages_list(GMAIL_USER_ID)
+                .max_results(safe_limit)
+                .doit()
+        )
+        .await
+        .map_err(|_| FetchError::network("Gmail API call timed out after 30 seconds".to_string()))?;
         let message_list = match list_result {
             Ok((_, ListMessagesResponse { messages: Some(msgs), .. })) => msgs,
             Ok((_, _)) => Vec::new(),
@@ -359,13 +375,17 @@ impl EmailFetcher for GmailFetcher {
         let mut emails = Vec::new();
         for msg in message_list {
             if let Some(msg_id) = &msg.id {
-                // Fetch full message
-                let full = self.gmail_client.hub
-                    .users()
-                    .messages_get(GMAIL_USER_ID, msg_id)
-                    .format("full")
-                    .doit()
-                    .await;
+                // Fetch full message with timeout
+                let full = tokio::time::timeout(
+                    std::time::Duration::from_secs(30), // 30 second timeout for individual message fetch
+                    self.gmail_client.hub
+                        .users()
+                        .messages_get(GMAIL_USER_ID, msg_id)
+                        .format("full")
+                        .doit()
+                )
+                .await
+                .map_err(|_| FetchError::network(format!("Gmail API call timed out for message {}", msg_id)))?;
                 
                 let message = match full {
                     Ok((_, m)) => m,

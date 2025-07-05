@@ -1,0 +1,3 @@
+[[bin]]
+name = "test_auth_quick"
+path = "test_auth_quick.rs"

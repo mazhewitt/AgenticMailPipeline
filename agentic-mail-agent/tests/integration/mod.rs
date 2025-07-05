@@ -13,3 +13,4 @@
 mod test_data_integration;
 mod test_data_quality_assessment;
 mod test_classifier_labeller_integration;
+mod simple_pipeline_test;
