@@ -16,7 +16,10 @@ jobs:
         with:
           toolchain: stable
           override: true
-      - name: Build
-        run: cargo build --all
-      - name: Test
-        run: cargo test --all
+          components: clippy
+      - name: Build workspace
+        run: cargo build --workspace
+      - name: Run unit tests only
+        run: cargo test --test unit --workspace
+      - name: Run clippy
+        run: cargo clippy --workspace --all-targets -- -D warnings
