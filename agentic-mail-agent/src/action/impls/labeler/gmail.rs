@@ -55,7 +55,7 @@ fn gmail_api_error_to_labeling_error(error: GmailApiError) -> LabelingError {
 ///     
 ///     let labeler = GmailLabeler::from_env().await?;
 ///     let result = labeler.apply_label("message123", "work").await?;
-///     println!("Applied label: {}", result.description);
+///     println!("Applied label: {result.description}");
 ///     Ok(())
 /// }
 /// ```
@@ -167,7 +167,7 @@ impl<T: GmailApi> GmailLabeler<T> {
             .await
             .map_err(gmail_api_error_to_labeling_error)?;
         let label_id = created_label.id.ok_or_else(|| {
-            LabelingError::gmail_api(format!("Created label '{}' has no ID", label_name))
+            LabelingError::gmail_api(format!("Created label '{label_name}' has no ID"))
         })?;
 
         // Cache the new label
@@ -210,7 +210,7 @@ impl<T: GmailApi> EmailLabeler for GmailLabeler<T> {
                 message_id.to_string(),
                 label.to_string(),
                 false,
-                format!("Label '{}' already applied to message", label),
+                format!("Label '{label}' already applied to message"),
             ));
         }
 

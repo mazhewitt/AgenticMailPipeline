@@ -142,7 +142,7 @@ pub fn prepare_email_for_classification(
     if let Some(subj) = subject {
         if !subj.is_empty() {
             // Weight subject more heavily by repeating it
-            combined_text.push_str(&format!("{} {} ", subj, subj));
+            combined_text.push_str(&format!("{subj} {subj} "));
         }
     }
     
@@ -150,7 +150,7 @@ pub fn prepare_email_for_classification(
     if let Some(snip) = snippet {
         if !snip.is_empty() {
             let cleaned_snippet = clean_text_for_classification(snip);
-            combined_text.push_str(&format!("{} ", cleaned_snippet));
+            combined_text.push_str(&format!("{cleaned_snippet} "));
         }
     }
     
@@ -183,7 +183,7 @@ pub fn prepare_email_metadata_for_classification(
     // Extract domain from sender (useful for classification)
     if let Some(sender) = from {
         if let Some(domain) = extract_domain_from_email(sender) {
-            metadata.push_str(&format!("from_domain:{} ", domain));
+            metadata.push_str(&format!("from_domain:{domain} "));
         }
     }
     
@@ -191,7 +191,7 @@ pub fn prepare_email_metadata_for_classification(
     if let Some(recipients) = to {
         for recipient in recipients {
             if let Some(domain) = extract_domain_from_email(recipient) {
-                metadata.push_str(&format!("to_domain:{} ", domain));
+                metadata.push_str(&format!("to_domain:{domain} "));
             }
         }
     }

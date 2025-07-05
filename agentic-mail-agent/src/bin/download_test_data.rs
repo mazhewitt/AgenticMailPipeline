@@ -30,7 +30,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     
     // Create test data directory if it doesn't exist
     if !Path::new(&test_data_dir).exists() {
-        println!("📁 Creating test data directory: {}", test_data_dir);
+        println!("📁 Creating test data directory: {test_data_dir}");
         fs::create_dir_all(&test_data_dir)?;
     }
     
@@ -42,7 +42,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             fetcher
         }
         Err(e) => {
-            eprintln!("❌ Failed to initialize Gmail fetcher: {}", e);
+            eprintln!("❌ Failed to initialize Gmail fetcher: {e}");
             eprintln!();
             eprintln!("💡 Make sure you have set the following environment variables:");
             eprintln!("   GMAIL_CLIENT_SECRET_JSON=/path/to/client_secret.json");
@@ -68,7 +68,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             emails
         }
         Err(e) => {
-            eprintln!("❌ Failed to fetch emails: {}", e);
+            eprintln!("❌ Failed to fetch emails: {e}");
             std::process::exit(1);
         }
     };
@@ -103,16 +103,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         
         println!("  📄 Saved: {} (ID: {})", filename, email.id);
         if let Some(subject) = &email.subject {
-            println!("     Subject: {}", subject);
+            println!("     Subject: {subject}");
         }
         if let Some(from) = &email.from {
-            println!("     From: {}", from);
+            println!("     From: {from}");
         }
         if let Some(to) = &email.to {
             println!("     To: {}", to.join(", "));
         }
         if let Some(sent) = &email.sent {
-            println!("     Date: {}", sent);
+            println!("     Date: {sent}");
         }
         if let Some(snippet) = &email.snippet {
             let preview = if snippet.chars().count() > 100 {
@@ -121,7 +121,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             } else {
                 snippet.clone()
             };
-            println!("     Preview: {}", preview);
+            println!("     Preview: {preview}");
         }
         if let Some(body) = &email.body {
             let body_preview = if body.chars().count() > 150 {
@@ -130,7 +130,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             } else {
                 body.clone()
             };
-            println!("     Body: {}", body_preview);
+            println!("     Body: {body_preview}");
         }
         println!();
     }

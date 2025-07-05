@@ -12,10 +12,10 @@ fn test_count_json_files_utility() {
     fs::create_dir_all(test_dir).unwrap();
     
     // Create mixed file types
-    fs::write(format!("{}/email1.json", test_dir), r#"{"id": "1"}"#).unwrap();
-    fs::write(format!("{}/email2.json", test_dir), r#"{"id": "2"}"#).unwrap();
-    fs::write(format!("{}/readme.txt", test_dir), "not json").unwrap();
-    fs::write(format!("{}/manifest.json", test_dir), r#"{"count": 2}"#).unwrap();
+    fs::write(format!("{test_dir}/email1.json"), r#"{"id": "1"}"#).unwrap();
+    fs::write(format!("{test_dir}/email2.json"), r#"{"id": "2"}"#).unwrap();
+    fs::write(format!("{test_dir}/readme.txt"), "not json").unwrap();
+    fs::write(format!("{test_dir}/manifest.json"), r#"{"count": 2}"#).unwrap();
     
     let count = count_json_files(test_dir).unwrap();
     assert_eq!(count, 3); // Should count all 3 JSON files
@@ -47,8 +47,8 @@ async fn test_pii_detection_functions() {
         "snippet": "Contact user2@example.com for details"
     }"#;
     
-    fs::write(format!("{}/email_with_pii.json", test_dir), test_email_with_pii).unwrap();
-    fs::write(format!("{}/email_anonymized.json", test_dir), test_email_anonymized).unwrap();
+    fs::write(format!("{test_dir}/email_with_pii.json"), test_email_with_pii).unwrap();
+    fs::write(format!("{test_dir}/email_anonymized.json"), test_email_anonymized).unwrap();
     
     // Test the PII spot check function
     let warnings = spot_check_for_pii(test_dir).await.unwrap();
@@ -60,7 +60,7 @@ async fn test_pii_detection_functions() {
     let has_pii_file_warning = warnings.iter().any(|w| w.contains("email_with_pii.json"));
     assert!(has_pii_file_warning, "Should flag the email with PII");
     
-    println!("PII detection test passed. Warnings: {:?}", warnings);
+    println!("PII detection test passed. Warnings: {warnings:?}");
     
     fs::remove_dir_all(test_dir).unwrap();
 }

@@ -187,7 +187,7 @@ impl ActionRouter for RuleBasedRouter {
         // Handle low confidence classifications
         if confidence < self.config.confidence_threshold {
             actions.extend(self.config.low_confidence_actions.clone());
-            reasoning_parts.push(format!("low confidence ({:.2})", confidence));
+            reasoning_parts.push(format!("low confidence ({confidence:.2})"));
         } else {
             // Apply category-based actions for high-confidence classifications
             let category_actions = self.get_category_actions(&classification.category);

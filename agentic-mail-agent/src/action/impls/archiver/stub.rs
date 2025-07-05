@@ -152,7 +152,7 @@ impl EmailArchiver for StubArchiver {
         let should_fail = self.error_config.lock().unwrap().archive_should_fail;
         if should_fail {
             let error_msg = self.error_config.lock().unwrap().error_message.clone();
-            self.log_operation(format!("Archive failed: {} -> {}", message_id, error_msg));
+            self.log_operation(format!("Archive failed: {message_id} -> {error_msg}"));
             return Err(ArchivingError::gmail_api(error_msg));
         }
         
@@ -160,7 +160,7 @@ impl EmailArchiver for StubArchiver {
         let mut archived_messages = self.archived_messages.lock().unwrap();
         if archived_messages.contains(message_id) {
             let result = ArchiveResult::already_archived(message_id.to_string());
-            self.log_operation(format!("Archive skipped: {} (already archived)", message_id));
+            self.log_operation(format!("Archive skipped: {message_id} (already archived)"));
             return Ok(result);
         }
         
@@ -168,7 +168,7 @@ impl EmailArchiver for StubArchiver {
         archived_messages.insert(message_id.to_string());
         
         let result = ArchiveResult::archived(message_id.to_string());
-        self.log_operation(format!("Archive success: {}", message_id));
+        self.log_operation(format!("Archive success: {message_id}"));
         
         Ok(result)
     }
@@ -183,14 +183,14 @@ impl EmailArchiver for StubArchiver {
         let should_fail = self.error_config.lock().unwrap().is_archived_should_fail;
         if should_fail {
             let error_msg = self.error_config.lock().unwrap().error_message.clone();
-            self.log_operation(format!("Is archived check failed: {} -> {}", message_id, error_msg));
+            self.log_operation(format!("Is archived check failed: {message_id} -> {error_msg}"));
             return Err(ArchivingError::gmail_api(error_msg));
         }
         
         let archived_messages = self.archived_messages.lock().unwrap();
         let is_archived = archived_messages.contains(message_id);
         
-        self.log_operation(format!("Is archived check: {} -> {}", message_id, is_archived));
+        self.log_operation(format!("Is archived check: {message_id} -> {is_archived}"));
         
         Ok(is_archived)
     }

@@ -112,24 +112,24 @@ impl EmailAction {
     /// Get a human-readable description of this action.
     pub fn description(&self) -> String {
         match self {
-            Self::Label { label } => format!("Apply label '{}'", label),
+            Self::Label { label } => format!("Apply label '{label}'"),
             Self::Archive => "Archive email".to_string(),
             Self::MarkImportant => "Mark as important".to_string(),
             Self::MarkAsRead => "Mark as read".to_string(),
             Self::Forward { to, note } => {
                 if let Some(note) = note {
-                    format!("Forward to {} with note: {}", to, note)
+                    format!("Forward to {to} with note: {note}")
                 } else {
-                    format!("Forward to {}", to)
+                    format!("Forward to {to}")
                 }
             },
             Self::Escalate { reason, priority } => {
-                format!("Escalate (priority {}): {}", priority, reason)
+                format!("Escalate (priority {priority}): {reason}")
             },
-            Self::MoveTo { folder } => format!("Move to folder '{}'", folder),
+            Self::MoveTo { folder } => format!("Move to folder '{folder}'"),
             Self::NoAction => "No action needed".to_string(),
             Self::Custom { action_type, parameters } => {
-                format!("Custom action '{}' with {} parameters", action_type, parameters.len())
+                format!("Custom action '{action_type}' with {} parameters", parameters.len())
             },
         }
     }
@@ -250,7 +250,7 @@ impl RoutingError {
 ///     let email = Email::with_subject("test@example.com".to_string(), "Meeting reminder".to_string());
 ///     let classification = Classification::with_category("work".to_string());
 ///     let result = router.route(&email, &classification).await?;
-///     println!("Actions: {}", result.actions_summary());
+///     println!("Actions: {result.actions_summary(}"));
 ///     Ok(())
 /// }
 /// ```

@@ -90,7 +90,7 @@ fn test_complete_email_anonymization_workflow() {
     }
     
     println!("Original combined text:");
-    println!("{}", full_text);
+    println!("{full_text}");
     println!();
     
     // Step 2: Simulate LLM PII detection
@@ -106,7 +106,7 @@ fn test_complete_email_anonymization_workflow() {
     let anonymized_text = replacer.replace_pii(&full_text, &detected_entities).unwrap();
     
     println!("Anonymized text:");
-    println!("{}", anonymized_text);
+    println!("{anonymized_text}");
     println!();
     
     // Step 4: Verify anonymization worked

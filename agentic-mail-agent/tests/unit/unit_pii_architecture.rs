@@ -53,7 +53,7 @@ fn test_email_field_reconstruction() {
         full_text.push('\n');
     }
     
-    println!("Combined text:\n{}", full_text);
+    println!("Combined text:\n{full_text}");
     
     // Create PII entities based on the combined text - find ALL occurrences
     let mut entities = Vec::new();
@@ -113,7 +113,7 @@ fn test_email_field_reconstruction() {
     let mut replacer = PiiReplacer::new();
     let anonymized_text = replacer.replace_pii(&full_text, &entities).unwrap();
     
-    println!("Anonymized text:\n{}", anonymized_text);
+    println!("Anonymized text:\n{anonymized_text}");
     
     // Verify anonymization worked
     assert!(!anonymized_text.contains("John Smith"));

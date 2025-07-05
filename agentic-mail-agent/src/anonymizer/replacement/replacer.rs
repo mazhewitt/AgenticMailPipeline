@@ -44,7 +44,7 @@ impl PiiReplacer {
         
         for entity in sorted_entities {
             #[cfg(debug_assertions)]
-            eprintln!("Processing entity: {:?}", entity);
+            eprintln!("Processing entity: {entity:?}");
             
             let fake_value = self.generate_fake_value(&entity.pii_type, &entity.text);
             

@@ -94,19 +94,18 @@ impl MockOllamaClassifier {
     fn load_recordings(file_path: &str) -> Result<HashMap<String, RecordedResponse>, ClassificationError> {
         if !Path::new(file_path).exists() {
             return Err(ClassificationError::config(format!(
-                "Recording file {} does not exist. Run in recording mode first.", 
-                file_path
+                "Recording file {file_path} does not exist. Run in recording mode first."
             )));
         }
         
         let contents = fs::read_to_string(file_path)
             .map_err(|e| ClassificationError::config(format!(
-                "Failed to read recording file {}: {}", file_path, e
+                "Failed to read recording file {file_path}: {e}"
             )))?;
             
         let recorded: RecordedResponses = serde_json::from_str(&contents)
             .map_err(|e| ClassificationError::config(format!(
-                "Failed to parse recording file {}: {}", file_path, e
+                "Failed to parse recording file {file_path}: {e}"
             )))?;
             
         let mut responses = HashMap::new();
@@ -121,7 +120,7 @@ impl MockOllamaClassifier {
             responses.insert(key, response);
         }
         
-        println!("📼 Loaded {} recorded responses from {}", responses.len(), file_path);
+        println!("📼 Loaded {} recorded responses from {file_path}", responses.len());
         Ok(responses)
     }
     
@@ -146,7 +145,7 @@ impl MockOllamaClassifier {
         
         let json = serde_json::to_string_pretty(&recorded)
             .map_err(|e| ClassificationError::unknown(format!(
-                "Failed to serialize recordings: {}", e
+                "Failed to serialize recordings: {e}"
             )))?;
             
         fs::write(&self.recording_file, json)

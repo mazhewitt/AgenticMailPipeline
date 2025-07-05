@@ -87,7 +87,7 @@ mod tests {
                 assert_eq!(email.snippet, test_email.snippet);
             }
             Err(e) => {
-                println!("⚠️  Could not load test data: {}", e);
+                println!("⚠️  Could not load test data: {e}");
                 println!("💡 Run 'cargo run --bin download_test_data' to create test data");
             }
         }
@@ -116,11 +116,11 @@ mod tests {
                 
                 println!("📊 Test Data Statistics:");
                 println!("   • Total emails: {}", emails.len());
-                println!("   • With subjects: {}", with_subject);
-                println!("   • With snippets: {}", with_snippet);
+                println!("   • With subjects: {with_subject}");
+                println!("   • With snippets: {with_snippet}");
             }
             Err(e) => {
-                println!("⚠️  Could not load test data: {}", e);
+                println!("⚠️  Could not load test data: {e}");
                 println!("💡 Run 'cargo run --bin download_test_data' to create test data");
             }
         }
@@ -180,7 +180,7 @@ mod tests {
                 println!("💡 You can now use these Email objects with MessageClassifier::classify()");
             }
             Err(e) => {
-                println!("⚠️  Could not load test data: {}", e);
+                println!("⚠️  Could not load test data: {e}");
                 println!("💡 Run 'cargo run --bin download_test_data' to create test data");
             }
         }

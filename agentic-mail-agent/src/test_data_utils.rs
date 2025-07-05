@@ -28,7 +28,7 @@ pub async fn download_50_emails(output_dir: &str) -> Result<(), Box<dyn std::err
     if !output.status.success() {
         let stderr = String::from_utf8_lossy(&output.stderr);
         let stdout = String::from_utf8_lossy(&output.stdout);
-        return Err(format!("Download failed. stdout: {}, stderr: {}", stdout, stderr).into());
+        return Err(format!("Download failed. stdout: {stdout}, stderr: {stderr}").into());
     }
     
     // Verify we have some emails
@@ -37,7 +37,7 @@ pub async fn download_50_emails(output_dir: &str) -> Result<(), Box<dyn std::err
         return Err("No emails were downloaded".into());
     }
     
-    println!("✅ Downloaded {} emails to {}/", count, output_dir);
+    println!("✅ Downloaded {count} emails to {output_dir}/");
     Ok(())
 }
 
@@ -67,7 +67,7 @@ pub async fn anonymize_test_data(input_dir: &str, output_dir: &str) -> Result<()
     if !output.status.success() {
         let stderr = String::from_utf8_lossy(&output.stderr);
         let stdout = String::from_utf8_lossy(&output.stdout);
-        return Err(format!("Anonymization failed. stdout: {}, stderr: {}", stdout, stderr).into());
+        return Err(format!("Anonymization failed. stdout: {stdout}, stderr: {stderr}").into());
     }
     
     // Verify we have anonymized emails
@@ -76,7 +76,7 @@ pub async fn anonymize_test_data(input_dir: &str, output_dir: &str) -> Result<()
         return Err("No anonymized emails were created".into());
     }
     
-    println!("✅ Anonymized {} emails to {}/", count, output_dir);
+    println!("✅ Anonymized {count} emails to {output_dir}/");
     Ok(())
 }
 
@@ -105,11 +105,11 @@ pub async fn spot_check_for_pii(data_dir: &str) -> Result<Vec<String>, Box<dyn s
     }
     
     if warnings.is_empty() {
-        println!("✅ PII spot check passed - no obvious PII found in {} checked files", checked_count);
+        println!("✅ PII spot check passed - no obvious PII found in {checked_count} checked files");
     } else {
         println!("⚠️  PII spot check found {} potential issues:", warnings.len());
         for warning in &warnings {
-            println!("   • {}", warning);
+            println!("   • {warning}");
         }
     }
     
@@ -129,17 +129,17 @@ async fn check_file_for_pii(file_path: &Path) -> Result<Vec<String>, Box<dyn std
         for (field, text) in text_fields {
             // Check for email patterns that aren't the safe anonymized ones
             if check_for_real_emails(&text) {
-                warnings.push(format!("{}: Potential real email found in {}", filename, field));
+                warnings.push(format!("{filename}: Potential real email found in {field}"));
             }
             
             // Check for phone number patterns
             if check_for_real_phones(&text) {
-                warnings.push(format!("{}: Potential real phone number found in {}", filename, field));
+                warnings.push(format!("{filename}: Potential real phone number found in {field}"));
             }
             
             // Check for common real name patterns (this is heuristic)
             if check_for_suspicious_names(&text) {
-                warnings.push(format!("{}: Potentially real names found in {}", filename, field));
+                warnings.push(format!("{filename}: Potentially real names found in {field}"));
             }
         }
     }

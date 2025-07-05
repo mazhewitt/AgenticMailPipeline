@@ -70,7 +70,7 @@ impl Default for LangChainConfig {
 ///     );
 ///     
 ///     let classification = classifier.classify(&email).await?;
-///     println!("Category: {}", classification.category);
+///     println!("Category: {classification.category}");
 ///     Ok(())
 /// }
 /// ```
@@ -112,8 +112,8 @@ impl LangChainClassifier {
                 })
             }
             Err(e) => Err(ClassificationError::network(format!(
-                "Failed to connect to Ollama at {}: {}",
-                config.ollama_url, e
+                "Failed to connect to Ollama at {}: {e}",
+                config.ollama_url
             ))),
         }
     }
@@ -162,8 +162,8 @@ impl LangChainClassifier {
 - Examples: Phishing attempts, scams, malicious emails, clearly unwanted solicitations
 - Harmful or completely unwanted emails
 
-Email Content: "{}"
-Metadata: "{}"
+Email Content: "{cleaned_content}"
+Metadata: "{metadata}"
 
 Analyze the email content and classify it appropriately. Focus on:
 1. Whether it requires personal action
@@ -180,9 +180,7 @@ Respond with a JSON object in this exact format:
 }}
 
 Ensure the score is between 0.0 and 1.0, where 1.0 means completely confident.
-Only respond with the JSON object, no additional text."#,
-            cleaned_content,
-            metadata
+Only respond with the JSON object, no additional text."#
         )
     }
 
@@ -200,8 +198,7 @@ Only respond with the JSON object, no additional text."#,
 
         serde_json::from_str::<LLMClassificationResponse>(json_str)
             .map_err(|e| ClassificationError::invalid_response(format!(
-                "Failed to parse LLM response as JSON: {}. Response was: {}",
-                e, response
+                "Failed to parse LLM response as JSON: {e}. Response was: {response}"
             )))
     }
 
@@ -215,8 +212,7 @@ Only respond with the JSON object, no additional text."#,
             Ok(())
         } else {
             Err(ClassificationError::invalid_response(format!(
-                "Invalid category '{}'. Must be one of: {}",
-                category,
+                "Invalid category '{category}'. Must be one of: {}",
                 VALID_CATEGORIES.join(", ")
             )))
         }
@@ -234,7 +230,7 @@ impl MessageClassifier for LangChainClassifier {
             .invoke(&prompt)
             .await
             .map_err(|e| ClassificationError::llm_service(format!(
-                "LLM invocation failed: {}", e
+                "LLM invocation failed: {e}"
             )))?;
 
         // Parse the response
@@ -258,8 +254,8 @@ impl MessageClassifier for LangChainClassifier {
             parsed_response.category,
             Some(score),
             format!(
-                "LLM Response: {} (Score: {:.2})",
-                parsed_response.explanation, score
+                "LLM Response: {} (Score: {score:.2})",
+                parsed_response.explanation
             ),
         ))
     }

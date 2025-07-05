@@ -194,7 +194,7 @@ async fn async_main() -> Result<(), Box<dyn std::error::Error>> {
                 processed_count += 1;
             }
             Err(e) => {
-                println!("❌ Error: {}", e);
+                println!("❌ Error: {e}");
                 error_count += 1;
             }
         }
@@ -203,8 +203,8 @@ async fn async_main() -> Result<(), Box<dyn std::error::Error>> {
     println!();
     println!("📊 Anonymization Summary:");
     println!("   • Successfully processed: {}/{}", processed_count, emails_to_process.len());
-    println!("   • Errors: {}", error_count);
-    println!("   • Total PII items anonymized: {}", total_pii_found);
+    println!("   • Errors: {error_count}");
+    println!("   • Total PII items anonymized: {total_pii_found}");
     println!("   • Output directory: {}", args.output_dir.display());
     
     if error_count == 0 {
@@ -222,7 +222,7 @@ async fn async_main() -> Result<(), Box<dyn std::error::Error>> {
 
 fn main() {
     if let Err(e) = async_main() {
-        eprintln!("❌ Error: {}", e);
+        eprintln!("❌ Error: {e}");
         std::process::exit(1);
     }
 }

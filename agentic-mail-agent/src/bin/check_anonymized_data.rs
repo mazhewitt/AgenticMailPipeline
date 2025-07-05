@@ -18,14 +18,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     } else {
         println!("⚠️  Found {} potential PII issues:", warnings.len());
         for warning in &warnings {
-            println!("   • {}", warning);
+            println!("   • {warning}");
         }
     }
     
     // Count the files
     let count = count_json_files(anonymized_dir)?;
     println!("\n📊 Statistics:");
-    println!("   • Anonymized emails: {}", count);
+    println!("   • Anonymized emails: {count}");
     
     // Sample a few files to show what they look like
     println!("\n📄 Sample content (first 200 chars of subject/from fields):");
@@ -39,7 +39,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             let email: serde_json::Value = serde_json::from_str(&content)?;
             
             let filename = path.file_name().unwrap().to_string_lossy();
-            println!("\n   {}:", filename);
+            println!("\n   {filename}:");
             
             if let Some(subject) = email.get("subject").and_then(|v| v.as_str()) {
                 let preview = if subject.len() > 80 {
@@ -47,7 +47,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 } else {
                     subject.to_string()
                 };
-                println!("     Subject: {}", preview);
+                println!("     Subject: {preview}");
             }
             
             if let Some(from) = email.get("from").and_then(|v| v.as_str()) {
@@ -56,7 +56,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 } else {
                     from.to_string()
                 };
-                println!("     From: {}", preview);
+                println!("     From: {preview}");
             }
             
             sample_count += 1;

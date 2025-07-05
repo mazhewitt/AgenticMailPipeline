@@ -19,7 +19,7 @@ Jane Doe
     
     let pii_entities = detector.detect_pii(email_text).await.unwrap();
     
-    println!("Detected PII entities: {:?}", pii_entities);
+    println!("Detected PII entities: {pii_entities:?}");
     
     // Should detect at least some PII (LLMs may not detect everything consistently)
     assert!(!pii_entities.is_empty());

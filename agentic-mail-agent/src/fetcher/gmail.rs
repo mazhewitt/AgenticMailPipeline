@@ -47,10 +47,10 @@ use crate::gmail::{GmailClient, GmailAuthConfig};
 ///     println!("Fetched {} unread emails", emails.len());
 ///     for email in &emails {
 ///         if let Some(subject) = &email.subject {
-///             println!("Subject: {}", subject);
+///             println!("Subject: {subject}");
 ///         }
 ///         if let Some(snippet) = &email.snippet {
-///             println!("Preview: {}", snippet);
+///             println!("Preview: {snippet}");
 ///         }
 ///     }
 ///     println!("Fetched {} unread emails", emails.len());
@@ -303,7 +303,7 @@ impl EmailFetcher for GmailFetcher {
         let message_list = match list_result {
             Ok((_, ListMessagesResponse { messages: Some(msgs), .. })) => msgs,
             Ok((_, _)) => Vec::new(),
-            Err(e) => return Err(FetchError::network(format!("Failed to list messages: {}", e))),
+            Err(e) => return Err(FetchError::network(format!("Failed to list messages: {e}"))),
         };
 
         // Fetch each unread message in full format to extract subject and body
@@ -323,7 +323,7 @@ impl EmailFetcher for GmailFetcher {
                     Err(e) => {
                         // Log individual message fetch failure but continue processing
                         // Individual message failures shouldn't break the entire batch
-                        println!("Warning: Failed to fetch message {}: {}", msg_id, e);
+                        println!("Warning: Failed to fetch message {msg_id}: {e}");
                         emails.push(Email::new(msg_id.clone(), None, None));
                         continue;
                     }
@@ -352,7 +352,7 @@ impl EmailFetcher for GmailFetcher {
         let message_list = match list_result {
             Ok((_, ListMessagesResponse { messages: Some(msgs), .. })) => msgs,
             Ok((_, _)) => Vec::new(),
-            Err(e) => return Err(FetchError::network(format!("Failed to list messages: {}", e))),
+            Err(e) => return Err(FetchError::network(format!("Failed to list messages: {e}"))),
         };
 
         // Fetch each message in full format to extract subject and body
@@ -371,7 +371,7 @@ impl EmailFetcher for GmailFetcher {
                     Ok((_, m)) => m,
                     Err(e) => {
                         // Log individual message fetch failure but continue processing
-                        println!("Warning: Failed to fetch message {}: {}", msg_id, e);
+                        println!("Warning: Failed to fetch message {msg_id}: {e}");
                         emails.push(Email::new(msg_id.clone(), None, None));
                         continue;
                     }

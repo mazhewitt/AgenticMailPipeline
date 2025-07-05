@@ -32,7 +32,7 @@ impl ArchiveResult {
         Self {
             message_id: message_id.clone(),
             archived: true,
-            description: format!("Email {} archived successfully", message_id),
+            description: format!("Email {message_id} archived successfully"),
         }
     }
 
@@ -41,7 +41,7 @@ impl ArchiveResult {
         Self {
             message_id: message_id.clone(),
             archived: false,
-            description: format!("Email {} was already archived", message_id),
+            description: format!("Email {message_id} was already archived"),
         }
     }
 
@@ -50,7 +50,7 @@ impl ArchiveResult {
         Self {
             message_id: message_id.clone(),
             archived: false,
-            description: format!("Email {} not archived: {}", message_id, reason),
+            description: format!("Email {message_id} not archived: {reason}"),
         }
     }
 }
@@ -137,7 +137,7 @@ impl ArchivingError {
 /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
 ///     let archiver = StubArchiver::new();
 ///     let result = archiver.archive_email("message123").await?;
-///     println!("Archive result: {}", result.description);
+///     println!("Archive result: {result.description}");
 ///     Ok(())
 /// }
 /// ```

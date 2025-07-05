@@ -42,7 +42,7 @@ use google_gmail1::{
 ///     
 ///     let archiver = GmailArchiver::from_env().await?;
 ///     let result = archiver.archive_email("message123").await?;
-///     println!("Archive result: {}", result.description);
+///     println!("Archive result: {result.description}");
 ///     Ok(())
 /// }
 /// ```
@@ -106,7 +106,7 @@ impl GmailArchiver {
             .doit()
             .await
             .map_err(|e| ArchivingError::gmail_api(format!(
-                "Failed to list labels: {}", e
+                "Failed to list labels: {e}"
             )))?;
 
         let labels = labels_result.1.labels.unwrap_or_default();
@@ -137,7 +137,7 @@ impl GmailArchiver {
             .doit()
             .await
             .map_err(|e| ArchivingError::gmail_api(format!(
-                "Failed to get message {}: {}", message_id, e
+                "Failed to get message {message_id}: {e}"
             )))?;
 
         let message = message_result.1;
@@ -188,7 +188,7 @@ impl EmailArchiver for GmailArchiver {
             .doit()
             .await
             .map_err(|e| ArchivingError::gmail_api(format!(
-                "Failed to archive message {}: {}", message_id, e
+                "Failed to archive message {message_id}: {e}"
             )))?;
 
         Ok(ArchiveResult::archived(message_id.to_string()))

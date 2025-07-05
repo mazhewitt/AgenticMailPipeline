@@ -287,7 +287,7 @@ impl MessageClassifier for HybridClassifier {
                     }
                     Err(e) => {
                         // Fall back to rules if LLM fails
-                        eprintln!("LLM classification failed ({}), falling back to rule-based", e);
+                        eprintln!("LLM classification failed ({e}), falling back to rule-based");
                     }
                 }
             }

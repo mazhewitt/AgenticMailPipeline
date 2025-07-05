@@ -117,8 +117,8 @@ async fn test_gmail_list_messages_only() {
             }
         }
         Err(e) => {
-            println!("❌ Failed to fetch emails: {:?}", e);
-            panic!("Failed to fetch any emails: {:?}", e);
+            println!("❌ Failed to fetch emails: {e:?}");
+            panic!("Failed to fetch any emails: {e:?}");
         }
     }
 }
@@ -158,14 +158,14 @@ async fn test_gmail_auth_issue_isolation() {
     
     println!("📊 Email data analysis:");
     println!("  - Total emails: {}", emails.len());
-    println!("  - With both subject & snippet: {}", with_both);
-    println!("  - With subject only: {}", with_subject);
-    println!("  - With snippet only: {}", with_snippet);
-    println!("  - With neither: {}", with_neither);
+    println!("  - With both subject & snippet: {with_both}");
+    println!("  - With subject only: {with_subject}");
+    println!("  - With snippet only: {with_snippet}");
+    println!("  - With neither: {with_neither}");
     
     // This test doesn't fail - it just reports what we found
     if with_neither > 0 {
-        println!("⚠️  Found {} emails with missing subject AND snippet - likely auth issue", with_neither);
+        println!("⚠️  Found {with_neither} emails with missing subject AND snippet - likely auth issue");
     }
     if with_both == emails.len() {
         println!("✅ All emails have both subject and snippet - auth is working properly");
@@ -187,7 +187,7 @@ async fn test_gmail_expected_failures() {
 
     // Check each email - they should ALL have IDs, but subjects/snippets may be missing due to auth
     for email in &emails {
-        assert!(!email.id.is_empty(), "Email missing ID: {:?}", email);
+        assert!(!email.id.is_empty(), "Email missing ID: {email:?}");
         
         // Log what we got vs. what's missing
         match (&email.subject, &email.snippet) {
@@ -254,24 +254,24 @@ async fn test_gmail_fetcher_subject_and_body_with_detailed_failure_analysis() {
         
         // Show actual content when available
         if let Some(subject) = &email.subject {
-            println!("     Subject: '{}'", subject);
+            println!("     Subject: '{subject}'");
         }
         if let Some(snippet) = &email.snippet {
-            println!("     Snippet: '{:.60}...'", snippet);
+            println!("     Snippet: '{snippet:.60}...'");
         }
     }
     
     println!("\n📊 Summary:");
     println!("  - Total emails: {}", emails.len());
-    println!("  - Complete (subject + snippet): {}", success_count);
-    println!("  - Missing subject: {}", missing_subject_count);
-    println!("  - Missing snippet: {}", missing_snippet_count);
-    println!("  - Missing both: {}", missing_both_count);
+    println!("  - Complete (subject + snippet): {success_count}");
+    println!("  - Missing subject: {missing_subject_count}");
+    println!("  - Missing snippet: {missing_snippet_count}");
+    println!("  - Missing both: {missing_both_count}");
     
     // Provide clear diagnostic information
     if missing_both_count > 0 {
         println!("\n🔍 DIAGNOSIS:");
-        println!("  {} emails are missing both subject and snippet.", missing_both_count);
+        println!("  {missing_both_count} emails are missing both subject and snippet.");
         println!("  This indicates that the Gmail API list messages call works (we get IDs),");
         println!("  but individual message fetches fail with auth errors like:");
         println!("  'Missing access token for authorization. Request: MailboxService.GetMessage'");
@@ -281,7 +281,7 @@ async fn test_gmail_fetcher_subject_and_body_with_detailed_failure_analysis() {
     }
     
     if success_count > 0 {
-        println!("  ✅ {} emails were fetched successfully with full content.", success_count);
+        println!("  ✅ {success_count} emails were fetched successfully with full content.");
     }
     
     // This test passes regardless - it's for analysis, not validation
@@ -303,9 +303,9 @@ async fn test_gmail_token_and_scope_verification() {
     match client_secret_path {
         Ok(path) => {
             if std::path::Path::new(&path).exists() {
-                println!("  ✅ GMAIL_CLIENT_SECRET_JSON: {} (exists)", path);
+                println!("  ✅ GMAIL_CLIENT_SECRET_JSON: {path} (exists)");
             } else {
-                println!("  ❌ GMAIL_CLIENT_SECRET_JSON: {} (missing file)", path);
+                println!("  ❌ GMAIL_CLIENT_SECRET_JSON: {path} (missing file)");
             }
         }
         Err(_) => println!("  ❌ GMAIL_CLIENT_SECRET_JSON: not set"),
@@ -314,7 +314,7 @@ async fn test_gmail_token_and_scope_verification() {
     match token_path {
         Ok(path) => {
             if std::path::Path::new(&path).exists() {
-                println!("  ✅ GMAIL_TOKEN_JSON: {} (exists)", path);
+                println!("  ✅ GMAIL_TOKEN_JSON: {path} (exists)");
                 
                 // Try to read and parse the token to see what's in it
                 if let Ok(token_content) = std::fs::read_to_string(&path) {
@@ -333,7 +333,7 @@ async fn test_gmail_token_and_scope_verification() {
                             println!("    - Has expiry info: {}", if has_expires { "✅" } else { "❌" });
                             
                             if let Some(scopes) = obj.get("scope").and_then(|s| s.as_str()) {
-                                println!("    - Scopes: {}", scopes);
+                                println!("    - Scopes: {scopes}");
                                 if scopes.contains("gmail") {
                                     println!("      ✅ Gmail scopes present");
                                 } else {
@@ -348,7 +348,7 @@ async fn test_gmail_token_and_scope_verification() {
                     println!("  ⚠️  Cannot read token file");
                 }
             } else {
-                println!("  ❌ GMAIL_TOKEN_JSON: {} (missing file)", path);
+                println!("  ❌ GMAIL_TOKEN_JSON: {path} (missing file)");
             }
         }
         Err(_) => println!("  ❌ GMAIL_TOKEN_JSON: not set"),
@@ -358,7 +358,7 @@ async fn test_gmail_token_and_scope_verification() {
     let fetcher_result = GmailFetcher::from_env().await;
     match fetcher_result {
         Ok(_) => println!("  ✅ GmailFetcher created successfully"),
-        Err(e) => println!("  ❌ GmailFetcher creation failed: {:?}", e),
+        Err(e) => println!("  ❌ GmailFetcher creation failed: {e:?}"),
     }
     
     println!("\n🔍 Analysis:");
@@ -389,7 +389,7 @@ async fn test_gmail_minimal_auth_operation() {
     let _fetcher = match GmailFetcher::from_env().await {
         Ok(f) => f,
         Err(e) => {
-            println!("❌ Cannot create fetcher: {:?}", e);
+            println!("❌ Cannot create fetcher: {e:?}");
             return;
         }
     };
@@ -404,7 +404,7 @@ async fn test_gmail_minimal_auth_operation() {
     let secret = match std::fs::read_to_string(&client_secret_path) {
         Ok(s) => s,
         Err(e) => {
-            println!("❌ Cannot read client secret: {}", e);
+            println!("❌ Cannot read client secret: {e}");
             return;
         }
     };
@@ -413,7 +413,7 @@ async fn test_gmail_minimal_auth_operation() {
         let google_secret: serde_json::Value = match serde_json::from_str(&secret) {
             Ok(s) => s,
             Err(e) => {
-                println!("❌ Cannot parse client secret JSON: {}", e);
+                println!("❌ Cannot parse client secret JSON: {e}");
                 return;
             }
         };
@@ -422,7 +422,7 @@ async fn test_gmail_minimal_auth_operation() {
             match serde_json::from_value(installed.clone()) {
                 Ok(s) => s,
                 Err(e) => {
-                    println!("❌ Cannot parse installed client secret: {}", e);
+                    println!("❌ Cannot parse installed client secret: {e}");
                     return;
                 }
             }
@@ -430,7 +430,7 @@ async fn test_gmail_minimal_auth_operation() {
             match serde_json::from_str(&secret) {
                 Ok(s) => s,
                 Err(e) => {
-                    println!("❌ Cannot parse ApplicationSecret: {}", e);
+                    println!("❌ Cannot parse ApplicationSecret: {e}");
                     return;
                 }
             }
@@ -458,7 +458,7 @@ async fn test_gmail_minimal_auth_operation() {
     .await {
         Ok(a) => a,
         Err(e) => {
-            println!("❌ Cannot build authenticator: {}", e);
+            println!("❌ Cannot build authenticator: {e}");
             return;
         }
     };
@@ -468,7 +468,7 @@ async fn test_gmail_minimal_auth_operation() {
         .with_native_roots() {
         Ok(builder) => builder,
         Err(e) => {
-            println!("❌ Cannot create HTTPS connector: {}", e);
+            println!("❌ Cannot create HTTPS connector: {e}");
             return;
         }
     }.https_only().enable_http1().build();
@@ -481,14 +481,14 @@ async fn test_gmail_minimal_auth_operation() {
         Ok((_, profile)) => {
             println!("  ✅ Profile fetch successful!");
             if let Some(email) = profile.email_address {
-                println!("    Email: {}", email);
+                println!("    Email: {email}");
             }
             if let Some(total) = profile.messages_total {
-                println!("    Total messages: {}", total);
+                println!("    Total messages: {total}");
             }
         }
         Err(e) => {
-            println!("  ❌ Profile fetch failed: {}", e);
+            println!("  ❌ Profile fetch failed: {e}");
             println!("    This confirms the auth token issue extends to all Gmail API calls");
         }
     }
@@ -502,7 +502,7 @@ async fn test_gmail_minimal_auth_operation() {
             }
         }
         Err(e) => {
-            println!("  ❌ Message list failed: {}", e);
+            println!("  ❌ Message list failed: {e}");
         }
     }
 }
@@ -568,7 +568,7 @@ async fn test_gmail_individual_message_fetch_failure() {
     let message_list = match hub.users().messages_list("me").add_label_ids("UNREAD").max_results(1).doit().await {
         Ok((_, response)) => response,
         Err(e) => {
-            println!("  ❌ Cannot list messages: {}", e);
+            println!("  ❌ Cannot list messages: {e}");
             return;
         }
     };
@@ -582,7 +582,7 @@ async fn test_gmail_individual_message_fetch_failure() {
     };
 
     let msg_id = messages[0].id.as_ref().unwrap();
-    println!("  ✅ Got message ID: {}", msg_id);
+    println!("  ✅ Got message ID: {msg_id}");
 
     println!("  📧 Step 2: Fetch individual message details...");
     match hub.users().messages_get("me", msg_id).format("full").doit().await {
@@ -593,7 +593,7 @@ async fn test_gmail_individual_message_fetch_failure() {
                     for header in headers {
                         if let (Some(name), Some(value)) = (&header.name, &header.value) {
                             if name.eq_ignore_ascii_case("subject") {
-                                println!("    Subject: {}", value);
+                                println!("    Subject: {value}");
                                 break;
                             }
                         }
@@ -602,12 +602,12 @@ async fn test_gmail_individual_message_fetch_failure() {
             }
         }
         Err(e) => {
-            println!("  ❌ Individual message fetch failed: {}", e);
+            println!("  ❌ Individual message fetch failed: {e}");
             println!("    This is the exact error we see in the Gmail fetcher!");
             
             // Let's see if this is a token issue
             println!("  🔍 Checking if this is a token authentication issue...");
-            let error_str = format!("{}", e);
+            let error_str = format!("{e}");
             if error_str.contains("403") && error_str.contains("Missing access token") {
                 println!("    ✅ CONFIRMED: This is the 403 'Missing access token' error");
                 println!("    💡 ROOT CAUSE: The OAuth2 token is likely empty or expired");
@@ -649,7 +649,7 @@ async fn test_gmail_issue_summary_and_diagnosis() {
     let fetcher = GmailFetcher::from_env().await;
     match fetcher {
         Ok(_) => println!("  ✅ GmailFetcher creation: SUCCESS"),
-        Err(e) => println!("  ❌ GmailFetcher creation: FAILED - {:?}", e),
+        Err(e) => println!("  ❌ GmailFetcher creation: FAILED - {e:?}"),
     }
     
     // Test environment setup
@@ -678,7 +678,7 @@ async fn test_gmail_issue_summary_and_diagnosis() {
             if !is_empty {
                 if let Ok(token_json) = serde_json::from_str::<serde_json::Value>(&token_content) {
                     let key_count = token_json.as_object().map(|o| o.len()).unwrap_or(0);
-                    println!("  📄 Token JSON keys: {}", key_count);
+                    println!("  📄 Token JSON keys: {key_count}");
                     if key_count == 0 {
                         println!("  ⚠️  Token file contains empty JSON object");
                     }
@@ -713,7 +713,7 @@ async fn test_gmail_issue_summary_and_diagnosis() {
     let with_subjects = emails.iter().filter(|e| e.subject.is_some()).count();
     let with_snippets = emails.iter().filter(|e| e.snippet.is_some()).count();
     
-    println!("  - Total emails fetched: {}", total);
+    println!("  - Total emails fetched: {total}");
     println!("  - With subjects: {} / {} ({}%)", with_subjects, total, 
              if total > 0 { (with_subjects * 100) / total } else { 0 });
     println!("  - With snippets: {} / {} ({}%)", with_snippets, total,
@@ -795,8 +795,8 @@ async fn test_gmail_direct_token_inspection() {
     ];
 
     for (name, scopes) in scope_sets {
-        println!("\n📋 Testing scope set: {}", name);
-        println!("   Scopes: {:?}", scopes);
+        println!("\n📋 Testing scope set: {name}");
+        println!("   Scopes: {scopes:?}");
         
         match auth.token(&scopes).await {
             Ok(token) => {
@@ -826,7 +826,7 @@ async fn test_gmail_direct_token_inspection() {
                         if let Some(messages) = response.messages {
                             if let Some(first_msg) = messages.first() {
                                 if let Some(msg_id) = &first_msg.id {
-                                    println!("   📧 Testing individual message fetch for ID: {}", msg_id);
+                                    println!("   📧 Testing individual message fetch for ID: {msg_id}");
                                     match hub.users().messages_get("me", msg_id).format("full").doit().await {
                                         Ok((_, message)) => {
                                             println!("   ✅ Individual message fetch SUCCESSFUL!");
@@ -835,7 +835,7 @@ async fn test_gmail_direct_token_inspection() {
                                                     for header in headers {
                                                         if let (Some(name), Some(value)) = (&header.name, &header.value) {
                                                             if name.eq_ignore_ascii_case("subject") {
-                                                                println!("      Subject: {}", value);
+                                                                println!("      Subject: {value}");
                                                                 break;
                                                             }
                                                         }
@@ -844,7 +844,7 @@ async fn test_gmail_direct_token_inspection() {
                                             }
                                         }
                                         Err(e) => {
-                                            println!("   ❌ Individual message fetch failed: {}", e);
+                                            println!("   ❌ Individual message fetch failed: {e}");
                                         }
                                     }
                                 }
@@ -852,12 +852,12 @@ async fn test_gmail_direct_token_inspection() {
                         }
                     }
                     Err(e) => {
-                        println!("   ❌ Message list failed: {}", e);
+                        println!("   ❌ Message list failed: {e}");
                     }
                 }
             }
             Err(e) => {
-                println!("   ❌ Failed to obtain token: {}", e);
+                println!("   ❌ Failed to obtain token: {e}");
             }
         }
     }
@@ -934,7 +934,7 @@ async fn test_gmail_message_format_variations() {
     let message_list = hub.users().messages_list("me").max_results(1).doit().await.unwrap();
     let messages = message_list.1.messages.unwrap();
     let msg_id = messages[0].id.as_ref().unwrap();
-    println!("📧 Testing message ID: {}", msg_id);
+    println!("📧 Testing message ID: {msg_id}");
 
     // Test different formats
     let formats = vec![
@@ -945,11 +945,11 @@ async fn test_gmail_message_format_variations() {
     ];
 
     for (name, format) in formats {
-        println!("\n📋 Testing format: {}", name);
+        println!("\n📋 Testing format: {name}");
         
         match hub.users().messages_get("me", msg_id).format(format).doit().await {
             Ok((_, message)) => {
-                println!("   ✅ {} format SUCCESSFUL!", name);
+                println!("   ✅ {name} format SUCCESSFUL!");
                 println!("   Message ID: {:?}", message.id);
                 println!("   Snippet: {:?}", message.snippet.as_deref().map(|s| &s[..std::cmp::min(50, s.len())]));
                 
@@ -960,7 +960,7 @@ async fn test_gmail_message_format_variations() {
                         for header in headers {
                             if let (Some(name), Some(value)) = (&header.name, &header.value) {
                                 if name.eq_ignore_ascii_case("subject") {
-                                    println!("   Subject: {}", value);
+                                    println!("   Subject: {value}");
                                     break;
                                 }
                             }
@@ -969,7 +969,7 @@ async fn test_gmail_message_format_variations() {
                 }
             }
             Err(e) => {
-                println!("   ❌ {} format failed: {}", name, e);
+                println!("   ❌ {name} format failed: {e}");
             }
         }
     }
@@ -983,7 +983,7 @@ async fn test_gmail_message_format_variations() {
             println!("   Snippet: {:?}", message.snippet.as_deref().map(|s| &s[..std::cmp::min(50, s.len())]));
         }
         Err(e) => {
-            println!("   ❌ No format failed: {}", e);
+            println!("   ❌ No format failed: {e}");
         }
     }
 }

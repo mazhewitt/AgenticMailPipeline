@@ -211,7 +211,7 @@ impl StubClassifier {
         Classification::new(
             category.to_string(),
             Some(score),
-            format!("Deterministic classification based on cleaned content and patterns: {}", category),
+            format!("Deterministic classification based on cleaned content and patterns: {category}"),
         )
     }
 }

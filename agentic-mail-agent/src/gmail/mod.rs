@@ -42,8 +42,8 @@ pub enum GmailClientError {
 impl fmt::Display for GmailClientError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            GmailClientError::Config { message } => write!(f, "Gmail config error: {}", message),
-            GmailClientError::Auth { message } => write!(f, "Gmail auth error: {}", message),
+            GmailClientError::Config { message } => write!(f, "Gmail config error: {message}"),
+            GmailClientError::Auth { message } => write!(f, "Gmail auth error: {message}"),
         }
     }
 }
@@ -217,26 +217,26 @@ impl GmailClient {
         // Read and parse client secret
         let secret = std::fs::read_to_string(&config.client_secret_path)
             .map_err(|e| GmailClientError::config(format!(
-                "Failed to read client secret file: {}", e
+                "Failed to read client secret file: {e}"
             )))?;
 
         let secret: ApplicationSecret = {
             // Parse the JSON first
             let google_secret: serde_json::Value = serde_json::from_str(&secret)
                 .map_err(|e| GmailClientError::config(format!(
-                    "Failed to parse client secret JSON: {}", e
+                    "Failed to parse client secret JSON: {e}"
                 )))?;
             
             // Check if it's in the Google "installed" format
             if let Some(installed) = google_secret.get("installed") {
                 serde_json::from_value(installed.clone())
                     .map_err(|e| GmailClientError::config(format!(
-                        "Failed to parse installed client secret: {}", e
+                        "Failed to parse installed client secret: {e}"
                     )))?
             } else {
                 serde_json::from_str(&secret)
                     .map_err(|e| GmailClientError::config(format!(
-                        "Failed to parse ApplicationSecret: {}", e
+                        "Failed to parse ApplicationSecret: {e}"
                     )))?
             }
         };
@@ -244,7 +244,7 @@ impl GmailClient {
         // Set up OAuth2 authentication
         let connector = hyper_rustls::HttpsConnectorBuilder::new()
             .with_native_roots()
-            .map_err(|e| GmailClientError::config(format!("Could not load native certs: {}", e)))?
+            .map_err(|e| GmailClientError::config(format!("Could not load native certs: {e}")))?
             .https_only()
             .enable_http2()
             .build();
@@ -261,7 +261,7 @@ impl GmailClient {
         .build()
         .await
         .map_err(|e| GmailClientError::auth(format!(
-            "Failed to build authenticator: {}", e
+            "Failed to build authenticator: {e}"
         )))?;
 
         // Create Gmail hub

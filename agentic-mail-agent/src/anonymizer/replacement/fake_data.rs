@@ -57,9 +57,9 @@ impl FakeDataGenerator {
         let fake_email = format!("{}{}@{}", usernames[username_idx], number, fake_domains[domain_idx]);
         
         if original.starts_with('<') && original.ends_with('>') {
-            format!("<{}>", fake_email)
+            format!("<{fake_email}>")
         } else if original.starts_with('"') && original.ends_with('"') {
-            format!("\"{}\"", fake_email)
+            format!("\"{fake_email}\"")
         } else if original.contains("[at]") {
             fake_email.replace("@", " [at] ").replace(".", " [dot] ")
         } else if original.contains("(at)") {

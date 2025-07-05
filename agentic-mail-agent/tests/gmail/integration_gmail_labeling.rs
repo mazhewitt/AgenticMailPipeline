@@ -78,7 +78,7 @@ async fn test_gmail_labeler_invalid_message_id() {
             // Expected - invalid message ID should cause Gmail API error
         }
         Err(other) => {
-            panic!("Expected GmailApi error, got: {:?}", other);
+            panic!("Expected GmailApi error, got: {other:?}");
         }
         Ok(_) => {
             panic!("Expected error for invalid message ID, but operation succeeded");
@@ -134,7 +134,7 @@ async fn test_gmail_labeler_without_credentials() {
             // Expected - missing environment variables should cause config error
         }
         Err(other) => {
-            panic!("Expected Config error, got: {:?}", other);
+            panic!("Expected Config error, got: {other:?}");
         }
         Ok(_) => {
             panic!("Expected error for missing credentials, but initialization succeeded");

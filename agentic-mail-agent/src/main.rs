@@ -65,7 +65,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                             Box::new(llm_classifier)
                         }
                         Err(e) => {
-                            eprintln!("❌ Failed to initialize LangChain classifier: {}", e);
+                            eprintln!("❌ Failed to initialize LangChain classifier: {e}");
                             eprintln!("💡 Make sure Ollama is running locally (ollama serve)");
                             eprintln!("🔄 Falling back to stub classifier...");
                             Box::new(StubClassifier::deterministic())
@@ -117,12 +117,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 println!("📧 Processing Email {} of {}:", index + 1, emails.len());
                 println!("  ID: {}", email.id);
                 if let Some(subject) = &email.subject {
-                    println!("  Subject: {}", subject);
+                    println!("  Subject: {subject}");
                 } else {
                     println!("  Subject: (No subject)");
                 }
                 if let Some(snippet) = &email.snippet {
-                    println!("  Preview: {}", snippet);
+                    println!("  Preview: {snippet}");
                 } else {
                     println!("  Preview: (No preview)");
                 }
@@ -144,7 +144,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                                 println!("✅");
                                 println!("  🏷️  Label applied: {}", result.label_applied);
                                 for action in &result.actions_taken {
-                                    println!("    • {}", action);
+                                    println!("    • {action}");
                                 }
                                 if result.archived {
                                     println!("  📦 Email archived (removed from inbox)");
@@ -154,12 +154,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                                 println!("  📝 Summary: {}", result.summary);
                             }
                             Err(e) => {
-                                println!("❌ Action execution error: {}", e);
+                                println!("❌ Action execution error: {e}");
                             }
                         }
                     },
                     Err(e) => {
-                        println!("  ❌ Classification error: {}", e);
+                        println!("  ❌ Classification error: {e}");
                     }
                 }
                 println!("  ---\n");
@@ -167,7 +167,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             
             println!("✅ Agentic email processing complete!");
         },
-        Err(e) => eprintln!("Failed to fetch emails: {}", e),
+        Err(e) => eprintln!("Failed to fetch emails: {e}"),
     }
     
     Ok(())

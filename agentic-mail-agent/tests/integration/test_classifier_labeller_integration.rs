@@ -293,7 +293,7 @@ async fn test_classifier_labeller_integration_full_workflow() {
     println!("🧪 CLASSIFIER + LABELLER INTEGRATION TEST (IMPROVED)");
     println!("{}", "=".repeat(60));
     println!("This test will:");
-    println!("  1. Fetch up to {} real emails from your Gmail", MAX_EMAILS_TO_TEST);
+    println!("  1. Fetch up to {MAX_EMAILS_TO_TEST} real emails from your Gmail");
     println!("  2. Classify each email using the stub classifier");
     println!("  3. Apply TEST_AGENT_* labels concurrently based on classification");
     println!("  4. Verify labels were applied correctly (concurrent verification)");
@@ -350,7 +350,7 @@ async fn test_classifier_labeller_integration_full_workflow() {
         let classification = classifier.classify(email).await
             .expect(&format!("Failed to classify {}", format_email_context(&email.id, &email.subject)));
         
-        let score_display = classification.score.map(|s| format!("{:.2}", s)).unwrap_or_else(|| "N/A".to_string());
+        let score_display = classification.score.map(|s| format!("{s:.2}")).unwrap_or_else(|| "N/A".to_string());
         println!("    🎯 Classification: {} (score: {})", 
                  classification.category, score_display);
         
@@ -441,7 +441,7 @@ async fn test_classifier_labeller_integration_full_workflow() {
     println!("\n📊 Step 8: Analysis of classification results...");
     println!("  Classification summary:");
     for (category, count) in &classification_summary {
-        println!("    - {}: {} emails", category, count);
+        println!("    - {category}: {count} emails");
     }
     
     // Step 9: Clean up test labels concurrently
@@ -457,7 +457,7 @@ async fn test_classifier_labeller_integration_full_workflow() {
     println!("  - Classification categories used: {}", classification_summary.len());
     
     // Final assertions
-    assert!(!emails_with_classifications.is_empty(), 
+    assert!(!emails_with_classifications.is_empty(),
             "Should have processed at least one email");
     assert!(classification_summary.len() > 0, 
             "Should have used at least one classification category");
@@ -503,7 +503,7 @@ async fn test_classifier_with_real_emails_quality_assessment() {
         println!("\n📧 Email {} of {}:", i + 1, test_emails.len());
         
         if let Some(subject) = &email.subject {
-            println!("  Subject: {}", subject);
+            println!("  Subject: {subject}");
         } else {
             println!("  Subject: (missing)");
         }
@@ -519,7 +519,7 @@ async fn test_classifier_with_real_emails_quality_assessment() {
         let classification = classifier.classify(email).await
             .expect("Failed to classify email");
         
-        let score_display = classification.score.map(|s| format!("{:.2}", s)).unwrap_or_else(|| "N/A".to_string());
+        let score_display = classification.score.map(|s| format!("{s:.2}")).unwrap_or_else(|| "N/A".to_string());
         println!("  🎯 Classification: {} (score: {})", 
                  classification.category, score_display);
         println!("  💭 Reasoning: {}", classification.llm_response);
@@ -534,7 +534,7 @@ async fn test_classifier_with_real_emails_quality_assessment() {
     println!("Category distribution:");
     for (category, count) in &category_counts {
         let percentage = (count * 100) / test_emails.len();
-        println!("  - {}: {} emails ({}%)", category, count, percentage);
+        println!("  - {category}: {count} emails ({percentage}%)");
     }
     
     let valid_scores: Vec<f32> = scores.iter().filter_map(|&s| s).collect();
@@ -547,9 +547,9 @@ async fn test_classifier_with_real_emails_quality_assessment() {
     let max_score = valid_scores.iter().fold(f32::NEG_INFINITY, |a, &b| a.max(b));
     
     println!("\nScore analysis:");
-    println!("  - Average: {:.2}", avg_score);
-    println!("  - Min: {:.2}", min_score);
-    println!("  - Max: {:.2}", max_score);
+    println!("  - Average: {avg_score:.2}");
+    println!("  - Min: {min_score:.2}");
+    println!("  - Max: {max_score:.2}");
     
     // Quality checks
     let high_score_count = valid_scores.iter()
@@ -570,7 +570,7 @@ async fn test_classifier_with_real_emails_quality_assessment() {
     // Assertions for quality
     if !valid_scores.is_empty() {
         assert!(avg_score > 0.6, 
-                "Average score should be above 0.6, got {:.2}", avg_score);
+                "Average score should be above 0.6, got {avg_score:.2}");
     }
     assert!(category_counts.len() > 1, 
             "Should classify emails into multiple categories, got {}", category_counts.len());
@@ -607,11 +607,11 @@ async fn test_labeller_label_management() {
     let mut created_label_ids = Vec::new();
     
     for label_name in &test_labels {
-        println!("  Creating label: {}", label_name);
+        println!("  Creating label: {label_name}");
         let label_id = labeler.ensure_label_exists(label_name).await
             .expect("Failed to create label");
         
-        println!("    ✅ Created with ID: {}", label_id);
+        println!("    ✅ Created with ID: {label_id}");
         created_label_ids.push(label_id.clone());
         
         // Test idempotency
@@ -758,10 +758,10 @@ async fn test_end_to_end_workflow_with_cleanup() {
             Ok(labeled_emails) => {
                 println!("  📋 Label '{}': {} emails", test_label, labeled_emails.len());
                 assert!(!labeled_emails.is_empty(), 
-                        "Should find emails with label {}", test_label);
+                        "Should find emails with label {test_label}");
             }
             Err(e) => {
-                println!("  ⚠️  Could not retrieve emails for label {}: {}", test_label, e);
+                println!("  ⚠️  Could not retrieve emails for label {test_label}: {e}");
                 // Don't fail the test for this - it might not be implemented
             }
         }

@@ -15,7 +15,7 @@ async fn test_mock_classification_individual_examples() {
     ).expect("Failed to load recorded responses");
     
     let (total, categories) = mock_classifier.get_stats();
-    println!("📊 Loaded {} recorded responses with categories: {:?}", total, categories);
+    println!("📊 Loaded {total} recorded responses with categories: {categories:?}");
     
     // Test urgent email classification
     let urgent_email = Email::new_full(
@@ -144,9 +144,7 @@ async fn test_mock_classification_category_patterns() {
     for expected_category in expected_categories {
         assert!(
             categories.contains(&expected_category),
-            "Missing expected category: {}. Available: {:?}",
-            expected_category,
-            categories
+            "Missing expected category: {expected_category}. Available: {categories:?}"
         );
     }
 }

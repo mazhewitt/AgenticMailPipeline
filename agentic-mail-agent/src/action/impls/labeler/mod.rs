@@ -46,7 +46,7 @@ impl LabelingResult {
             message_id,
             label.clone(),
             false,
-            format!("Applied existing label '{}'", label),
+            format!("Applied existing label '{label}'"),
         )
     }
 
@@ -56,7 +56,7 @@ impl LabelingResult {
             message_id,
             label.clone(),
             true,
-            format!("Created and applied new label '{}'", label),
+            format!("Created and applied new label '{label}'"),
         )
     }
 }
@@ -159,7 +159,7 @@ impl From<crate::gmail::GmailClientError> for LabelingError {
 /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
 ///     let labeler = GmailLabeler::from_env().await?;
 ///     let result = labeler.apply_label("message123", "work").await?;
-///     println!("Applied label: {}", result.description);
+///     println!("Applied label: {result.description}");
 ///     Ok(())
 /// }
 /// ```

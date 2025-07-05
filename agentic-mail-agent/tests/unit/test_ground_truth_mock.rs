@@ -66,7 +66,7 @@ async fn test_recorded_llm_classification_accuracy() {
     ).expect("Failed to load recorded ground truth responses");
     
     let (total_recorded, categories) = mock_classifier.get_stats();
-    println!("📊 Loaded {} recorded LLM responses with categories: {:?}", total_recorded, categories);
+    println!("📊 Loaded {total_recorded} recorded LLM responses with categories: {categories:?}");
     
     let ground_truth = load_ground_truth_data();
     let mut correct_predictions = 0;
@@ -107,20 +107,20 @@ async fn test_recorded_llm_classification_accuracy() {
     };
     
     println!("🎯 LLM Classification Results:");
-    println!("   Total emails classified: {}", total_predictions);
-    println!("   Correct predictions: {}", correct_predictions);
-    println!("   Accuracy: {:.2}%", accuracy);
+    println!("   Total emails classified: {total_predictions}");
+    println!("   Correct predictions: {correct_predictions}");
+    println!("   Accuracy: {accuracy:.2}%");
     
     if !misclassifications.is_empty() && misclassifications.len() <= 10 {
         println!("\n❌ Misclassifications:");
         for misclass in &misclassifications {
-            println!("   {}", misclass);
+            println!("   {misclass}");
         }
     }
     
     // LLM should have reasonable accuracy (not perfect due to subjectivity)
     assert!(total_predictions > 0, "Should have classified at least some emails");
-    assert!(accuracy > 50.0, "LLM accuracy should be above 50% (got {:.2}%)", accuracy);
+    assert!(accuracy > 50.0, "LLM accuracy should be above 50% (got {accuracy:.2}%)");
 }
 
 /// Test specific categories with recorded responses
@@ -166,14 +166,13 @@ async fn test_recorded_action_required_classification() {
         0.0
     };
     
-    println!("📊 ActionRequired accuracy: {}/{} ({:.1}%)", correct, total, accuracy);
+    println!("📊 ActionRequired accuracy: {correct}/{total} ({accuracy:.1}%)");
     
     // Should classify at least some ActionRequired emails correctly
     if total > 0 {
         assert!(
             accuracy >= 50.0,
-            "ActionRequired category accuracy ({:.2}%) should be at least 50%",
-            accuracy
+            "ActionRequired category accuracy ({accuracy:.2}%) should be at least 50%"
         );
     }
 }
@@ -216,8 +215,7 @@ async fn test_recorded_responses_contain_reasoning() {
         let reasoning_rate = (responses_with_reasoning as f64 / total_tested as f64) * 100.0;
         assert!(
             reasoning_rate >= 80.0,
-            "Most responses should contain detailed reasoning ({:.1}% had good reasoning)",
-            reasoning_rate
+            "Most responses should contain detailed reasoning ({reasoning_rate:.1}% had good reasoning)"
         );
     }
 }

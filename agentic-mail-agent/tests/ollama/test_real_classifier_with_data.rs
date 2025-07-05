@@ -79,7 +79,7 @@ mod tests {
         let test_emails = match load_all_test_emails() {
             Ok(emails) => emails,
             Err(e) => {
-                println!("⚠️  Could not load test data: {}", e);
+                println!("⚠️  Could not load test data: {e}");
                 println!("💡 Run 'cargo run --bin download_test_data' to create test data");
                 return;
             }
@@ -95,7 +95,7 @@ mod tests {
                 classifier
             }
             Err(e) => {
-                println!("⚠️  Could not initialize LangChain classifier: {}", e);
+                println!("⚠️  Could not initialize LangChain classifier: {e}");
                 println!("💡 Make sure Ollama is running with a compatible model:");
                 println!("   ollama serve");
                 println!("   ollama pull llama3:8b");
@@ -121,8 +121,8 @@ mod tests {
             let from = email.from.as_deref().unwrap_or("Unknown sender");
             
             println!("\n📬 Email {} of {}:", i + 1, sample_emails.len());
-            println!("   Subject: {}", subject);
-            println!("   From: {}", from);
+            println!("   Subject: {subject}");
+            println!("   From: {from}");
             println!("   Snippet: {}", email.snippet_or_default().chars().take(80).collect::<String>());
             
             match classifier.classify(email).await {
@@ -130,7 +130,7 @@ mod tests {
                     successful_classifications += 1;
                     println!("   🎯 Classification: {}", classification.category);
                     if let Some(score) = classification.score {
-                        println!("   📊 Confidence: {:.2}", score);
+                        println!("   📊 Confidence: {score:.2}");
                     }
                     println!("   🤖 LLM Response: {}", classification.llm_response.chars().take(100).collect::<String>());
                     
@@ -144,15 +144,15 @@ mod tests {
                     }
                 }
                 Err(e) => {
-                    println!("   ❌ Classification failed: {}", e);
+                    println!("   ❌ Classification failed: {e}");
                 }
             }
         }
         
         println!("\n📊 Classification Results Summary:");
         println!("===================================");
-        println!("   • Total emails tested: {}", total_classifications);
-        println!("   • Successful classifications: {}", successful_classifications);
+        println!("   • Total emails tested: {total_classifications}");
+        println!("   • Successful classifications: {successful_classifications}");
         println!("   • Success rate: {:.1}%", 
             (successful_classifications as f64 / total_classifications as f64) * 100.0);
         
@@ -179,7 +179,7 @@ mod tests {
         let test_emails = match load_all_test_emails() {
             Ok(emails) => emails,
             Err(e) => {
-                println!("⚠️  Could not load test data: {}", e);
+                println!("⚠️  Could not load test data: {e}");
                 return;
             }
         };
@@ -189,7 +189,7 @@ mod tests {
         let classifier = match LangChainClassifier::new(config).await {
             Ok(classifier) => classifier,
             Err(e) => {
-                println!("⚠️  Could not initialize classifier: {}", e);
+                println!("⚠️  Could not initialize classifier: {e}");
                 return;
             }
         };
@@ -224,16 +224,16 @@ mod tests {
         println!("\n📂 Category Distribution:");
         for (category, count) in &category_counts {
             let percentage = (*count as f64 / emails.len() as f64) * 100.0;
-            println!("   • {}: {} emails ({:.1}%)", category, count, percentage);
+            println!("   • {category}: {count} emails ({percentage:.1}%)");
         }
         
         println!("\n📋 Detailed Classifications:");
         for (subject, category, score) in &classification_details {
             let score_str = match score {
-                Some(s) => format!(" (confidence: {:.2})", s),
+                Some(s) => format!(" (confidence: {s:.2})"),
                 None => String::new(),
             };
-            println!("   • '{}' → {}{}", subject, category, score_str);
+            println!("   • '{subject}' → {category}{score_str}");
         }
         
         // Assert we have reasonable category diversity
@@ -251,7 +251,7 @@ mod tests {
         if max_category_percentage <= 70.0 {
             println!("✅ Good category distribution - no single category dominates");
         } else {
-            println!("⚠️  Single category dominates ({:.1}%) - may indicate bias or specialized data", max_category_percentage);
+            println!("⚠️  Single category dominates ({max_category_percentage:.1}%) - may indicate bias or specialized data");
         }
     }
 
@@ -265,7 +265,7 @@ mod tests {
         let test_emails = match load_all_test_emails() {
             Ok(emails) => emails,
             Err(e) => {
-                println!("⚠️  Could not load test data: {}", e);
+                println!("⚠️  Could not load test data: {e}");
                 return;
             }
         };
@@ -275,7 +275,7 @@ mod tests {
         let classifier = match LangChainClassifier::new(config).await {
             Ok(classifier) => classifier,
             Err(e) => {
-                println!("⚠️  Could not initialize classifier: {}", e);
+                println!("⚠️  Could not initialize classifier: {e}");
                 return;
             }
         };
@@ -285,20 +285,20 @@ mod tests {
             let email = test_email.to_email();
             let subject = email.subject_or_default();
             
-            println!("🧪 Testing consistency with email: '{}'", subject);
+            println!("🧪 Testing consistency with email: '{subject}'");
             
             let mut classifications = Vec::new();
             const NUM_RUNS: usize = 3; // Test consistency with 3 runs
             
             for i in 1..=NUM_RUNS {
-                println!("   Run {}/{}: Classifying...", i, NUM_RUNS);
+                println!("   Run {i}/{NUM_RUNS}: Classifying...");
                 match classifier.classify(&email).await {
                     Ok(classification) => {
                         println!("     → Category: {}", classification.category);
                         classifications.push(classification);
                     }
                     Err(e) => {
-                        println!("     ❌ Failed: {}", e);
+                        println!("     ❌ Failed: {e}");
                     }
                 }
             }

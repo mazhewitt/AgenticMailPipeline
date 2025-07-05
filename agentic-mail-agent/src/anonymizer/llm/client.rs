@@ -41,7 +41,7 @@ impl LlmClient {
                 match openai.invoke("Hello").await {
                     Ok(_) => Box::new(openai),
                     Err(e) => {
-                        return Err(format!("Failed to connect to OpenAI API: {}", e).into());
+                        return Err(format!("Failed to connect to OpenAI API: {e}").into());
                     }
                 }
             }
@@ -56,14 +56,14 @@ impl LlmClient {
     /// Invoke the LLM with a prompt and return the response
     pub async fn invoke(&self, prompt: &str) -> Result<String, Box<dyn std::error::Error>> {
         #[cfg(debug_assertions)]
-        eprintln!("Sending prompt to LLM: {}", prompt);
+        eprintln!("Sending prompt to LLM: {prompt}");
         
         let response = timeout(self.timeout_duration, self.llm.invoke(prompt)).await
             .map_err(|_| "LLM request timed out")?
-            .map_err(|e| format!("LLM request failed: {}", e))?;
+            .map_err(|e| format!("LLM request failed: {e}"))?;
         
         #[cfg(debug_assertions)]
-        eprintln!("LLM response: {}", response);
+        eprintln!("LLM response: {response}");
         
         Ok(response)
     }

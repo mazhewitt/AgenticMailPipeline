@@ -188,7 +188,7 @@ mod tests {
                 let with_sent = emails.iter().filter(|e| e.sent.is_some()).count();
                 
                 println!("📈 Field Completeness:");
-                println!("   • Total emails: {}", total);
+                println!("   • Total emails: {total}");
                 println!("   • With subject: {} ({:.1}%)", with_subject, (with_subject as f64 / total as f64) * 100.0);
                 println!("   • With snippet: {} ({:.1}%)", with_snippet, (with_snippet as f64 / total as f64) * 100.0);
                 println!("   • With from: {} ({:.1}%)", with_from, (with_from as f64 / total as f64) * 100.0);
@@ -204,7 +204,7 @@ mod tests {
                 println!("✅ Test data meets completeness thresholds");
             }
             Err(e) => {
-                panic!("❌ Could not load test data: {}. Run 'cargo run --bin download_test_data' first.", e);
+                panic!("❌ Could not load test data: {e}. Run 'cargo run --bin download_test_data' first.");
             }
         }
     }
@@ -259,7 +259,7 @@ mod tests {
                 println!("✅ All emails are compatible with classifier interface");
             }
             Err(e) => {
-                panic!("❌ Could not load test data: {}. Run 'cargo run --bin download_test_data' first.", e);
+                panic!("❌ Could not load test data: {e}. Run 'cargo run --bin download_test_data' first.");
             }
         }
     }
@@ -301,9 +301,9 @@ mod tests {
                 } else { 0.0 };
                 
                 println!("📊 Content Length Metrics:");
-                println!("   • Average subject length: {:.1} characters", avg_subject_len);
-                println!("   • Average body length: {:.1} characters", avg_body_len);
-                println!("   • Average snippet length: {:.1} characters", avg_snippet_len);
+                println!("   • Average subject length: {avg_subject_len:.1} characters");
+                println!("   • Average body length: {avg_body_len:.1} characters");
+                println!("   • Average snippet length: {avg_snippet_len:.1} characters");
                 
                 // Quality assertions
                 assert!(avg_subject_len > 10.0, "Average subject length should be meaningful");
@@ -321,14 +321,14 @@ mod tests {
                 
                 println!("🔍 Uniqueness Check:");
                 println!("   • Unique emails: {}", unique_ids.len());
-                println!("   • Duplicates: {}", duplicate_count);
+                println!("   • Duplicates: {duplicate_count}");
                 
                 assert_eq!(duplicate_count, 0, "Should have no duplicate emails");
                 
                 println!("✅ Test data meets quality thresholds");
             }
             Err(e) => {
-                panic!("❌ Could not load test data: {}. Run 'cargo run --bin download_test_data' first.", e);
+                panic!("❌ Could not load test data: {e}. Run 'cargo run --bin download_test_data' first.");
             }
         }
     }

@@ -14,10 +14,9 @@ IMPORTANT: Return ONLY a JSON array of strings containing the names. No explanat
 Example: ["John Smith", "Mary Johnson"]
 
 Email text:
-{}
+{email_text}
 
-JSON array:"#,
-            email_text
+JSON array:"#
         )
     }
     
@@ -37,10 +36,9 @@ Include:
 Example: ["123 Main Street, Anytown, CA 12345", "PO Box 567, Springfield, IL 62701"]
 
 Email text:
-{}
+{email_text}
 
-JSON array:"#,
-            email_text
+JSON array:"#
         )
     }
     
@@ -54,10 +52,9 @@ IMPORTANT: Return ONLY a JSON array of objects with "type" and "text" fields. No
 Example: [{{"type": "name", "text": "John Smith"}}, {{"type": "email", "text": "john@example.com"}}]
 
 Email text:
-{}
+{email_text}
 
-JSON array:"#,
-            email_text
+JSON array:"#
         )
     }
 }

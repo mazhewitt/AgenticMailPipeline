@@ -34,7 +34,7 @@ async fn debug_llm_parsing() {
                 // Check if the position is correct
                 if entity.start < simple_text.len() && entity.end <= simple_text.len() {
                     let actual = &simple_text[entity.start..entity.end];
-                    println!("    Actual text at position: '{}'", actual);
+                    println!("    Actual text at position: '{actual}'");
                     println!("    Matches: {}", actual == entity.text);
                 }
             }
@@ -44,11 +44,11 @@ async fn debug_llm_parsing() {
                     replacement.pii_type, replacement.original_value, replacement.fake_value);
             }
             
-            println!("Original: {}", simple_text);
+            println!("Original: {simple_text}");
             println!("Result:   {}", result.anonymized_text);
         }
         Err(e) => {
-            println!("❌ Failed: {}", e);
+            println!("❌ Failed: {e}");
         }
     }
 }

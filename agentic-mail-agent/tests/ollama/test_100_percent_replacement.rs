@@ -49,7 +49,7 @@ async fn test_email_should_fail_on_imperfect_replacement() {
         }
         Err(e) => {
             // Expected to fail initially due to imperfect replacement
-            println!("⚠️ Email failed validation: {}", e);
+            println!("⚠️ Email failed validation: {e}");
             assert!(e.to_string().contains("replacement rate"), 
                    "Error should mention replacement rate");
         }

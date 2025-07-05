@@ -37,9 +37,9 @@ impl ActionExecutionResult {
         label_applied: String,
     ) -> Self {
         let summary = if archived {
-            format!("Applied label '{}' and archived email", label_applied)
+            format!("Applied label '{label_applied}' and archived email")
         } else {
-            format!("Applied label '{}' and kept in inbox (ActionRequired)", label_applied)
+            format!("Applied label '{label_applied}' and kept in inbox (ActionRequired)")
         };
         
         Self {
@@ -204,7 +204,7 @@ impl<L: EmailLabeler + Send + Sync, A: EmailArchiver + Send + Sync> ActionExecut
                 }
             }
             Err(e) => {
-                return Err(ActionExecutionError::labeling_failed(format!("Failed to apply label '{}': {}", label, e)));
+                return Err(ActionExecutionError::labeling_failed(format!("Failed to apply label '{label}': {e}")));
             }
         }
         
@@ -221,7 +221,7 @@ impl<L: EmailLabeler + Send + Sync, A: EmailArchiver + Send + Sync> ActionExecut
                     }
                 }
                 Err(e) => {
-                    return Err(ActionExecutionError::archive_failed(format!("Failed to archive email '{}': {}", email.id, e)));
+                    return Err(ActionExecutionError::archive_failed(format!("Failed to archive email '{}': {e}", email.id)));
                 }
             }
         } else {
@@ -282,12 +282,12 @@ impl ActionExecutor for StubActionExecutor {
         
         // Step 1: Apply label based on classification category
         let label = get_label_for_category(&classification.category);
-        actions_taken.push(format!("Applied label: {}", label));
+        actions_taken.push(format!("Applied label: {label}"));
         
         // Log action for testing verification
         {
             let mut log = self.actions_log.lock().unwrap();
-            log.push(format!("Label applied: {} -> {}", email.id, label));
+            log.push(format!("Label applied: {} -> {label}", email.id));
         }
         
         // Step 2: Archive email if not ActionRequired
@@ -407,7 +407,7 @@ mod tests {
         ];
 
         for (category, should_archive) in test_cases {
-            let email = Email::new(format!("msg_{}", category), Some("Test".to_string()), None);
+            let email = Email::new(format!("msg_{category}"), Some("Test".to_string()), None);
             let classification = Classification::with_category(category.to_string());
 
             let result = executor.execute_actions(&email, &classification).await.unwrap();

@@ -102,7 +102,7 @@ impl ResponseParser {
             }
         }
 
-        Err(format!("Failed to parse any valid JSON from LLM response. Response was: {}", cleaned_response).into())
+        Err(format!("Failed to parse any valid JSON from LLM response. Response was: {cleaned_response}").into())
     }
     
     /// Extract JSON arrays from the LLM response text

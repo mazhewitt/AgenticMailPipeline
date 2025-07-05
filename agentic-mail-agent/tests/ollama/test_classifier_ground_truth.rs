@@ -37,7 +37,7 @@ fn try_load_test_email(file_path: &str) -> Option<Email> {
     let email_data: serde_json::Value = match serde_json::from_str(&email_json) {
         Ok(data) => data,
         Err(e) => {
-            eprintln!("Skipping {} due to JSON parsing error: {}", file_path, e);
+            eprintln!("Skipping {file_path} due to JSON parsing error: {e}");
             return None;
         }
     };
@@ -71,7 +71,7 @@ async fn test_llm_classifier_accuracy_against_ground_truth() {
             Box::new(llm_classifier)
         }
         Err(e) => {
-            println!("⚠️  LLM classifier unavailable ({}), falling back to stub classifier", e);
+            println!("⚠️  LLM classifier unavailable ({e}), falling back to stub classifier");
             Box::new(StubClassifier::deterministic())
         }
     };
@@ -111,14 +111,14 @@ async fn test_llm_classifier_accuracy_against_ground_truth() {
     
     // Print detailed results
     println!("Classification Results:");
-    println!("Total emails: {}", total_predictions);
-    println!("Correct predictions: {}", correct_predictions);
-    println!("Accuracy: {:.2}%", accuracy);
+    println!("Total emails: {total_predictions}");
+    println!("Correct predictions: {correct_predictions}");
+    println!("Accuracy: {accuracy:.2}%");
     
     if !misclassifications.is_empty() {
         println!("\nMisclassifications:");
         for misclass in &misclassifications {
-            println!("  {}", misclass);
+            println!("  {misclass}");
         }
     }
     
@@ -142,14 +142,14 @@ async fn test_llm_classifier_accuracy_against_ground_truth() {
     println!("\nAccuracy by Category:");
     for (category, (correct, total)) in category_stats {
         let cat_accuracy = (correct as f64 / total as f64) * 100.0;
-        println!("  {}: {}/{} ({:.1}%)", category, correct, total, cat_accuracy);
+        println!("  {category}: {correct}/{total} ({cat_accuracy:.1}%)");
     }
     
     // Report but don't fail - this is for evaluation
     if accuracy < 80.0 {
-        println!("\n⚠️  Accuracy ({:.2}%) is below 80% threshold", accuracy);
+        println!("\n⚠️  Accuracy ({accuracy:.2}%) is below 80% threshold");
     } else {
-        println!("\n✅ Accuracy ({:.2}%) meets 80% threshold", accuracy);
+        println!("\n✅ Accuracy ({accuracy:.2}%) meets 80% threshold");
     }
 }
 
@@ -174,7 +174,7 @@ async fn test_hybrid_classifier_accuracy_against_ground_truth() {
             Box::new(HybridClassifier::new_with_llm(Box::new(llm_classifier)).await)
         }
         Err(e) => {
-            println!("⚠️  LLM unavailable ({}), using Hybrid classifier in rules-only mode", e);
+            println!("⚠️  LLM unavailable ({e}), using Hybrid classifier in rules-only mode");
             Box::new(HybridClassifier::new_rules_only())
         }
     };
@@ -215,14 +215,14 @@ async fn test_hybrid_classifier_accuracy_against_ground_truth() {
     
     // Print detailed results
     println!("Hybrid Classifier Results:");
-    println!("Total emails: {}", total_predictions);
-    println!("Correct predictions: {}", correct_predictions);
-    println!("Accuracy: {:.2}%", accuracy);
+    println!("Total emails: {total_predictions}");
+    println!("Correct predictions: {correct_predictions}");
+    println!("Accuracy: {accuracy:.2}%");
     
     if !misclassifications.is_empty() && misclassifications.len() <= 15 {
         println!("\nHybrid Classifier Misclassifications:");
         for misclass in &misclassifications {
-            println!("  {}", misclass);
+            println!("  {misclass}");
         }
     }
     
@@ -246,14 +246,14 @@ async fn test_hybrid_classifier_accuracy_against_ground_truth() {
     println!("\nHybrid Classifier - Accuracy by Category:");
     for (category, (correct, total)) in category_stats {
         let cat_accuracy = (correct as f64 / total as f64) * 100.0;
-        println!("  {}: {}/{} ({:.1}%)", category, correct, total, cat_accuracy);
+        println!("  {category}: {correct}/{total} ({cat_accuracy:.1}%)");
     }
     
     // Report but don't fail - this is for evaluation
     if accuracy < 80.0 {
-        println!("\n⚠️  Accuracy ({:.2}%) is below 80% threshold", accuracy);
+        println!("\n⚠️  Accuracy ({accuracy:.2}%) is below 80% threshold");
     } else {
-        println!("\n✅ Accuracy ({:.2}%) meets 80% threshold", accuracy);
+        println!("\n✅ Accuracy ({accuracy:.2}%) meets 80% threshold");
     }
 }
 

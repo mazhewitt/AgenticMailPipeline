@@ -37,7 +37,7 @@ fn try_load_test_email(file_path: &str) -> Option<Email> {
     let email_data: serde_json::Value = match serde_json::from_str(&email_json) {
         Ok(data) => data,
         Err(e) => {
-            eprintln!("Skipping {} due to JSON parsing error: {}", file_path, e);
+            eprintln!("Skipping {file_path} due to JSON parsing error: {e}");
             return None;
         }
     };
@@ -99,14 +99,14 @@ async fn test_stub_classifier_accuracy_against_ground_truth() {
     
     // Print detailed results
     println!("Stub Classifier Results:");
-    println!("Total emails: {}", total_predictions);
-    println!("Correct predictions: {}", correct_predictions);
-    println!("Accuracy: {:.2}%", accuracy);
+    println!("Total emails: {total_predictions}");
+    println!("Correct predictions: {correct_predictions}");
+    println!("Accuracy: {accuracy:.2}%");
     
     if !misclassifications.is_empty() && misclassifications.len() <= 15 {
         println!("\nMisclassifications:");
         for misclass in &misclassifications {
-            println!("  {}", misclass);
+            println!("  {misclass}");
         }
     }
     
@@ -130,14 +130,14 @@ async fn test_stub_classifier_accuracy_against_ground_truth() {
     println!("\nStub Classifier - Accuracy by Category:");
     for (category, (correct, total)) in category_stats {
         let cat_accuracy = (correct as f64 / total as f64) * 100.0;
-        println!("  {}: {}/{} ({:.1}%)", category, correct, total, cat_accuracy);
+        println!("  {category}: {correct}/{total} ({cat_accuracy:.1}%)");
     }
     
     // Report but don't fail - this is for evaluation
     if accuracy < 80.0 {
-        println!("\n⚠️  Accuracy ({:.2}%) is below 80% threshold", accuracy);
+        println!("\n⚠️  Accuracy ({accuracy:.2}%) is below 80% threshold");
     } else {
-        println!("\n✅ Accuracy ({:.2}%) meets 80% threshold", accuracy);
+        println!("\n✅ Accuracy ({accuracy:.2}%) meets 80% threshold");
     }
 }
 
@@ -179,13 +179,12 @@ async fn test_action_required_category_accuracy() {
         0.0
     };
     
-    println!("ActionRequired category accuracy: {}/{} ({:.1}%)", correct, total, accuracy);
+    println!("ActionRequired category accuracy: {correct}/{total} ({accuracy:.1}%)");
     
     // ActionRequired emails are critical - we want high precision
     assert!(
         accuracy >= 75.0,
-        "ActionRequired category accuracy ({:.2}%) is below threshold (75%)",
-        accuracy
+        "ActionRequired category accuracy ({accuracy:.2}%) is below threshold (75%)"
     );
 }
 
@@ -226,7 +225,7 @@ async fn test_no_false_spam_classification() {
     if false_spam_count > 0 {
         println!("False spam classifications:");
         for example in &false_spam_examples {
-            println!("  {}", example);
+            println!("  {example}");
         }
     }
     
@@ -234,7 +233,6 @@ async fn test_no_false_spam_classification() {
     assert_eq!(
         false_spam_count,
         0,
-        "Found {} false spam classifications",
-        false_spam_count
+        "Found {false_spam_count} false spam classifications"
     );
 }

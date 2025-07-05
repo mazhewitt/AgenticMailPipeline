@@ -24,7 +24,7 @@ async fn record_classifier_ground_truth_responses() {
                 Box::new(llm_classifier)
             }
             Err(e) => {
-                println!("⚠️  LLM unavailable ({}), using stub for recording", e);
+                println!("⚠️  LLM unavailable ({e}), using stub for recording");
                 Box::new(StubClassifier::deterministic())
             }
         };
@@ -62,9 +62,9 @@ async fn record_classifier_ground_truth_responses() {
     // Save all recordings
     mock_classifier.save_recordings().await.expect("Failed to save recordings");
     
-    println!("✅ Recorded {} responses to {}", recorded_count, recording_file);
+    println!("✅ Recorded {recorded_count} responses to {recording_file}");
     let (total, categories) = mock_classifier.get_stats();
-    println!("📊 Statistics: {} total responses, categories: {:?}", total, categories);
+    println!("📊 Statistics: {total} total responses, categories: {categories:?}");
 }
 
 /// Record responses from hybrid classifier tests
@@ -81,7 +81,7 @@ async fn record_hybrid_classifier_responses() {
                 Box::new(HybridClassifier::new_with_llm(Box::new(llm_classifier)).await)
             }
             Err(e) => {
-                println!("⚠️  LLM unavailable ({}), using rules-only hybrid", e);
+                println!("⚠️  LLM unavailable ({e}), using rules-only hybrid");
                 Box::new(HybridClassifier::new_rules_only())
             }
         };
@@ -119,7 +119,7 @@ async fn record_hybrid_classifier_responses() {
     }
     
     mock_classifier.save_recordings().await.expect("Failed to save hybrid recordings");
-    println!("✅ Saved hybrid recordings to {}", recording_file);
+    println!("✅ Saved hybrid recordings to {recording_file}");
 }
 
 /// Record individual email classification examples for unit tests
@@ -134,7 +134,7 @@ async fn record_individual_examples() {
                 Box::new(llm_classifier)
             }
             Err(e) => {
-                println!("⚠️  LLM unavailable ({}), using stub for examples", e);
+                println!("⚠️  LLM unavailable ({e}), using stub for examples");
                 Box::new(StubClassifier::deterministic())
             }
         };
@@ -194,7 +194,7 @@ async fn record_individual_examples() {
     }
     
     mock_classifier.save_recordings().await.expect("Failed to save individual examples");
-    println!("✅ Saved individual examples to {}", recording_file);
+    println!("✅ Saved individual examples to {recording_file}");
 }
 
 // Helper functions from classifier ground truth tests
@@ -233,7 +233,7 @@ fn try_load_test_email(file_path: &str) -> Option<Email> {
     let email_data: serde_json::Value = match serde_json::from_str(&email_json) {
         Ok(data) => data,
         Err(e) => {
-            eprintln!("Skipping {} due to JSON parsing error: {}", file_path, e);
+            eprintln!("Skipping {file_path} due to JSON parsing error: {e}");
             return None;
         }
     };
