@@ -6,7 +6,7 @@
 mod gmail;
 mod stub;
 
-pub use gmail::{GmailLabeler, LabelInfo};
+pub use gmail::{GmailLabeler, ConcreteGmailLabeler, LabelInfo};
 pub use stub::StubLabeler;
 
 use async_trait::async_trait;
@@ -153,7 +153,7 @@ impl From<crate::gmail::GmailClientError> for LabelingError {
 /// # Examples
 /// 
 /// ```rust,no_run
-/// use agentic_mail_agent::labeler::{EmailLabeler, GmailLabeler};
+/// use agentic_mail_agent::action::impls::labeler::{EmailLabeler, GmailLabeler};
 /// 
 /// #[tokio::main]
 /// async fn main() -> Result<(), Box<dyn std::error::Error>> {

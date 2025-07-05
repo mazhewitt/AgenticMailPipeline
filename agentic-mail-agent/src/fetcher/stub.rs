@@ -16,7 +16,7 @@ use crate::core::types::FetchError;
 /// 
 /// ```rust
 /// use agentic_mail_agent::fetcher::{EmailFetcher, StubFetcher};
-/// use agentic_mail_agent::email::Email;
+/// use agentic_mail_agent::core::email::Email;
 /// 
 /// #[tokio::main]
 /// async fn main() -> Result<(), Box<dyn std::error::Error>> {

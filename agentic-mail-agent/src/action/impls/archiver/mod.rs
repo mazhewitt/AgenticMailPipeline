@@ -131,7 +131,7 @@ impl ArchivingError {
 /// # Examples
 /// 
 /// ```rust,no_run
-/// use agentic_mail_agent::archiver::{EmailArchiver, StubArchiver};
+/// use agentic_mail_agent::action::impls::archiver::{EmailArchiver, StubArchiver};
 /// 
 /// #[tokio::main]
 /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -160,7 +160,7 @@ pub trait EmailArchiver {
     /// # Examples
     /// 
     /// ```rust,no_run
-    /// use agentic_mail_agent::archiver::{EmailArchiver, StubArchiver};
+    /// use agentic_mail_agent::action::impls::archiver::{EmailArchiver, StubArchiver};
     /// 
     /// #[tokio::main]
     /// async fn main() -> Result<(), Box<dyn std::error::Error>> {

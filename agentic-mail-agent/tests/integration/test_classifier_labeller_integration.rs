@@ -15,6 +15,7 @@ use agentic_mail_agent::{
     classifier::{MessageClassifier, StubClassifier, Classification},
     action::impls::labeler::{GmailLabeler, EmailLabeler, LabelingResult, LabelingError},
     core::email::Email,
+
 };
 use std::collections::{HashSet, HashMap};
 use futures::stream::{FuturesUnordered, StreamExt};
@@ -123,6 +124,7 @@ fn extract_category_from_test_label(test_label: &str) -> Option<&str> {
     test_label.strip_prefix(TEST_LABEL_PREFIX)
 }
 
+
 /// Apply labels to multiple emails concurrently
 async fn apply_labels_concurrently(
     labeler: Arc<GmailLabeler>,
@@ -148,6 +150,7 @@ async fn apply_labels_concurrently(
             }
         });
     }
+
     
     while let Some(attempt) = futures.next().await {
         let success = attempt.result.is_ok();
@@ -301,8 +304,10 @@ async fn test_classifier_labeller_integration_full_workflow() {
     println!("📧 Step 1: Initializing Gmail fetcher and labeler...");
     let fetcher = GmailFetcher::from_env().await
         .expect("Failed to create Gmail fetcher - check your credentials");
+
     let labeler = Arc::new(GmailLabeler::from_env().await
         .expect("Failed to create Gmail labeler - check your credentials"));
+
     let classifier = StubClassifier::new();
     
     println!("  ✅ All components initialized successfully");
@@ -582,7 +587,7 @@ async fn test_labeller_label_management() {
     println!("🧪 LABELLER LABEL MANAGEMENT TEST");
     println!("{}", "=".repeat(60));
     
-    let labeler = GmailLabeler::from_env().await
+    let labeler = ConcreteGmailLabeler::from_env().await
         .expect("Failed to create Gmail labeler");
     
     // Clean up any existing test labels
@@ -671,8 +676,10 @@ async fn test_end_to_end_workflow_with_cleanup() {
     // Initialize components
     let fetcher = GmailFetcher::from_env().await
         .expect("Failed to create Gmail fetcher");
+
     let labeler = Arc::new(GmailLabeler::from_env().await
         .expect("Failed to create Gmail labeler"));
+
     let classifier = StubClassifier::new();
     
     // Set up cleanup guard

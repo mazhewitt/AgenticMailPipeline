@@ -21,7 +21,7 @@ use super::{EmailLabeler, LabelingResult, LabelingError};
 /// # Examples
 /// 
 /// ```rust
-/// use agentic_mail_agent::labeler::{EmailLabeler, StubLabeler};
+/// use agentic_mail_agent::action::impls::labeler::{EmailLabeler, StubLabeler};
 /// 
 /// #[tokio::main]
 /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
