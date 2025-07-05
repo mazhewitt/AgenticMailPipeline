@@ -173,8 +173,8 @@ cargo test -- --ignored
 **Current Functionality:**
 - Fetches unread emails from Gmail inbox
 - Extracts email subject and snippet (body preview) for each email
-- Classifies emails by category (work, personal, promotional, spam, etc.)
-- **Automatically applies Gmail labels based on classification (AGENT_WORK, AGENT_SPAM, etc.)**
+- Classifies emails by category (ActionRequired, InterestingInfo, Reference, Noise, Spam)
+- **Automatically applies Gmail labels based on classification (AGENT_URGENT, AGENT_PERSONAL, AGENT_PROMOTIONAL, AGENT_SPAM, etc.)**
 - **Creates labels if they don't exist**
 - **Executes labeling operations idempotently (safe to run multiple times)**
 - Uses Gmail API with modify permissions for labeling
@@ -184,33 +184,44 @@ cargo test -- --ignored
 
 ## Email Classification
 
-The system includes a flexible email classification module that can categorize emails automatically:
+The system includes a sophisticated email classification module that can categorize emails automatically using both AI-powered and rule-based approaches:
 
 **Classification Categories:**
-- `work` - Work-related emails, meetings, professional correspondence
-- `personal` - Personal emails from family and friends
-- `promotional` - Marketing emails and promotional content
-- `spam` - Spam and unwanted emails
-- `newsletter` - Newsletters and regular updates
-- `urgent` - Time-sensitive emails requiring immediate attention
+- `ActionRequired` - Something I really need to respond to, schedule, or deal with myself (meeting requests, deadlines, tasks, urgent requests, CI/CD failures)
+- `InterestingInfo` - Not actionable, but possibly interesting to me (industry news, tech updates, newsletters with valuable content, security alerts)
+- `Reference` - Useful to keep but not urgent or interesting (receipts, confirmations, travel notifications, service updates, terms changes)
+- `Noise` - Not useful (generic newsletters, social notifications, low-value promotions, LinkedIn connections, generic marketing)
+- `Spam` - Unwanted or truly spammy content (phishing attempts, scams, malicious emails, clearly unwanted solicitations)
 
 **Current Implementation:**
-- **StubClassifier**: Deterministic rule-based classifier for development and testing
+- **LangChain Classifier**: AI-powered classification using local LLM (llama3.1:8b) via Ollama for intelligent, context-aware email categorization
+- **StubClassifier**: Deterministic rule-based classifier with extensive pattern matching (200+ lines) for development and testing
+- **Hybrid Approach**: Graceful fallback from LLM to rule-based when AI is unavailable
 - Uses email subject and snippet content for classification
 - Returns confidence scores (0.0 to 1.0) for classification results
-- Provides detailed classification responses for audit purposes
+- Provides detailed classification responses with explanations for audit purposes
 
 **Architecture:**
 - `MessageClassifier` trait for pluggable classification implementations
 - `Classification` struct with category, confidence score, and LLM response
 - `ClassificationError` enum for robust error handling
-- Async-ready design for future LLM integration
+- Privacy-preserving: All LLM processing happens locally via Ollama
+- Environment variable control: `CLASSIFIER_TYPE` to switch between "langchain" and "stub"
+
+**Action Router Integration:**
+- **Category-to-Action Mapping**: 
+  - `ActionRequired` → `AGENT_URGENT` label + MarkImportant + Escalate
+  - `InterestingInfo` → `AGENT_PERSONAL` label
+  - `Reference` → `AGENT_PROMOTIONAL` label + Archive
+  - `Noise` → `AGENT_PROMOTIONAL` label + Archive  
+  - `Spam` → `AGENT_SPAM` label + Archive
+- **Confidence Thresholds**: Low confidence classifications get `AGENT_NEEDS_REVIEW` label
+- **Urgency Detection**: Additional urgency detection based on keywords in subject/body
 
 **Ready for Extension:**
-- LLM integration (Ollama client)
 - Advanced ML-based classification
-- Action routing and automation
-- Containerization
+- Custom action routing rules
+- Containerization and deployment automation
 
 ---
 
@@ -244,9 +255,9 @@ The project includes **50 fully anonymized test emails** for CI/testing purposes
 
 ### 📧 Email Processing Pipeline
 - **Gmail Integration**: Secure OAuth2 authentication with read-only permissions
-- **Smart Classification**: Categorizes emails into work, personal, promotional, spam, newsletter, urgent
-- **Intelligent Actions**: Automatic labeling, archiving, escalation based on classification confidence
-- **High-Priority Detection**: Identifies and escalates urgent emails requiring immediate attention
+- **Smart Classification**: Categorizes emails into ActionRequired, InterestingInfo, Reference, Noise, Spam with detailed reasoning
+- **Intelligent Actions**: Automatic labeling, archiving, escalation based on classification confidence and urgency detection
+- **High-Priority Detection**: Identifies and escalates urgent emails requiring immediate attention with AGENT_URGENT labels
 
 ### 🔧 Developer Experience
 - **Test-Driven Development**: Comprehensive unit and integration tests
