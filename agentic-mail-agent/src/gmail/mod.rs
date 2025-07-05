@@ -3,11 +3,17 @@
 //! This module provides common Gmail API client creation and authentication
 //! logic shared between the fetcher and labeler implementations.
 
+pub mod api;
+
+use async_trait::async_trait;
 use google_gmail1::{
     hyper_rustls,
     yup_oauth2::{InstalledFlowAuthenticator, InstalledFlowReturnMethod, ApplicationSecret},
     Gmail,
 };
+use google_gmail1::api::{Label, Message, ModifyMessageRequest};
+
+use self::api::{GmailApi, GmailApiError, GmailApiResult};
 use std::fmt;
 
 /// Shared Gmail client with authentication.
@@ -267,6 +273,107 @@ impl GmailClient {
         );
 
         Ok(gmail_hub)
+    }
+}
+
+#[async_trait]
+impl GmailApi for GmailClient {
+    async fn list_labels(&self) -> GmailApiResult<Vec<Label>> {
+        let result = self.hub
+            .users()
+            .labels_list("me")
+            .doit()
+            .await
+            .map_err(|e| GmailApiError::api(format!("Failed to list labels: {e}")))?;
+
+        Ok(result.1.labels.unwrap_or_default())
+    }
+
+    async fn create_label(&self, label: Label) -> GmailApiResult<Label> {
+        let result = self.hub
+            .users()
+            .labels_create(label, "me")
+            .doit()
+            .await
+            .map_err(|e| GmailApiError::api(format!("Failed to create label: {e}")))?;
+
+        Ok(result.1)
+    }
+
+    async fn delete_label(&self, label_id: &str) -> GmailApiResult<()> {
+        self.hub
+            .users()
+            .labels_delete("me", label_id)
+            .doit()
+            .await
+            .map_err(|e| GmailApiError::api(format!("Failed to delete label {label_id}: {e}")))?;
+
+        Ok(())
+    }
+
+    async fn get_message(&self, message_id: &str) -> GmailApiResult<Message> {
+        let result = self.hub
+            .users()
+            .messages_get("me", message_id)
+            .doit()
+            .await
+            .map_err(|e| GmailApiError::api(format!("Failed to get message {message_id}: {e}")))?;
+
+        Ok(result.1)
+    }
+
+    async fn modify_message_labels(
+        &self,
+        message_id: &str,
+        add_label_ids: Option<Vec<String>>,
+        remove_label_ids: Option<Vec<String>>,
+    ) -> GmailApiResult<Message> {
+        let modify_request = ModifyMessageRequest {
+            add_label_ids,
+            remove_label_ids,
+        };
+
+        let result = self.hub
+            .users()
+            .messages_modify(modify_request, "me", message_id)
+            .doit()
+            .await
+            .map_err(|e| GmailApiError::api(format!(
+                "Failed to modify labels for message {message_id}: {e}"
+            )))?;
+
+        Ok(result.1)
+    }
+
+    async fn list_messages_with_labels(
+        &self,
+        label_ids: &[String],
+        max_results: Option<u32>,
+    ) -> GmailApiResult<Vec<String>> {
+        let mut request = self.hub.users().messages_list("me");
+        
+        // Add label filters
+        for label_id in label_ids {
+            request = request.add_label_ids(label_id);
+        }
+        
+        // Set max results if specified
+        if let Some(max) = max_results {
+            request = request.max_results(max);
+        }
+
+        let result = request
+            .doit()
+            .await
+            .map_err(|e| GmailApiError::api(format!("Failed to list messages: {e}")))?;
+
+        let message_ids = result.1.messages
+            .unwrap_or_default()
+            .into_iter()
+            .filter_map(|msg| msg.id)
+            .collect();
+
+        Ok(message_ids)
     }
 }
 

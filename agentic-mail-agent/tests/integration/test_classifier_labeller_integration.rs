@@ -13,7 +13,7 @@
 use agentic_mail_agent::{
     fetcher::{EmailFetcher, GmailFetcher},
     classifier::{MessageClassifier, StubClassifier},
-    action::impls::labeler::{GmailLabeler, EmailLabeler},
+    action::impls::labeler::{ConcreteGmailLabeler, EmailLabeler},
 };
 use std::collections::HashSet;
 
@@ -33,7 +33,7 @@ fn extract_category_from_test_label(test_label: &str) -> Option<&str> {
 }
 
 /// Cleanup helper to remove all test labels from Gmail
-async fn cleanup_test_labels(labeler: &GmailLabeler) -> Result<(), Box<dyn std::error::Error>> {
+async fn cleanup_test_labels(labeler: &ConcreteGmailLabeler) -> Result<(), Box<dyn std::error::Error>> {
     println!("🧹 Cleaning up test labels...");
     
     // Get all existing labels
@@ -81,7 +81,7 @@ async fn test_classifier_labeller_integration_full_workflow() {
     println!("📧 Step 1: Initializing Gmail fetcher and labeler...");
     let fetcher = GmailFetcher::from_env().await
         .expect("Failed to create Gmail fetcher - check your credentials");
-    let labeler = GmailLabeler::from_env().await
+    let labeler = ConcreteGmailLabeler::from_env().await
         .expect("Failed to create Gmail labeler - check your credentials");
     let classifier = StubClassifier::new();
     
@@ -344,7 +344,7 @@ async fn test_labeller_label_management() {
     println!("🧪 LABELLER LABEL MANAGEMENT TEST");
     println!("{}", "=".repeat(60));
     
-    let labeler = GmailLabeler::from_env().await
+    let labeler = ConcreteGmailLabeler::from_env().await
         .expect("Failed to create Gmail labeler");
     
     // Clean up any existing test labels
@@ -433,7 +433,7 @@ async fn test_end_to_end_workflow_with_cleanup() {
     // Initialize components
     let fetcher = GmailFetcher::from_env().await
         .expect("Failed to create Gmail fetcher");
-    let labeler = GmailLabeler::from_env().await
+    let labeler = ConcreteGmailLabeler::from_env().await
         .expect("Failed to create Gmail labeler");
     let classifier = StubClassifier::new();
     

@@ -23,7 +23,7 @@ use super::{EmailArchiver, ArchiveResult, ArchivingError};
 /// # Examples
 /// 
 /// ```rust
-/// use agentic_mail_agent::archiver::{EmailArchiver, StubArchiver};
+/// use agentic_mail_agent::action::impls::archiver::{EmailArchiver, StubArchiver};
 /// 
 /// #[tokio::main]
 /// async fn main() -> Result<(), Box<dyn std::error::Error>> {

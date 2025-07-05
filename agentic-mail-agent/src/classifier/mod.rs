@@ -129,7 +129,7 @@ impl ClassificationError {
 /// 
 /// ```rust,no_run
 /// use agentic_mail_agent::classifier::{MessageClassifier, StubClassifier};
-/// use agentic_mail_agent::email::Email;
+/// use agentic_mail_agent::core::email::Email;
 /// 
 /// #[tokio::main]
 /// async fn main() -> Result<(), Box<dyn std::error::Error>> {

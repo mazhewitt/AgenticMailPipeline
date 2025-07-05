@@ -32,7 +32,7 @@ use google_gmail1::{
 /// # Examples
 /// 
 /// ```rust,no_run
-/// use agentic_mail_agent::archiver::{EmailArchiver, GmailArchiver};
+/// use agentic_mail_agent::action::impls::archiver::{EmailArchiver, GmailArchiver};
 /// 
 /// #[tokio::main]
 /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
