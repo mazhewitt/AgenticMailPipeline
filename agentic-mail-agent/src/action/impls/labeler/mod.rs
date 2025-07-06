@@ -6,9 +6,10 @@
 mod gmail;
 mod stub;
 
-pub use gmail::{GmailLabeler, ConcreteGmailLabeler, LabelInfo};
+pub use gmail::{ConcreteGmailLabeler, GmailLabeler, LabelInfo};
 pub use stub::StubLabeler;
 
+use crate::config::LabelConfig;
 use async_trait::async_trait;
 
 /// Result of a labeling operation.
@@ -96,37 +97,51 @@ pub enum LabelingError {
 impl LabelingError {
     /// Create a new authentication error
     pub fn auth(message: impl Into<String>) -> Self {
-        Self::Auth { message: message.into() }
+        Self::Auth {
+            message: message.into(),
+        }
     }
 
     /// Create a new network error
     pub fn network(message: impl Into<String>) -> Self {
-        Self::Network { message: message.into() }
+        Self::Network {
+            message: message.into(),
+        }
     }
 
     /// Create a new configuration error
     pub fn config(message: impl Into<String>) -> Self {
-        Self::Config { message: message.into() }
+        Self::Config {
+            message: message.into(),
+        }
     }
 
     /// Create a new Gmail API error
     pub fn gmail_api(message: impl Into<String>) -> Self {
-        Self::GmailApi { message: message.into() }
+        Self::GmailApi {
+            message: message.into(),
+        }
     }
 
     /// Create a new label exists error
     pub fn label_exists(label: impl Into<String>) -> Self {
-        Self::LabelExists { label: label.into() }
+        Self::LabelExists {
+            label: label.into(),
+        }
     }
 
     /// Create a new invalid message ID error
     pub fn invalid_message_id(message_id: impl Into<String>) -> Self {
-        Self::InvalidMessageId { message_id: message_id.into() }
+        Self::InvalidMessageId {
+            message_id: message_id.into(),
+        }
     }
 
     /// Create a new unknown error
     pub fn unknown(message: impl Into<String>) -> Self {
-        Self::Unknown { message: message.into() }
+        Self::Unknown {
+            message: message.into(),
+        }
     }
 }
 
@@ -134,27 +149,23 @@ impl LabelingError {
 impl From<crate::gmail::GmailClientError> for LabelingError {
     fn from(error: crate::gmail::GmailClientError) -> Self {
         match error {
-            crate::gmail::GmailClientError::Config { message } => {
-                LabelingError::config(message)
-            }
-            crate::gmail::GmailClientError::Auth { message } => {
-                LabelingError::auth(message)
-            }
+            crate::gmail::GmailClientError::Config { message } => LabelingError::config(message),
+            crate::gmail::GmailClientError::Auth { message } => LabelingError::auth(message),
         }
     }
 }
 
 /// Trait for applying Gmail labels to emails based on their classification.
-/// 
+///
 /// This trait provides a unified interface for labeling emails with categories
 /// determined by the classifier. Different implementations can provide Gmail API
 /// integration or stub implementations for testing.
-/// 
+///
 /// # Examples
-/// 
+///
 /// ```rust,no_run
 /// use agentic_mail_agent::action::impls::labeler::{EmailLabeler, GmailLabeler};
-/// 
+///
 /// #[tokio::main]
 /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
 ///     let labeler = GmailLabeler::from_env().await?;
@@ -166,51 +177,58 @@ impl From<crate::gmail::GmailClientError> for LabelingError {
 #[async_trait]
 pub trait EmailLabeler {
     /// Apply a label to an email message.
-    /// 
+    ///
     /// This method applies the specified label to the given message ID.
     /// If the label doesn't exist, it will be created automatically.
     /// The operation is idempotent - applying the same label multiple times
     /// will not cause errors.
-    /// 
+    ///
     /// # Arguments
-    /// 
+    ///
     /// * `message_id` - Gmail message ID to label
-    /// * `label` - Label name to apply (e.g., "AGENT_WORK", "AGENT_SPAM")
-    /// 
+    /// * `label` - Label name to apply (e.g., "Work", "Spam")
+    ///
     /// # Returns
-    /// 
+    ///
     /// Returns a `LabelingResult` containing details about the operation,
     /// or a `LabelingError` if labeling fails.
-    async fn apply_label(&self, message_id: &str, label: &str) -> Result<LabelingResult, LabelingError>;
+    async fn apply_label(
+        &self,
+        message_id: &str,
+        label: &str,
+    ) -> Result<LabelingResult, LabelingError>;
 
     /// Create a label if it doesn't exist.
-    /// 
+    ///
     /// This method ensures a label exists in the user's Gmail account.
     /// If the label already exists, this operation succeeds without error.
-    /// 
+    ///
     /// # Arguments
-    /// 
+    ///
     /// * `label` - Label name to create
-    /// 
+    ///
     /// # Returns
-    /// 
+    ///
     /// Returns the label ID if successful, or a `LabelingError` if creation fails.
     async fn ensure_label_exists(&self, label: &str) -> Result<String, LabelingError>;
 
     /// Get the Gmail label name for a classification category.
-    /// 
+    ///
     /// This method converts classification categories (e.g., "work", "spam")
-    /// into Gmail label names (e.g., "AGENT_WORK", "AGENT_SPAM").
-    /// 
+    /// into human-friendly Gmail label names (e.g., "Work", "Spam").
+    ///
     /// # Arguments
-    /// 
+    ///
     /// * `category` - Classification category
-    /// 
+    ///
     /// # Returns
-    /// 
+    ///
     /// Returns the Gmail label name for the category.
     fn get_label_for_category(&self, category: &str) -> String {
-        format!("AGENT_{}", category.to_uppercase())
+        let config = LabelConfig::new();
+        config
+            .get_production_label(category)
+            .unwrap_or_else(|| category.to_string())
     }
 }
 
@@ -222,26 +240,26 @@ mod tests {
     fn test_labeling_result_creation() {
         let result = LabelingResult::new(
             "msg123".to_string(),
-            "AGENT_WORK".to_string(),
+            "Work".to_string(),
             false,
             "Applied existing label".to_string(),
         );
 
         assert_eq!(result.message_id, "msg123");
-        assert_eq!(result.label, "AGENT_WORK");
+        assert_eq!(result.label, "Work");
         assert!(!result.created_new_label);
         assert_eq!(result.description, "Applied existing label");
     }
 
     #[test]
     fn test_labeling_result_helpers() {
-        let existing = LabelingResult::labeled_existing("msg123".to_string(), "AGENT_WORK".to_string());
+        let existing = LabelingResult::labeled_existing("msg123".to_string(), "Work".to_string());
         assert!(!existing.created_new_label);
-        assert_eq!(existing.label, "AGENT_WORK");
+        assert_eq!(existing.label, "Work");
 
-        let new = LabelingResult::labeled_new("msg456".to_string(), "AGENT_PERSONAL".to_string());
+        let new = LabelingResult::labeled_new("msg456".to_string(), "Personal".to_string());
         assert!(new.created_new_label);
-        assert_eq!(new.label, "AGENT_PERSONAL");
+        assert_eq!(new.label, "Personal");
     }
 
     #[test]
@@ -258,11 +276,14 @@ mod tests {
         let api_error = LabelingError::gmail_api("API quota exceeded");
         assert!(matches!(api_error, LabelingError::GmailApi { .. }));
 
-        let exists_error = LabelingError::label_exists("AGENT_WORK");
+        let exists_error = LabelingError::label_exists("Work");
         assert!(matches!(exists_error, LabelingError::LabelExists { .. }));
 
         let invalid_id_error = LabelingError::invalid_message_id("invalid-id");
-        assert!(matches!(invalid_id_error, LabelingError::InvalidMessageId { .. }));
+        assert!(matches!(
+            invalid_id_error,
+            LabelingError::InvalidMessageId { .. }
+        ));
 
         let unknown_error = LabelingError::unknown("Unexpected error");
         assert!(matches!(unknown_error, LabelingError::Unknown { .. }));

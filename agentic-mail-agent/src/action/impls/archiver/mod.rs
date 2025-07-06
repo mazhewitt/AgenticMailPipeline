@@ -61,23 +61,23 @@ pub enum ArchivingError {
     /// Gmail API error
     #[error("Gmail API error: {message}")]
     GmailApi { message: String },
-    
+
     /// Configuration error
     #[error("Configuration error: {message}")]
     Config { message: String },
-    
+
     /// Invalid message ID
     #[error("Invalid message ID: {message}")]
     InvalidMessageId { message: String },
-    
+
     /// Network or communication error
     #[error("Network error: {message}")]
     Network { message: String },
-    
+
     /// Authentication error
     #[error("Authentication error: {message}")]
     Auth { message: String },
-    
+
     /// Unknown error
     #[error("Unknown archiving error: {message}")]
     Unknown { message: String },
@@ -86,53 +86,65 @@ pub enum ArchivingError {
 impl ArchivingError {
     /// Create a new Gmail API error.
     pub fn gmail_api(message: impl Into<String>) -> Self {
-        Self::GmailApi { message: message.into() }
+        Self::GmailApi {
+            message: message.into(),
+        }
     }
-    
+
     /// Create a new configuration error.
     pub fn config(message: impl Into<String>) -> Self {
-        Self::Config { message: message.into() }
+        Self::Config {
+            message: message.into(),
+        }
     }
-    
+
     /// Create a new invalid message ID error.
     pub fn invalid_message_id(message: impl Into<String>) -> Self {
-        Self::InvalidMessageId { message: message.into() }
+        Self::InvalidMessageId {
+            message: message.into(),
+        }
     }
-    
+
     /// Create a new network error.
     pub fn network(message: impl Into<String>) -> Self {
-        Self::Network { message: message.into() }
+        Self::Network {
+            message: message.into(),
+        }
     }
-    
+
     /// Create a new authentication error.
     pub fn auth(message: impl Into<String>) -> Self {
-        Self::Auth { message: message.into() }
+        Self::Auth {
+            message: message.into(),
+        }
     }
-    
+
     /// Create a new unknown error.
     pub fn unknown(message: impl Into<String>) -> Self {
-        Self::Unknown { message: message.into() }
+        Self::Unknown {
+            message: message.into(),
+        }
     }
 }
 
 /// Trait for archiving emails by removing them from the inbox.
-/// 
+///
 /// In Gmail, archiving means removing the INBOX label from a message.
 /// The message remains accessible in "All Mail" but is no longer in the inbox.
-/// 
+///
 /// # Implementation Notes
-/// 
+///
 /// Implementations should:
 /// - Be idempotent (archiving an already archived email should succeed)
 /// - Handle rate limiting and network errors gracefully
 /// - Provide clear error messages for troubleshooting
 /// - Support batch operations where possible for efficiency
-/// 
+///
 /// # Examples
-/// 
+///
 /// ```rust,no_run
 /// use agentic_mail_agent::action::impls::archiver::{EmailArchiver, StubArchiver};
-/// 
+///
 /// #[tokio::main]
 /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
 ///     let archiver = StubArchiver::new();
@@ -144,24 +156,24 @@ impl ArchivingError {
 #[async_trait]
 pub trait EmailArchiver {
     /// Archive an email by removing it from the inbox.
-    /// 
+    ///
     /// In Gmail, this removes the INBOX label from the message.
     /// The message remains accessible in "All Mail" but is no longer in the inbox.
-    /// 
+    ///
     /// # Arguments
-    /// 
+    ///
     /// * `message_id` - The Gmail message ID to archive
-    /// 
+    ///
     /// # Returns
-    /// 
+    ///
     /// Returns an `ArchiveResult` with details of the operation,
     /// or an `ArchivingError` if the operation fails.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```rust,no_run
     /// use agentic_mail_agent::action::impls::archiver::{EmailArchiver, StubArchiver};
-    /// 
+    ///
     /// #[tokio::main]
     /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
     ///     let archiver = StubArchiver::new();
@@ -171,15 +183,15 @@ pub trait EmailArchiver {
     /// }
     /// ```
     async fn archive_email(&self, message_id: &str) -> Result<ArchiveResult, ArchivingError>;
-    
+
     /// Check if an email is currently archived (not in inbox).
-    /// 
+    ///
     /// # Arguments
-    /// 
+    ///
     /// * `message_id` - The Gmail message ID to check
-    /// 
+    ///
     /// # Returns
-    /// 
+    ///
     /// Returns `true` if the email is archived (not in inbox), `false` if it's in the inbox.
     async fn is_archived(&self, message_id: &str) -> Result<bool, ArchivingError>;
 }
@@ -200,7 +212,8 @@ mod tests {
         assert!(!result.archived);
         assert!(result.description.contains("already archived"));
 
-        let result = ArchiveResult::not_archived("msg789".to_string(), "ActionRequired".to_string());
+        let result =
+            ArchiveResult::not_archived("msg789".to_string(), "ActionRequired".to_string());
         assert_eq!(result.message_id, "msg789");
         assert!(!result.archived);
         assert!(result.description.contains("not archived"));

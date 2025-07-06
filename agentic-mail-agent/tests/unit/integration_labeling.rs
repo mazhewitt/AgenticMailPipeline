@@ -1,9 +1,9 @@
 //! Integration tests for the labeling functionality
 
-use agentic_mail_agent::core::email::Email;
-use agentic_mail_agent::classifier::{MessageClassifier, StubClassifier};
 use agentic_mail_agent::action::executor::{ActionExecutor, StubActionExecutor};
-use agentic_mail_agent::action::impls::labeler::{StubLabeler, EmailLabeler};
+use agentic_mail_agent::action::impls::labeler::{EmailLabeler, StubLabeler};
+use agentic_mail_agent::classifier::{MessageClassifier, StubClassifier};
+use agentic_mail_agent::core::email::Email;
 
 #[tokio::test]
 async fn test_end_to_end_labeling_pipeline() {
@@ -16,24 +16,33 @@ async fn test_end_to_end_labeling_pipeline() {
 
     // Classify the email
     let classifier = StubClassifier::deterministic();
-    let classification = classifier.classify(&email).await
+    let classification = classifier
+        .classify(&email)
+        .await
         .expect("Classification should succeed");
-    
+
     assert_eq!(classification.category, "ActionRequired"); // Meeting = ActionRequired
     assert_eq!(classification.score, Some(0.9));
 
     // Execute actions (label and archive)
     let action_executor = StubActionExecutor::new();
-    let result = action_executor.execute_actions(&email, &classification).await
+    let result = action_executor
+        .execute_actions(&email, &classification)
+        .await
         .expect("Action execution should succeed");
 
     // Verify action execution results
     assert_eq!(result.message_id, "test-123");
     assert_eq!(result.label_applied, "AGENT_ACTIONREQUIRED");
     assert!(!result.archived); // ActionRequired emails should not be archived
-    assert!(result.actions_taken.iter().any(|action| action.contains("Applied label")));
-    assert!(result.actions_taken.iter().any(|action| action.contains("Kept in inbox")));
-
+    assert!(result
+        .actions_taken
+        .iter()
+        .any(|action| action.contains("Applied label")));
+    assert!(result
+        .actions_taken
+        .iter()
+        .any(|action| action.contains("Kept in inbox")));
 }
 
 #[tokio::test]
@@ -46,13 +55,16 @@ async fn test_urgent_email_labeling() {
 
     let classifier = StubClassifier::deterministic();
     let classification = classifier.classify(&email).await.unwrap();
-    
+
     // Should be classified as ActionRequired
     assert_eq!(classification.category, "ActionRequired");
 
     // Execute actions
     let action_executor = StubActionExecutor::new();
-    let result = action_executor.execute_actions(&email, &classification).await.unwrap();
+    let result = action_executor
+        .execute_actions(&email, &classification)
+        .await
+        .unwrap();
 
     // Verify results
     assert_eq!(result.message_id, "urgent-456");
@@ -70,14 +82,17 @@ async fn test_spam_email_labeling() {
 
     let classifier = StubClassifier::deterministic();
     let classification = classifier.classify(&email).await.unwrap();
-    
+
     // This email should be classified as Reference (fallback for unmatched content)
     assert_eq!(classification.category, "Reference"); // Falls back to Reference
     assert_eq!(classification.score, Some(0.6)); // Default score
 
     // Execute actions
     let action_executor = StubActionExecutor::new();
-    let result = action_executor.execute_actions(&email, &classification).await.unwrap();
+    let result = action_executor
+        .execute_actions(&email, &classification)
+        .await
+        .unwrap();
 
     // Verify results
     assert_eq!(result.message_id, "spam-789");
@@ -95,12 +110,15 @@ async fn test_newsletter_email_labeling() {
 
     let classifier = StubClassifier::deterministic();
     let classification = classifier.classify(&email).await.unwrap();
-    
+
     assert_eq!(classification.category, "InterestingInfo"); // Newsletter with "news" = InterestingInfo
 
     // Execute actions
     let action_executor = StubActionExecutor::new();
-    let result = action_executor.execute_actions(&email, &classification).await.unwrap();
+    let result = action_executor
+        .execute_actions(&email, &classification)
+        .await
+        .unwrap();
 
     // Verify results
     assert_eq!(result.message_id, "newsletter-101");
@@ -117,7 +135,7 @@ async fn test_idempotent_labeling() {
     );
 
     let labeler = StubLabeler::new();
-    
+
     // Apply label first time
     let result1 = labeler.apply_label(&email.id, "AGENT_TEST").await.unwrap();
     assert!(result1.created_new_label);
@@ -143,10 +161,13 @@ async fn test_multiple_labels_on_same_email() {
     );
 
     let labeler = StubLabeler::new();
-    
+
     // Apply multiple labels
     labeler.apply_label(&email.id, "AGENT_WORK").await.unwrap();
-    labeler.apply_label(&email.id, "AGENT_URGENT").await.unwrap();
+    labeler
+        .apply_label(&email.id, "AGENT_URGENT")
+        .await
+        .unwrap();
 
     // Verify both labels are applied
     assert!(labeler.message_has_label(&email.id, "AGENT_WORK"));
@@ -161,12 +182,12 @@ async fn test_multiple_labels_on_same_email() {
 #[tokio::test]
 async fn test_get_label_for_category() {
     let labeler = StubLabeler::new();
-    
+
     // Test all category mappings
-    assert_eq!(labeler.get_label_for_category("work"), "AGENT_WORK");
-    assert_eq!(labeler.get_label_for_category("personal"), "AGENT_PERSONAL");
-    assert_eq!(labeler.get_label_for_category("promotional"), "AGENT_PROMOTIONAL");
-    assert_eq!(labeler.get_label_for_category("spam"), "AGENT_SPAM");
-    assert_eq!(labeler.get_label_for_category("newsletter"), "AGENT_NEWSLETTER");
-    assert_eq!(labeler.get_label_for_category("urgent"), "AGENT_URGENT");
+    assert_eq!(labeler.get_label_for_category("work"), "Work");
+    assert_eq!(labeler.get_label_for_category("personal"), "Personal");
+    assert_eq!(labeler.get_label_for_category("promotional"), "Promotional");
+    assert_eq!(labeler.get_label_for_category("spam"), "Spam");
+    assert_eq!(labeler.get_label_for_category("newsletter"), "Newsletter");
+    assert_eq!(labeler.get_label_for_category("urgent"), "Urgent");
 }

@@ -1,17 +1,17 @@
 //! Unit tests - no external dependencies (61 tests)
-//! 
+//!
 //! These tests can run quickly in any environment without requiring
 //! external services like Ollama or Gmail API access. Includes:
-//! 
+//!
 //! - Core functionality tests (action execution, labeling, PII)
 //! - Mock Ollama classifier tests using recorded LLM responses
 //! - Phone number detection and text processing
 //! - Email field validation and workflow integration
-//! 
+//!
 //! Mock LLM tests use pre-recorded responses from real Ollama instances,
 //! providing deterministic testing of LLM-dependent features without
 //! requiring a live LLM server.
-//! 
+//!
 //! Run with: cargo test --test unit
 
 mod integration_complete_workflow;

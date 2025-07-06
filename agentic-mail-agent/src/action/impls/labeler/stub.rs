@@ -4,25 +4,25 @@ use async_trait::async_trait;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
-use super::{EmailLabeler, LabelingResult, LabelingError};
+use super::{EmailLabeler, LabelingError, LabelingResult};
 
 /// Stub implementation of EmailLabeler for testing and development.
-/// 
+///
 /// This implementation simulates Gmail labeling operations without actually
 /// connecting to the Gmail API. It's useful for testing and development
 /// when you don't want to make real API calls.
-/// 
+///
 /// # Features
 /// - Simulates successful labeling operations
 /// - Tracks applied labels in memory
 /// - Can be configured to simulate errors
 /// - Deterministic behavior for testing
-/// 
+///
 /// # Examples
-/// 
+///
 /// ```rust
 /// use agentic_mail_agent::action::impls::labeler::{EmailLabeler, StubLabeler};
-/// 
+///
 /// #[tokio::main]
 /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
 ///     let labeler = StubLabeler::new();
@@ -85,7 +85,8 @@ impl StubLabeler {
     /// Check if a message has a specific label.
     pub fn message_has_label(&self, message_id: &str, label: &str) -> bool {
         let applied = self.applied_labels.lock().unwrap();
-        applied.get(message_id)
+        applied
+            .get(message_id)
             .map(|labels| labels.contains(&label.to_string()))
             .unwrap_or(false)
     }
@@ -101,7 +102,8 @@ impl StubLabeler {
     /// Add a label to the internal tracking for a message.
     fn add_label_to_message(&self, message_id: &str, label: &str) {
         let mut applied = self.applied_labels.lock().unwrap();
-        applied.entry(message_id.to_string())
+        applied
+            .entry(message_id.to_string())
             .or_default()
             .push(label.to_string());
     }
@@ -129,7 +131,11 @@ impl Default for StubLabeler {
 
 #[async_trait]
 impl EmailLabeler for StubLabeler {
-    async fn apply_label(&self, message_id: &str, label: &str) -> Result<LabelingResult, LabelingError> {
+    async fn apply_label(
+        &self,
+        message_id: &str,
+        label: &str,
+    ) -> Result<LabelingResult, LabelingError> {
         // Simulate error if configured
         if let Some(error) = &self.simulate_error {
             return Err(error.clone());
@@ -137,7 +143,9 @@ impl EmailLabeler for StubLabeler {
 
         // Validate inputs
         if message_id.is_empty() {
-            return Err(LabelingError::invalid_message_id("Message ID cannot be empty"));
+            return Err(LabelingError::invalid_message_id(
+                "Message ID cannot be empty",
+            ));
         }
 
         if label.is_empty() {
@@ -213,16 +221,18 @@ mod tests {
         assert_eq!(result.label, "AGENT_WORK");
         assert!(result.created_new_label); // First time applying this label
         assert!(result.description.contains("Created and applied new label"));
-        
+
         // Verify internal state
         assert!(labeler.message_has_label("msg123", "AGENT_WORK"));
-        assert!(labeler.get_existing_labels().contains(&"AGENT_WORK".to_string()));
+        assert!(labeler
+            .get_existing_labels()
+            .contains(&"AGENT_WORK".to_string()));
     }
 
     #[tokio::test]
     async fn test_stub_labeler_apply_label_idempotent() {
         let labeler = StubLabeler::new();
-        
+
         // Apply label first time
         let result1 = labeler.apply_label("msg123", "AGENT_WORK").await.unwrap();
         assert!(result1.created_new_label);
@@ -241,7 +251,7 @@ mod tests {
     #[tokio::test]
     async fn test_stub_labeler_apply_multiple_labels() {
         let labeler = StubLabeler::new();
-        
+
         // Apply different labels to the same message
         labeler.apply_label("msg123", "AGENT_WORK").await.unwrap();
         labeler.apply_label("msg123", "AGENT_URGENT").await.unwrap();
@@ -258,7 +268,9 @@ mod tests {
         let labeler = StubLabeler::with_existing_labels(existing);
 
         assert_eq!(labeler.get_existing_labels().len(), 2);
-        assert!(labeler.get_existing_labels().contains(&"AGENT_WORK".to_string()));
+        assert!(labeler
+            .get_existing_labels()
+            .contains(&"AGENT_WORK".to_string()));
 
         // Apply existing label
         let result = labeler.apply_label("msg123", "AGENT_WORK").await.unwrap();
@@ -278,10 +290,12 @@ mod tests {
     #[tokio::test]
     async fn test_stub_labeler_ensure_label_exists() {
         let labeler = StubLabeler::new();
-        
+
         let label_id = labeler.ensure_label_exists("AGENT_WORK").await.unwrap();
         assert_eq!(label_id, "label_agent_work");
-        assert!(labeler.get_existing_labels().contains(&"AGENT_WORK".to_string()));
+        assert!(labeler
+            .get_existing_labels()
+            .contains(&"AGENT_WORK".to_string()));
     }
 
     #[tokio::test]
@@ -291,7 +305,10 @@ mod tests {
         // Empty message ID
         let result = labeler.apply_label("", "AGENT_WORK").await;
         assert!(result.is_err());
-        assert!(matches!(result.unwrap_err(), LabelingError::InvalidMessageId { .. }));
+        assert!(matches!(
+            result.unwrap_err(),
+            LabelingError::InvalidMessageId { .. }
+        ));
 
         // Empty label
         let result = labeler.apply_label("msg123", "").await;
@@ -307,7 +324,7 @@ mod tests {
     #[tokio::test]
     async fn test_stub_labeler_reset() {
         let labeler = StubLabeler::new();
-        
+
         // Add some data
         labeler.apply_label("msg123", "AGENT_WORK").await.unwrap();
         assert!(!labeler.get_applied_labels("msg123").is_empty());
@@ -323,11 +340,11 @@ mod tests {
     async fn test_stub_labeler_get_label_for_category() {
         let labeler = StubLabeler::new();
 
-        assert_eq!(labeler.get_label_for_category("work"), "AGENT_WORK");
-        assert_eq!(labeler.get_label_for_category("personal"), "AGENT_PERSONAL");
-        assert_eq!(labeler.get_label_for_category("spam"), "AGENT_SPAM");
-        assert_eq!(labeler.get_label_for_category("promotional"), "AGENT_PROMOTIONAL");
-        assert_eq!(labeler.get_label_for_category("newsletter"), "AGENT_NEWSLETTER");
-        assert_eq!(labeler.get_label_for_category("urgent"), "AGENT_URGENT");
+        assert_eq!(labeler.get_label_for_category("work"), "Work");
+        assert_eq!(labeler.get_label_for_category("personal"), "Personal");
+        assert_eq!(labeler.get_label_for_category("spam"), "Spam");
+        assert_eq!(labeler.get_label_for_category("promotional"), "Promotional");
+        assert_eq!(labeler.get_label_for_category("newsletter"), "Newsletter");
+        assert_eq!(labeler.get_label_for_category("urgent"), "Urgent");
     }
 }

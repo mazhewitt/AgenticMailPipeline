@@ -8,10 +8,10 @@
 
 use async_trait::async_trait;
 
-use crate::core::email::Email;
-use crate::classifier::Classification;
+use crate::action::impls::archiver::{ArchivingError, EmailArchiver};
 use crate::action::impls::labeler::{EmailLabeler, LabelingError};
-use crate::action::impls::archiver::{EmailArchiver, ArchivingError};
+use crate::classifier::Classification;
+use crate::core::email::Email;
 
 /// Result of action execution on an email.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -41,7 +41,7 @@ impl ActionExecutionResult {
         } else {
             format!("Applied label '{label_applied}' and kept in inbox (ActionRequired)")
         };
-        
+
         Self {
             message_id,
             actions_taken,
@@ -58,19 +58,19 @@ pub enum ActionExecutionError {
     /// Labeling operation failed
     #[error("Labeling failed: {message}")]
     LabelingFailed { message: String },
-    
+
     /// Archive operation failed
     #[error("Archive failed: {message}")]
     ArchiveFailed { message: String },
-    
+
     /// Invalid classification category
     #[error("Invalid category: {category}")]
     InvalidCategory { category: String },
-    
+
     /// Configuration error
     #[error("Configuration error: {message}")]
     Config { message: String },
-    
+
     /// Unknown error
     #[error("Unknown action execution error: {message}")]
     Unknown { message: String },
@@ -79,27 +79,37 @@ pub enum ActionExecutionError {
 impl ActionExecutionError {
     /// Create a new labeling failed error
     pub fn labeling_failed(message: impl Into<String>) -> Self {
-        Self::LabelingFailed { message: message.into() }
+        Self::LabelingFailed {
+            message: message.into(),
+        }
     }
-    
+
     /// Create a new archive failed error
     pub fn archive_failed(message: impl Into<String>) -> Self {
-        Self::ArchiveFailed { message: message.into() }
+        Self::ArchiveFailed {
+            message: message.into(),
+        }
     }
-    
+
     /// Create a new invalid category error
     pub fn invalid_category(category: impl Into<String>) -> Self {
-        Self::InvalidCategory { category: category.into() }
+        Self::InvalidCategory {
+            category: category.into(),
+        }
     }
-    
+
     /// Create a new config error
     pub fn config(message: impl Into<String>) -> Self {
-        Self::Config { message: message.into() }
+        Self::Config {
+            message: message.into(),
+        }
     }
-    
+
     /// Create a new unknown error
     pub fn unknown(message: impl Into<String>) -> Self {
-        Self::Unknown { message: message.into() }
+        Self::Unknown {
+            message: message.into(),
+        }
     }
 }
 
@@ -118,7 +128,7 @@ impl From<ArchivingError> for ActionExecutionError {
 }
 
 /// Category-to-label mapping for the agentic mail agent.
-/// 
+///
 /// Maps the 5 classification categories to their corresponding Gmail labels:
 /// - ActionRequired → AGENT_ACTIONREQUIRED
 /// - InterestingInfo → AGENT_INTERESTINGINFO  
@@ -130,7 +140,7 @@ pub fn get_label_for_category(category: &str) -> String {
 }
 
 /// Trait for executing actions on emails based on classification results.
-/// 
+///
 /// This trait provides the core functionality for the agentic mail agent:
 /// 1. Apply appropriate Gmail labels based on classification category
 /// 2. Archive all emails except ActionRequired (remove from inbox)
@@ -138,38 +148,38 @@ pub fn get_label_for_category(category: &str) -> String {
 #[async_trait]
 pub trait ActionExecutor {
     /// Execute actions on an email based on its classification.
-    /// 
+    ///
     /// This method performs the core action execution logic:
     /// 1. Apply a Gmail label based on the classification category
     /// 2. Archive the email if it's not ActionRequired (remove INBOX label)
     /// 3. Return detailed results for audit purposes
-    /// 
+    ///
     /// # Arguments
-    /// 
+    ///
     /// * `email` - The email to process
     /// * `classification` - The classification result from the classifier
-    /// 
+    ///
     /// # Returns
-    /// 
+    ///
     /// Returns an `ActionExecutionResult` with details of actions taken,
     /// or an `ActionExecutionError` if execution fails.
     async fn execute_actions(
-        &self, 
-        email: &Email, 
-        classification: &Classification
+        &self,
+        email: &Email,
+        classification: &Classification,
     ) -> Result<ActionExecutionResult, ActionExecutionError>;
 }
 
 /// Gmail-based implementation of ActionExecutor.
-/// 
+///
 /// This implementation uses the Gmail API to apply labels and archive emails.
 /// It requires OAuth2 credentials with Gmail modify permissions.
-/// 
+///
 /// # Gmail API Operations
 /// - Uses `modify_message` to apply labels
 /// - Archives by removing the INBOX label (standard Gmail archiving)
 /// - Creates labels automatically if they don't exist
-/// 
+///
 /// # Required Scopes
 /// - `https://www.googleapis.com/auth/gmail.modify` - For labeling and archiving
 pub struct GmailActionExecutor<L: EmailLabeler, A: EmailArchiver> {
@@ -185,17 +195,19 @@ impl<L: EmailLabeler, A: EmailArchiver> GmailActionExecutor<L, A> {
 }
 
 #[async_trait]
-impl<L: EmailLabeler + Send + Sync, A: EmailArchiver + Send + Sync> ActionExecutor for GmailActionExecutor<L, A> {
+impl<L: EmailLabeler + Send + Sync, A: EmailArchiver + Send + Sync> ActionExecutor
+    for GmailActionExecutor<L, A>
+{
     async fn execute_actions(
-        &self, 
-        email: &Email, 
-        classification: &Classification
+        &self,
+        email: &Email,
+        classification: &Classification,
     ) -> Result<ActionExecutionResult, ActionExecutionError> {
         let mut actions_taken = Vec::new();
-        
+
         // Step 1: Apply label based on classification category
         let label = get_label_for_category(&classification.category);
-        
+
         match self.labeler.apply_label(&email.id, &label).await {
             Ok(labeling_result) => {
                 actions_taken.push(format!("Applied label: {}", labeling_result.label));
@@ -204,13 +216,15 @@ impl<L: EmailLabeler + Send + Sync, A: EmailArchiver + Send + Sync> ActionExecut
                 }
             }
             Err(e) => {
-                return Err(ActionExecutionError::labeling_failed(format!("Failed to apply label '{label}': {e}")));
+                return Err(ActionExecutionError::labeling_failed(format!(
+                    "Failed to apply label '{label}': {e}"
+                )));
             }
         }
-        
+
         // Step 2: Archive email if not ActionRequired
         let should_archive = classification.category != "ActionRequired";
-        
+
         if should_archive {
             match self.archiver.archive_email(&email.id).await {
                 Ok(archive_result) => {
@@ -221,13 +235,16 @@ impl<L: EmailLabeler + Send + Sync, A: EmailArchiver + Send + Sync> ActionExecut
                     }
                 }
                 Err(e) => {
-                    return Err(ActionExecutionError::archive_failed(format!("Failed to archive email '{}': {e}", email.id)));
+                    return Err(ActionExecutionError::archive_failed(format!(
+                        "Failed to archive email '{}': {e}",
+                        email.id
+                    )));
                 }
             }
         } else {
             actions_taken.push("Kept in inbox (ActionRequired category)".to_string());
         }
-        
+
         Ok(ActionExecutionResult::new(
             email.id.clone(),
             actions_taken,
@@ -238,7 +255,7 @@ impl<L: EmailLabeler + Send + Sync, A: EmailArchiver + Send + Sync> ActionExecut
 }
 
 /// Stub implementation of ActionExecutor for testing.
-/// 
+///
 /// This implementation simulates Gmail operations without making actual API calls.
 /// It's useful for testing and development when you don't want to touch real Gmail data.
 pub struct StubActionExecutor {
@@ -253,12 +270,12 @@ impl StubActionExecutor {
             actions_log: std::sync::Arc::new(std::sync::Mutex::new(Vec::new())),
         }
     }
-    
+
     /// Get all actions that have been logged (for testing).
     pub fn get_actions_log(&self) -> Vec<String> {
         self.actions_log.lock().unwrap().clone()
     }
-    
+
     /// Clear the actions log.
     pub fn clear_log(&self) {
         self.actions_log.lock().unwrap().clear();
@@ -274,39 +291,39 @@ impl Default for StubActionExecutor {
 #[async_trait]
 impl ActionExecutor for StubActionExecutor {
     async fn execute_actions(
-        &self, 
-        email: &Email, 
-        classification: &Classification
+        &self,
+        email: &Email,
+        classification: &Classification,
     ) -> Result<ActionExecutionResult, ActionExecutionError> {
         let mut actions_taken = Vec::new();
-        
+
         // Step 1: Apply label based on classification category
         let label = get_label_for_category(&classification.category);
         actions_taken.push(format!("Applied label: {label}"));
-        
+
         // Log action for testing verification
         {
             let mut log = self.actions_log.lock().unwrap();
             log.push(format!("Label applied: {} -> {label}", email.id));
         }
-        
+
         // Step 2: Archive email if not ActionRequired
         let should_archive = classification.category != "ActionRequired";
-        
+
         if should_archive {
             actions_taken.push("Archived email (removed from inbox)".to_string());
-            
+
             // Log archive action
             let mut log = self.actions_log.lock().unwrap();
             log.push(format!("Archived: {}", email.id));
         } else {
             actions_taken.push("Kept in inbox (ActionRequired category)".to_string());
-            
+
             // Log inbox retention
             let mut log = self.actions_log.lock().unwrap();
             log.push(format!("Kept in inbox: {}", email.id));
         }
-        
+
         Ok(ActionExecutionResult::new(
             email.id.clone(),
             actions_taken,
@@ -323,8 +340,14 @@ mod tests {
 
     #[test]
     fn test_get_label_for_category() {
-        assert_eq!(get_label_for_category("ActionRequired"), "AGENT_ACTIONREQUIRED");
-        assert_eq!(get_label_for_category("InterestingInfo"), "AGENT_INTERESTINGINFO");
+        assert_eq!(
+            get_label_for_category("ActionRequired"),
+            "AGENT_ACTIONREQUIRED"
+        );
+        assert_eq!(
+            get_label_for_category("InterestingInfo"),
+            "AGENT_INTERESTINGINFO"
+        );
         assert_eq!(get_label_for_category("Reference"), "AGENT_REFERENCE");
         assert_eq!(get_label_for_category("Noise"), "AGENT_NOISE");
         assert_eq!(get_label_for_category("Spam"), "AGENT_SPAM");
@@ -355,7 +378,10 @@ mod tests {
         assert!(matches!(error, ActionExecutionError::ArchiveFailed { .. }));
 
         let error = ActionExecutionError::invalid_category("unknown");
-        assert!(matches!(error, ActionExecutionError::InvalidCategory { .. }));
+        assert!(matches!(
+            error,
+            ActionExecutionError::InvalidCategory { .. }
+        ));
     }
 
     #[tokio::test]
@@ -364,12 +390,18 @@ mod tests {
         let email = Email::new("msg123".to_string(), Some("Test".to_string()), None);
         let classification = Classification::with_category("ActionRequired".to_string());
 
-        let result = executor.execute_actions(&email, &classification).await.unwrap();
+        let result = executor
+            .execute_actions(&email, &classification)
+            .await
+            .unwrap();
 
         assert_eq!(result.message_id, "msg123");
         assert!(!result.archived); // ActionRequired should not be archived
         assert_eq!(result.label_applied, "AGENT_ACTIONREQUIRED");
-        assert!(result.actions_taken.iter().any(|a| a.contains("Kept in inbox")));
+        assert!(result
+            .actions_taken
+            .iter()
+            .any(|a| a.contains("Kept in inbox")));
 
         // Check actions log
         let log = executor.get_actions_log();
@@ -382,11 +414,14 @@ mod tests {
         let labeler = StubLabeler::new();
         let archiver = crate::action::impls::archiver::StubArchiver::new();
         let executor = GmailActionExecutor::new(labeler, archiver);
-        
+
         let email = Email::new("msg456".to_string(), Some("Newsletter".to_string()), None);
         let classification = Classification::with_category("Noise".to_string());
 
-        let result = executor.execute_actions(&email, &classification).await.unwrap();
+        let result = executor
+            .execute_actions(&email, &classification)
+            .await
+            .unwrap();
 
         assert_eq!(result.message_id, "msg456");
         assert!(result.archived); // Noise should be archived
@@ -397,11 +432,11 @@ mod tests {
     #[tokio::test]
     async fn test_all_categories_archiving_behavior() {
         let executor = StubActionExecutor::new();
-        
+
         let test_cases = vec![
             ("ActionRequired", false), // Should NOT be archived
-            ("InterestingInfo", true),  // Should be archived
-            ("Reference", true),        // Should be archived
+            ("InterestingInfo", true), // Should be archived
+            ("Reference", true),       // Should be archived
             ("Noise", true),           // Should be archived
             ("Spam", true),            // Should be archived
         ];
@@ -410,11 +445,16 @@ mod tests {
             let email = Email::new(format!("msg_{category}"), Some("Test".to_string()), None);
             let classification = Classification::with_category(category.to_string());
 
-            let result = executor.execute_actions(&email, &classification).await.unwrap();
+            let result = executor
+                .execute_actions(&email, &classification)
+                .await
+                .unwrap();
 
-            assert_eq!(result.archived, should_archive, 
-                "Category '{category}' archiving behavior incorrect");
-            
+            assert_eq!(
+                result.archived, should_archive,
+                "Category '{category}' archiving behavior incorrect"
+            );
+
             let expected_label = format!("AGENT_{}", category.to_uppercase());
             assert_eq!(result.label_applied, expected_label);
         }

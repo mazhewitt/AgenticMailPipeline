@@ -33,7 +33,7 @@ fn load_ground_truth_data() -> GroundTruthData {
 /// Load test email from JSON file, return None if parsing fails
 fn try_load_test_email(file_path: &str) -> Option<Email> {
     let email_json = std::fs::read_to_string(file_path).ok()?;
-    
+
     let email_data: serde_json::Value = match serde_json::from_str(&email_json) {
         Ok(data) => data,
         Err(e) => {
@@ -41,7 +41,7 @@ fn try_load_test_email(file_path: &str) -> Option<Email> {
             return None;
         }
     };
-    
+
     Some(Email::new_full(
         email_data["id"].as_str().unwrap_or("unknown").to_string(),
         email_data["subject"].as_str().map(|s| s.to_string()),
@@ -63,19 +63,19 @@ fn try_load_test_email(file_path: &str) -> Option<Email> {
 async fn test_stub_classifier_accuracy_against_ground_truth() {
     let ground_truth = load_ground_truth_data();
     let classifier = StubClassifier::deterministic();
-    
+
     let mut correct_predictions = 0;
     let mut total_predictions = 0;
     let mut misclassifications = Vec::new();
-    
+
     for gt_email in &ground_truth.email_ground_truth.test_emails {
         let email_path = format!("test_data/{}", gt_email.file);
-        
+
         if let Some(email) = try_load_test_email(&email_path) {
             match classifier.classify(&email).await {
                 Ok(classification) => {
                     total_predictions += 1;
-                    
+
                     if classification.category == gt_email.category {
                         correct_predictions += 1;
                     } else {
@@ -94,31 +94,33 @@ async fn test_stub_classifier_accuracy_against_ground_truth() {
             }
         }
     }
-    
+
     let accuracy = (correct_predictions as f64 / total_predictions as f64) * 100.0;
-    
+
     // Print detailed results
     println!("Stub Classifier Results:");
     println!("Total emails: {total_predictions}");
     println!("Correct predictions: {correct_predictions}");
     println!("Accuracy: {accuracy:.2}%");
-    
+
     if !misclassifications.is_empty() && misclassifications.len() <= 15 {
         println!("\nMisclassifications:");
         for misclass in &misclassifications {
             println!("  {misclass}");
         }
     }
-    
+
     // Print accuracy by category
     let mut category_stats: HashMap<String, (usize, usize)> = HashMap::new();
-    
+
     for gt_email in &ground_truth.email_ground_truth.test_emails {
         let email_path = format!("test_data/{}", gt_email.file);
-        
+
         if let Some(email) = try_load_test_email(&email_path) {
             if let Ok(classification) = classifier.classify(&email).await {
-                let entry = category_stats.entry(gt_email.category.clone()).or_insert((0, 0));
+                let entry = category_stats
+                    .entry(gt_email.category.clone())
+                    .or_insert((0, 0));
                 entry.1 += 1; // total
                 if classification.category == gt_email.category {
                     entry.0 += 1; // correct
@@ -126,13 +128,13 @@ async fn test_stub_classifier_accuracy_against_ground_truth() {
             }
         }
     }
-    
+
     println!("\nStub Classifier - Accuracy by Category:");
     for (category, (correct, total)) in category_stats {
         let cat_accuracy = (correct as f64 / total as f64) * 100.0;
         println!("  {category}: {correct}/{total} ({cat_accuracy:.1}%)");
     }
-    
+
     // Report but don't fail - this is for evaluation
     if accuracy < 80.0 {
         println!("\n⚠️  Accuracy ({accuracy:.2}%) is below 80% threshold");
@@ -146,22 +148,22 @@ async fn test_stub_classifier_accuracy_against_ground_truth() {
 async fn test_action_required_category_accuracy() {
     let ground_truth = load_ground_truth_data();
     let classifier = StubClassifier::deterministic();
-    
+
     let action_required_emails: Vec<_> = ground_truth
         .email_ground_truth
         .test_emails
         .iter()
         .filter(|e| e.category == "ActionRequired")
         .collect();
-    
+
     let mut correct = 0;
     let mut total = 0;
-    
+
     println!("Testing ActionRequired emails:");
-    
+
     for gt_email in action_required_emails {
         let email_path = format!("test_data/{}", gt_email.file);
-        
+
         if let Some(email) = try_load_test_email(&email_path) {
             if let Ok(classification) = classifier.classify(&email).await {
                 total += 1;
@@ -172,15 +174,15 @@ async fn test_action_required_category_accuracy() {
             }
         }
     }
-    
+
     let accuracy = if total > 0 {
         (correct as f64 / total as f64) * 100.0
     } else {
         0.0
     };
-    
+
     println!("ActionRequired category accuracy: {correct}/{total} ({accuracy:.1}%)");
-    
+
     // ActionRequired emails are critical - we want high precision
     assert!(
         accuracy >= 75.0,
@@ -193,46 +195,43 @@ async fn test_action_required_category_accuracy() {
 async fn test_no_false_spam_classification() {
     let ground_truth = load_ground_truth_data();
     let classifier = StubClassifier::deterministic();
-    
+
     let non_spam_emails: Vec<_> = ground_truth
         .email_ground_truth
         .test_emails
         .iter()
         .filter(|e| e.category != "Spam")
         .collect();
-    
+
     let mut false_spam_count = 0;
     let mut false_spam_examples = Vec::new();
-    
+
     for gt_email in non_spam_emails {
         let email_path = format!("test_data/{}", gt_email.file);
-        
+
         if let Some(email) = try_load_test_email(&email_path) {
             if let Ok(classification) = classifier.classify(&email).await {
                 if classification.category == "Spam" {
                     false_spam_count += 1;
                     false_spam_examples.push(format!(
                         "Email '{}' (ID: {}) classified as Spam but should be '{}'",
-                        gt_email.subject,
-                        gt_email.id,
-                        gt_email.category
+                        gt_email.subject, gt_email.id, gt_email.category
                     ));
                 }
             }
         }
     }
-    
+
     if false_spam_count > 0 {
         println!("False spam classifications:");
         for example in &false_spam_examples {
             println!("  {example}");
         }
     }
-    
+
     // No legitimate emails should be classified as spam
     assert_eq!(
-        false_spam_count,
-        0,
+        false_spam_count, 0,
         "Found {false_spam_count} false spam classifications"
     );
 }

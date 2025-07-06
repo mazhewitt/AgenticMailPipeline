@@ -1,6 +1,6 @@
 pub mod executor;
-pub mod router;
 pub mod impls;
+pub mod router;
 
 // Re-export commonly used items
-pub use executor::{ActionExecutor, StubActionExecutor, GmailActionExecutor};
+pub use executor::{ActionExecutor, GmailActionExecutor, StubActionExecutor};

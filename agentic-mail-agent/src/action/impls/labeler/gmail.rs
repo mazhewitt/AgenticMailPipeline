@@ -4,49 +4,59 @@ use async_trait::async_trait;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
-use super::{EmailLabeler, LabelingResult, LabelingError};
-use crate::gmail::{GmailClient, GmailAuthConfig};
-use crate::gmail::api::{GmailApi, GmailApiError};
+use super::{EmailLabeler, LabelingError, LabelingResult};
 #[cfg(test)]
 use crate::gmail::api::GmailApiResult;
+use crate::gmail::api::{GmailApi, GmailApiError};
+use crate::gmail::{GmailAuthConfig, GmailClient};
 use google_gmail1::api::Label;
 
 /// Convert GmailApiError to LabelingError
 fn gmail_api_error_to_labeling_error(error: GmailApiError) -> LabelingError {
     match error {
-        GmailApiError::Auth { message } => LabelingError::gmail_api(format!("Authentication error: {message}")),
-        GmailApiError::Network { message } => LabelingError::gmail_api(format!("Network error: {message}")),
-        GmailApiError::RateLimit { message } => LabelingError::gmail_api(format!("Rate limit error: {message}")),
-        GmailApiError::InvalidRequest { message } => LabelingError::gmail_api(format!("Invalid request: {message}")),
-        GmailApiError::NotFound { message } => LabelingError::gmail_api(format!("Not found: {message}")),
+        GmailApiError::Auth { message } => {
+            LabelingError::gmail_api(format!("Authentication error: {message}"))
+        }
+        GmailApiError::Network { message } => {
+            LabelingError::gmail_api(format!("Network error: {message}"))
+        }
+        GmailApiError::RateLimit { message } => {
+            LabelingError::gmail_api(format!("Rate limit error: {message}"))
+        }
+        GmailApiError::InvalidRequest { message } => {
+            LabelingError::gmail_api(format!("Invalid request: {message}"))
+        }
+        GmailApiError::NotFound { message } => {
+            LabelingError::gmail_api(format!("Not found: {message}"))
+        }
         GmailApiError::Api { message } => LabelingError::gmail_api(message),
     }
 }
 
 /// Gmail API implementation of EmailLabeler.
-/// 
+///
 /// This implementation uses the Gmail API to apply labels to emails.
 /// It requires OAuth2 credentials with Gmail modify permissions.
-/// 
+///
 /// # Environment Variables
 /// - `GMAIL_CLIENT_SECRET_JSON`: Path to OAuth2 client secret JSON file
 /// - `GMAIL_TOKEN_JSON`: Path to OAuth2 token JSON file
-/// 
+///
 /// # Required Scopes
 /// - `https://www.googleapis.com/auth/gmail.modify` - Required for labeling operations
 /// - `https://www.googleapis.com/auth/gmail.readonly` - Required for reading message info
-/// 
+///
 /// # Features
 /// - Automatic label creation if labels don't exist
 /// - Idempotent labeling (won't re-apply existing labels)
 /// - Label caching for improved performance
 /// - Proper error handling and retries
-/// 
+///
 /// # Examples
-/// 
+///
 /// ```rust,no_run
 /// use agentic_mail_agent::action::impls::labeler::{EmailLabeler, GmailLabeler};
-/// 
+///
 /// #[tokio::main]
 /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
 ///     // Set environment variables:
@@ -69,19 +79,18 @@ pub struct GmailLabeler<T: GmailApi + Clone> {
 /// Type alias for the concrete GmailLabeler using GmailClient
 pub type ConcreteGmailLabeler = GmailLabeler<GmailClient>;
 
-
 impl ConcreteGmailLabeler {
     /// Create a new GmailLabeler from environment variables.
-    /// 
+    ///
     /// Reads credential paths from environment variables and initializes
     /// the Gmail API client with OAuth2 authentication.
-    /// 
+    ///
     /// # Errors
     /// Returns `LabelingError::Config` if environment variables are missing
     /// or credential files are invalid.
     pub async fn from_env() -> Result<Self, LabelingError> {
         let gmail_client = GmailClient::from_env().await?;
-        
+
         Ok(Self {
             gmail_api: gmail_client,
             label_cache: Arc::new(Mutex::new(HashMap::new())),
@@ -89,14 +98,17 @@ impl ConcreteGmailLabeler {
     }
 
     /// Create a new GmailLabeler with explicit credential paths.
-    /// 
+    ///
     /// # Arguments
     /// * `client_secret_path` - Path to OAuth2 client secret JSON file
     /// * `token_path` - Path to OAuth2 token JSON file
-    pub async fn new(client_secret_path: String, token_path: String) -> Result<Self, LabelingError> {
+    pub async fn new(
+        client_secret_path: String,
+        token_path: String,
+    ) -> Result<Self, LabelingError> {
         let config = GmailAuthConfig::new(client_secret_path, token_path);
         let gmail_client = GmailClient::new(config).await?;
-        
+
         Ok(Self {
             gmail_api: gmail_client,
             label_cache: Arc::new(Mutex::new(HashMap::new())),
@@ -106,9 +118,9 @@ impl ConcreteGmailLabeler {
 
 impl<T: GmailApi + Clone> GmailLabeler<T> {
     /// Create a new GmailLabeler with a custom GmailApi implementation.
-    /// 
+    ///
     /// This constructor is primarily used for testing with mock implementations.
-    /// 
+    ///
     /// # Arguments
     /// * `gmail_api` - Implementation of the GmailApi trait
     pub fn new_with_api(gmail_api: T) -> Self {
@@ -120,7 +132,10 @@ impl<T: GmailApi + Clone> GmailLabeler<T> {
 
     /// Get the Gmail label ID for a label name, creating the label if it doesn't exist.
     /// Returns (label_id, was_created)
-    async fn get_or_create_label_id(&self, label_name: &str) -> Result<(String, bool), LabelingError> {
+    async fn get_or_create_label_id(
+        &self,
+        label_name: &str,
+    ) -> Result<(String, bool), LabelingError> {
         // Check cache first
         {
             let cache = self.label_cache.lock().unwrap();
@@ -130,11 +145,12 @@ impl<T: GmailApi + Clone> GmailLabeler<T> {
         }
 
         // List existing labels to find the one we want
-        let labels = self.gmail_api
+        let labels = self
+            .gmail_api
             .list_labels()
             .await
             .map_err(gmail_api_error_to_labeling_error)?;
-        
+
         // Check if label already exists
         for label in &labels {
             if let Some(name) = &label.name {
@@ -163,7 +179,8 @@ impl<T: GmailApi + Clone> GmailLabeler<T> {
             ..Default::default()
         };
 
-        let created_label = self.gmail_api
+        let created_label = self
+            .gmail_api
             .create_label(new_label)
             .await
             .map_err(gmail_api_error_to_labeling_error)?;
@@ -179,23 +196,34 @@ impl<T: GmailApi + Clone> GmailLabeler<T> {
     }
 
     /// Check if a message already has a specific label.
-    async fn message_has_label(&self, message_id: &str, label_id: &str) -> Result<bool, LabelingError> {
-        let message = self.gmail_api
+    async fn message_has_label(
+        &self,
+        message_id: &str,
+        label_id: &str,
+    ) -> Result<bool, LabelingError> {
+        let message = self
+            .gmail_api
             .get_message(message_id)
             .await
             .map_err(gmail_api_error_to_labeling_error)?;
         let current_labels = message.label_ids.unwrap_or_default();
-        
+
         Ok(current_labels.contains(&label_id.to_string()))
     }
 }
 
 #[async_trait]
 impl<T: GmailApi + Clone> EmailLabeler for GmailLabeler<T> {
-    async fn apply_label(&self, message_id: &str, label: &str) -> Result<LabelingResult, LabelingError> {
+    async fn apply_label(
+        &self,
+        message_id: &str,
+        label: &str,
+    ) -> Result<LabelingResult, LabelingError> {
         // Validate inputs
         if message_id.is_empty() {
-            return Err(LabelingError::invalid_message_id("Message ID cannot be empty"));
+            return Err(LabelingError::invalid_message_id(
+                "Message ID cannot be empty",
+            ));
         }
 
         if label.is_empty() {
@@ -248,11 +276,12 @@ impl<T: GmailApi + Clone> EmailLabeler for GmailLabeler<T> {
 impl<T: GmailApi + Clone> GmailLabeler<T> {
     /// List all labels in the Gmail account
     pub async fn list_all_labels(&self) -> Result<Vec<LabelInfo>, LabelingError> {
-        let labels = self.gmail_api
+        let labels = self
+            .gmail_api
             .list_labels()
             .await
             .map_err(gmail_api_error_to_labeling_error)?;
-        
+
         let label_infos = labels
             .into_iter()
             .filter_map(|label| {
@@ -280,8 +309,12 @@ impl<T: GmailApi + Clone> GmailLabeler<T> {
     }
 
     /// Get all labels applied to a specific email
-    pub async fn get_email_labels(&self, message_id: &str) -> Result<Vec<LabelInfo>, LabelingError> {
-        let message = self.gmail_api
+    pub async fn get_email_labels(
+        &self,
+        message_id: &str,
+    ) -> Result<Vec<LabelInfo>, LabelingError> {
+        let message = self
+            .gmail_api
             .get_message(message_id)
             .await
             .map_err(gmail_api_error_to_labeling_error)?;
@@ -308,12 +341,16 @@ impl<T: GmailApi + Clone> GmailLabeler<T> {
     }
 
     /// Get all emails with a specific label
-    pub async fn get_emails_by_label(&self, label_name: &str) -> Result<Vec<String>, LabelingError> {
+    pub async fn get_emails_by_label(
+        &self,
+        label_name: &str,
+    ) -> Result<Vec<String>, LabelingError> {
         // First get the label ID
         let (label_id, _) = self.get_or_create_label_id(label_name).await?;
 
         // Search for messages with this label
-        let message_ids = self.gmail_api
+        let message_ids = self
+            .gmail_api
             .list_messages_with_labels(&[label_id], None)
             .await
             .map_err(gmail_api_error_to_labeling_error)?;
@@ -332,9 +369,9 @@ pub struct LabelInfo {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use google_gmail1::api::{Label, Message};
     use std::collections::HashMap;
     use tokio::sync::Mutex as AsyncMutex;
-    use google_gmail1::api::{Label, Message};
 
     /// Mock implementation of GmailApi for testing
     #[derive(Debug, Clone)]
@@ -383,7 +420,12 @@ mod tests {
 
         /// Get the number of times a specific API method was called
         pub async fn get_call_count(&self, method: &str) -> u32 {
-            self.call_counts.lock().await.get(method).copied().unwrap_or(0)
+            self.call_counts
+                .lock()
+                .await
+                .get(method)
+                .copied()
+                .unwrap_or(0)
         }
 
         /// Increment call count for a method
@@ -403,33 +445,36 @@ mod tests {
 
         async fn create_label(&self, mut label: Label) -> GmailApiResult<Label> {
             self.increment_call_count("create_label").await;
-            
+
             let mut next_id = self.next_label_id.lock().await;
             let id = format!("label_{}", *next_id);
             *next_id += 1;
-            
+
             label.id = Some(id.clone());
-            
+
             self.labels.lock().await.insert(id, label.clone());
             Ok(label)
         }
 
         async fn delete_label(&self, label_id: &str) -> GmailApiResult<()> {
             self.increment_call_count("delete_label").await;
-            
+
             let mut labels = self.labels.lock().await;
             if labels.remove(label_id).is_some() {
                 Ok(())
             } else {
-                Err(GmailApiError::not_found(format!("Label {label_id} not found")))
+                Err(GmailApiError::not_found(format!(
+                    "Label {label_id} not found"
+                )))
             }
         }
 
         async fn get_message(&self, message_id: &str) -> GmailApiResult<Message> {
             self.increment_call_count("get_message").await;
-            
+
             let messages = self.messages.lock().await;
-            messages.get(message_id)
+            messages
+                .get(message_id)
                 .cloned()
                 .ok_or_else(|| GmailApiError::not_found(format!("Message {message_id} not found")))
         }
@@ -441,10 +486,11 @@ mod tests {
             remove_label_ids: Option<Vec<String>>,
         ) -> GmailApiResult<Message> {
             self.increment_call_count("modify_message_labels").await;
-            
+
             let mut messages = self.messages.lock().await;
-            let message = messages.get_mut(message_id)
-                .ok_or_else(|| GmailApiError::not_found(format!("Message {message_id} not found")))?;
+            let message = messages.get_mut(message_id).ok_or_else(|| {
+                GmailApiError::not_found(format!("Message {message_id} not found"))
+            })?;
 
             let mut current_labels = message.label_ids.clone().unwrap_or_default();
 
@@ -472,13 +518,15 @@ mod tests {
             _max_results: Option<u32>,
         ) -> GmailApiResult<Vec<String>> {
             self.increment_call_count("list_messages_with_labels").await;
-            
+
             let messages = self.messages.lock().await;
             let matching_messages: Vec<String> = messages
                 .values()
                 .filter(|message| {
                     if let Some(msg_labels) = &message.label_ids {
-                        label_ids.iter().any(|search_label| msg_labels.contains(search_label))
+                        label_ids
+                            .iter()
+                            .any(|search_label| msg_labels.contains(search_label))
                     } else {
                         false
                     }
@@ -515,10 +563,10 @@ mod tests {
     #[tokio::test]
     async fn test_gmail_labeler_apply_label_idempotent() {
         let mock_api = MockGmailApi::new();
-        
+
         // Add a message without any labels
         mock_api.add_message("msg123", vec![]).await;
-        
+
         let labeler = GmailLabeler::new_with_api(mock_api);
 
         // First application should create label and apply it
@@ -538,15 +586,18 @@ mod tests {
     #[tokio::test]
     async fn test_gmail_labeler_existing_label_reuse() {
         let mock_api = MockGmailApi::new();
-        
+
         // Pre-add a label to the mock API
         mock_api.add_label("existing-label", "existing_123").await;
         mock_api.add_message("msg456", vec![]).await;
-        
+
         let labeler = GmailLabeler::new_with_api(mock_api);
 
         // Apply the existing label
-        let result = labeler.apply_label("msg456", "existing-label").await.unwrap();
+        let result = labeler
+            .apply_label("msg456", "existing-label")
+            .await
+            .unwrap();
         assert!(result.description.contains("existing"));
 
         // Verify no new label was created (should reuse existing)
@@ -575,13 +626,19 @@ mod tests {
     #[tokio::test]
     async fn test_gmail_labeler_list_emails_by_label() {
         let mock_api = MockGmailApi::new();
-        
+
         // Add some test data
         mock_api.add_label("work", "work_123").await;
-        mock_api.add_message("msg1", vec!["work_123".to_string()]).await;
-        mock_api.add_message("msg2", vec!["work_123".to_string()]).await;
-        mock_api.add_message("msg3", vec!["personal_456".to_string()]).await;
-        
+        mock_api
+            .add_message("msg1", vec!["work_123".to_string()])
+            .await;
+        mock_api
+            .add_message("msg2", vec!["work_123".to_string()])
+            .await;
+        mock_api
+            .add_message("msg3", vec!["personal_456".to_string()])
+            .await;
+
         let labeler = GmailLabeler::new_with_api(mock_api);
 
         // Get emails with work label
@@ -594,10 +651,14 @@ mod tests {
     #[test]
     fn test_gmail_labeler_get_label_for_category() {
         // Test the inherited trait behavior for category mapping
-        
+
         #[async_trait]
         impl EmailLabeler for TestLabeler {
-            async fn apply_label(&self, _message_id: &str, _label: &str) -> Result<LabelingResult, LabelingError> {
+            async fn apply_label(
+                &self,
+                _message_id: &str,
+                _label: &str,
+            ) -> Result<LabelingResult, LabelingError> {
                 unimplemented!()
             }
             async fn ensure_label_exists(&self, _label: &str) -> Result<String, LabelingError> {
@@ -606,13 +667,13 @@ mod tests {
         }
 
         struct TestLabeler;
-        
+
         let labeler = TestLabeler;
-        assert_eq!(labeler.get_label_for_category("work"), "AGENT_WORK");
-        assert_eq!(labeler.get_label_for_category("personal"), "AGENT_PERSONAL");
-        assert_eq!(labeler.get_label_for_category("spam"), "AGENT_SPAM");
-        assert_eq!(labeler.get_label_for_category("promotional"), "AGENT_PROMOTIONAL");
-        assert_eq!(labeler.get_label_for_category("newsletter"), "AGENT_NEWSLETTER");
-        assert_eq!(labeler.get_label_for_category("urgent"), "AGENT_URGENT");
+        assert_eq!(labeler.get_label_for_category("work"), "Work");
+        assert_eq!(labeler.get_label_for_category("personal"), "Personal");
+        assert_eq!(labeler.get_label_for_category("spam"), "Spam");
+        assert_eq!(labeler.get_label_for_category("promotional"), "Promotional");
+        assert_eq!(labeler.get_label_for_category("newsletter"), "Newsletter");
+        assert_eq!(labeler.get_label_for_category("urgent"), "Urgent");
     }
 }
