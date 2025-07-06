@@ -1,134 +1,43 @@
 {
   "responses": [
     {
-      "email_id": "197d58a707880c5f",
-      "email_subject": "Some of the fees you pay will change soon",
-      "email_snippet": "It&#39;s now cheaper for you to do some things with Wise ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿",
-      "email_from": "\"Wise (formerly TransferWise)\" <user1@example.com>",
+      "email_id": "197d1b1c0482b34a",
+      "email_subject": "You have 426 notifications about Riley Davis and others",
+      "email_snippet": "Avery Williams, see your unread messages and other notifications about Casey Johnson and Riley Davis. Jordan Brown You have 426 unread notifications to review A lot has happened on Facebook since you last logged in.",
+      "email_from": "Facebook <admin77@sample.net>",
       "classification": {
-        "category": "InterestingInfo",
-        "score": 0.87,
-        "llm_response": "LLM Response: The email contains valuable information about fee changes on Wise, but it doesn't require personal action. It's an informative update that may be useful to read. (Score: 0.87)"
+        "category": "Noise",
+        "score": 0.85,
+        "llm_response": "LLM Response: The email contains low-value notifications from social media and friend requests, but also a link to unsubscribe, indicating it's not entirely spammy or unwanted. However, the primary content is more focused on cluttering the inbox than providing valuable information. (Score: 0.85)"
       },
-      "raw_response": "LLM Response: The email contains valuable information about fee changes on Wise, but it doesn't require personal action. It's an informative update that may be useful to read. (Score: 0.87)",
-      "recorded_at": "2025-07-04T21:26:46.390071+00:00"
+      "raw_response": "LLM Response: The email contains low-value notifications from social media and friend requests, but also a link to unsubscribe, indicating it's not entirely spammy or unwanted. However, the primary content is more focused on cluttering the inbox than providing valuable information. (Score: 0.85)",
+      "recorded_at": "2025-07-06T10:36:48.658187+00:00"
     },
     {
-      "email_id": "197d5297dd1b0ada",
-      "email_subject": "Re: Tomorrow - 5.7",
-      "email_snippet": "Hi Alex Smith &amp; Cameron Garcia Thank you for letting us know - looks as if you are lucky with the weather! Enjoy the evening. Best Avery Williams &amp; Riley Davis &gt; Am 04.07.2025 um 07:41 schrieb Morgan Jones &lt;",
-      "email_from": "Casey Johnson <support15@demo.co.uk>",
+      "email_id": "197d135f45889314",
+      "email_subject": "📄 Morgan Jones posted an update",
+      "email_snippet": "Casey Johnson is my new idol 📄 Morgan Jones posted an update. 3 July at 18:21 View status Was this email:Useful | Not useful This message was sent to admin29@test.org. If you don&#39;t want to",
+      "email_from": "Taylor Miller on Facebook <contact72@sample.net>",
       "classification": {
-        "category": "ActionRequired",
+        "category": "Noise",
+        "score": 0.85,
+        "llm_response": "LLM Response: This email appears to be a generic notification from Meta about account security, but it's not directly actionable or informative in a way that warrants attention. The tone is neutral and the content is likely to be low-value noise for most users. (Score: 0.85)"
+      },
+      "raw_response": "LLM Response: This email appears to be a generic notification from Meta about account security, but it's not directly actionable or informative in a way that warrants attention. The tone is neutral and the content is likely to be low-value noise for most users. (Score: 0.85)",
+      "recorded_at": "2025-07-06T10:37:15.687251+00:00"
+    },
+    {
+      "email_id": "197d0fdb801307c7",
+      "email_subject": "Updates to our RevPoints terms and conditions 📣",
+      "email_snippet": "RevPoints T&amp;Cs are changing Hi Avery Williams, We&#39;re updating the RevPoints T&amp;Cs. This change will come into effect immediately. You&#39;ll now be able to buy points in the app. As was the case with",
+      "email_from": "Revolut <user73@fake.ch>",
+      "classification": {
+        "category": "Spam",
         "score": 0.9,
-        "llm_response": "LLM Response: The email contains a notification about an upcoming event (bbq) that requires personal action from Alex Smith and Cameron Garcia, indicating they need to take part in the event. (Score: 0.90)"
+        "llm_response": "LLM Response: The email appears to be a phishing attempt, attempting to lure the recipient into buying points in an app, which is a common tactic used by spammers. (Score: 0.90)"
       },
-      "raw_response": "LLM Response: The email contains a notification about an upcoming event (bbq) that requires personal action from Alex Smith and Cameron Garcia, indicating they need to take part in the event. (Score: 0.90)",
-      "recorded_at": "2025-07-04T21:26:54.742970+00:00"
-    },
-    {
-      "email_id": "197d24e3369c7475",
-      "email_subject": "On Tech: A.I. videos have never been better. Can you tell what’s real?",
-      "email_snippet": "Plus, the narrowing of Morgan Jones and Casey Johnson&#39;s philanthropy. View in browser|nytimes.com Ad On Tech July 3, 2025 Ad Here is our best tech reporting from the week. FEATURED Article",
-      "email_from": "The New York Times <support63@fake.ch>",
-      "classification": {
-        "category": "InterestingInfo",
-        "score": 0.85,
-        "llm_response": "LLM Response: The email contains valuable information about AI videos and philanthropy, but it does not require personal action or contain low-value noise. (Score: 0.85)"
-      },
-      "raw_response": "LLM Response: The email contains valuable information about AI videos and philanthropy, but it does not require personal action or contain low-value noise. (Score: 0.85)",
-      "recorded_at": "2025-07-04T21:27:52.743018+00:00"
-    },
-    {
-      "email_id": "197d028c4f6afff1",
-      "email_subject": "Festival Da Jazz 2025, WOW Museum, Mountain Calling #24, MONSTER CHETWYND uvm.!",
-      "email_snippet": "Hallo Avery Williams Deine TICKETINO Highlights: Jetzt Tickets sichern &amp; unvergessliche Momente erleben! Morgan Jones 08.08.2025 – 209 Oak Avenue, Franklin, NY 10109, 210 Main Street, Springfield, CA 10110 Klangantrisch bringt Morgan Jones, die preisgekrönte Musikerin aus",
-      "email_from": "Ticketino Marketing <info112@sample.net>",
-      "classification": {
-        "category": "InterestingInfo",
-        "score": 0.85,
-        "llm_response": "LLM Response: The email contains information about various festivals and concerts, which may be of interest to the recipient, but does not require any personal action or contain valuable information that necessitates a response. (Score: 0.85)"
-      },
-      "raw_response": "LLM Response: The email contains information about various festivals and concerts, which may be of interest to the recipient, but does not require any personal action or contain valuable information that necessitates a response. (Score: 0.85)",
-      "recorded_at": "2025-07-04T21:28:25.061871+00:00"
-    },
-    {
-      "email_id": "197d419c9c139c91",
-      "email_subject": "Welcome to the Pro plan",
-      "email_snippet": "Thanks for starting your Pro subscription Your payment method has been charged. The next charge will be on Aug 4, 2025. You can modify your payment method or cancel your subscription anytime by",
-      "email_from": "Anthropic <team50@demo.co.uk>",
-      "classification": {
-        "category": "Reference",
-        "score": 0.92,
-        "llm_response": "LLM Response: The email confirms a subscription payment, provides details about upcoming charges, and offers options to modify or cancel the subscription. While it's not actionable in real-time, it's useful for reference as part of the subscriber's account history. (Score: 0.92)"
-      },
-      "raw_response": "LLM Response: The email confirms a subscription payment, provides details about upcoming charges, and offers options to modify or cancel the subscription. While it's not actionable in real-time, it's useful for reference as part of the subscriber's account history. (Score: 0.92)",
-      "recorded_at": "2025-07-04T21:27:28.232576+00:00"
-    },
-    {
-      "email_id": "197d4ac1d2d399f4",
-      "email_subject": "Economics: The Home Office ‘is to blame for the “Avery Williamswave”’",
-      "email_snippet": "Your digest of the week&#39;s leading financial news from The Spectator ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌",
-      "email_from": "The Spectator <info28@fake.ch>",
-      "classification": {
-        "category": "InterestingInfo",
-        "score": 0.92,
-        "llm_response": "LLM Response: This email contains valuable information about a recent report from the Public Accounts Committee and its findings on the Home Office's handling of migrant workers. Although it doesn't require personal action, it is informative content worth reading. (Score: 0.92)"
-      },
-      "raw_response": "LLM Response: This email contains valuable information about a recent report from the Public Accounts Committee and its findings on the Home Office's handling of migrant workers. Although it doesn't require personal action, it is informative content worth reading. (Score: 0.92)",
-      "recorded_at": "2025-07-04T21:27:04.327242+00:00"
-    },
-    {
-      "email_id": "197d416f85ba467a",
-      "email_subject": "Secure link to log in to Claude.ai |  2025-07-04 08:19:22",
-      "email_snippet": "Let&#39;s get you signed in Sign in with the secure link below Sign in to Claude.ai If you didn&#39;t request this email, you can safely ignore it. If you&#39;re experiencing issues, please contact",
-      "email_from": "Anthropic <support51@example.com>",
-      "classification": {
-        "category": "ActionRequired",
-        "score": 0.98,
-        "llm_response": "LLM Response: The email contains a secure link to log in to Claude.ai and requests action if the recipient is experiencing issues or did not request this email (Score: 0.98)"
-      },
-      "raw_response": "LLM Response: The email contains a secure link to log in to Claude.ai and requests action if the recipient is experiencing issues or did not request this email (Score: 0.98)",
-      "recorded_at": "2025-07-04T21:27:30.837950+00:00"
-    },
-    {
-      "email_id": "197d440b89e6bd76",
-      "email_subject": "Re: Tomorrow - 5.7",
-      "email_snippet": "Cool, thanks! On Fri, 4 Jul 2025 at 08:47, Morgan Jones &lt;user37@sample.net&gt; wrote: Thx. Drop by for a drink anytime if you are around. Morgan Jones 116 Park Avenue 8700 Riverside +41 79",
-      "email_from": "Casey Johnson <support39@test.org>",
-      "classification": {
-        "category": "ActionRequired",
-        "score": 0.85,
-        "llm_response": "LLM Response: The email requires personal action as it mentions an invitation to a BBQ event tomorrow evening and requests presence, which implies the need for RSVP or attendance. (Score: 0.85)"
-      },
-      "raw_response": "LLM Response: The email requires personal action as it mentions an invitation to a BBQ event tomorrow evening and requests presence, which implies the need for RSVP or attendance. (Score: 0.85)",
-      "recorded_at": "2025-07-04T21:27:09.071746+00:00"
-    },
-    {
-      "email_id": "197d3c311da0e97c",
-      "email_subject": "Ready for shipping: Parcel from Digitec Galaxus AG",
-      "email_snippet": "Post Logo «My consignments» Your consignment will soon be on its way Hello Jordan Brown The following consignment will be with you soon. Parcel from Digitec Galaxus AG Track the consignment go to",
-      "email_from": "Post CH Ltd - Consignment status info <team56@example.com>",
-      "classification": {
-        "category": "Reference",
-        "score": 0.85,
-        "llm_response": "LLM Response: The email contains tracking information for a shipment, but it doesn't require immediate personal action and is mainly informative. (Score: 0.85)"
-      },
-      "raw_response": "LLM Response: The email contains tracking information for a shipment, but it doesn't require immediate personal action and is mainly informative. (Score: 0.85)",
-      "recorded_at": "2025-07-04T21:27:39.522955+00:00"
-    },
-    {
-      "email_id": "197d41b03629a2d9",
-      "email_subject": "Your receipt from Anthropic, PBC #2461-9818-4176",
-      "email_snippet": "Your receipt from Anthropic, PBC #2461-9818-4176 ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏",
-      "email_from": "\"Anthropic, PBC\" <team26@example.com>",
-      "classification": {
-        "category": "Reference",
-        "score": 0.95,
-        "llm_response": "LLM Response: This email contains a receipt from Anthropic, PBC, which is useful to keep for reference, but does not require personal action or contain valuable information that needs immediate attention. (Score: 0.95)"
-      },
-      "raw_response": "LLM Response: This email contains a receipt from Anthropic, PBC, which is useful to keep for reference, but does not require personal action or contain valuable information that needs immediate attention. (Score: 0.95)",
-      "recorded_at": "2025-07-04T21:27:21.776126+00:00"
+      "raw_response": "LLM Response: The email appears to be a phishing attempt, attempting to lure the recipient into buying points in an app, which is a common tactic used by spammers. (Score: 0.90)",
+      "recorded_at": "2025-07-06T10:37:21.217362+00:00"
     },
     {
       "email_id": "197d143b11bba1be",
@@ -137,89 +46,11 @@
       "email_from": "LinkedIn <user7@sample.net>",
       "classification": {
         "category": "Noise",
-        "score": 0.85,
-        "llm_response": "LLM Response: The email contains a LinkedIn notification that suggests connections and doesn't require any personal action or contain valuable information. (Score: 0.85)"
+        "score": 0.92,
+        "llm_response": "LLM Response: This email is a notification from LinkedIn about potential connections, which does not require personal action or contain valuable information for immediate action. (Score: 0.92)"
       },
-      "raw_response": "LLM Response: The email contains a LinkedIn notification that suggests connections and doesn't require any personal action or contain valuable information. (Score: 0.85)",
-      "recorded_at": "2025-07-04T21:28:04.024538+00:00"
-    },
-    {
-      "email_id": "197d576488dd6e4b",
-      "email_subject": "[Avery Williams/AgenticMailPipeline] Run failed: CI - main (b03a4e3)",
-      "email_snippet": "[Avery Williams/AgenticMailPipeline] CI workflow run CI: All jobs have failed View workflow run CI / build Failed in 26 seconds annotations for CI / build 5 — You are receiving this because you are",
-      "email_from": "Avery Williams <info4@test.org>",
-      "classification": {
-        "category": "ActionRequired",
-        "score": 0.9,
-        "llm_response": "LLM Response: The email contains information about a failed CI run, which requires attention to resolve and potentially reschedule or investigate further. (Score: 0.90)"
-      },
-      "raw_response": "LLM Response: The email contains information about a failed CI run, which requires attention to resolve and potentially reschedule or investigate further. (Score: 0.90)",
-      "recorded_at": "2025-07-04T21:26:50.389727+00:00"
-    },
-    {
-      "email_id": "197d0fdb801307c7",
-      "email_subject": "Updates to our RevPoints terms and conditions 📣",
-      "email_snippet": "RevPoints T&amp;Cs are changing Hi Avery Williams, We&#39;re updating the RevPoints T&amp;Cs. This change will come into effect immediately. You&#39;ll now be able to buy points in the app. As was the case with",
-      "email_from": "Revolut <user73@fake.ch>",
-      "classification": {
-        "category": "Noise",
-        "score": 0.85,
-        "llm_response": "LLM Response: The email content appears to be a duplicate of an announcement, and it's unclear what specific action Avery needs to take. The tone is also promotional rather than informative or urgent. (Score: 0.85)"
-      },
-      "raw_response": "LLM Response: The email content appears to be a duplicate of an announcement, and it's unclear what specific action Avery needs to take. The tone is also promotional rather than informative or urgent. (Score: 0.85)",
-      "recorded_at": "2025-07-04T21:28:11.171883+00:00"
-    },
-    {
-      "email_id": "197d55fcdb864020",
-      "email_subject": "Mazda, follow Casey Johnson - CEO at Google",
-      "email_snippet": "See your recommendations ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏",
-      "email_from": "LinkedIn <user7@sample.net>",
-      "classification": {
-        "category": "Noise",
-        "score": 0.98,
-        "llm_response": "LLM Response: This email is a generic People You May Know notification from LinkedIn, which is not actionable or particularly interesting, but rather clutter in the inbox. (Score: 0.98)"
-      },
-      "raw_response": "LLM Response: This email is a generic People You May Know notification from LinkedIn, which is not actionable or particularly interesting, but rather clutter in the inbox. (Score: 0.98)",
-      "recorded_at": "2025-07-04T21:26:52.437317+00:00"
-    },
-    {
-      "email_id": "197d3d116e4fa8f1",
-      "email_subject": "Bis zu 80% Reduktion auf Ihre Maschine!",
-      "email_snippet": "Profitieren Sie von exklusiven Vorteilen mit dem Maschinen-Abo ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ Online",
-      "email_from": "Nespresso <user55@demo.co.uk>",
-      "classification": {
-        "category": "Noise",
-        "score": 0.9,
-        "llm_response": "LLM Response: The email is promotional in nature, offering exclusive benefits for a subscription service, but it does not require personal action or contain valuable information relevant to me. It may be worth considering unsubscribing from this sender. (Score: 0.90)"
-      },
-      "raw_response": "LLM Response: The email is promotional in nature, offering exclusive benefits for a subscription service, but it does not require personal action or contain valuable information relevant to me. It may be worth considering unsubscribing from this sender. (Score: 0.90)",
-      "recorded_at": "2025-07-04T21:27:37.595062+00:00"
-    },
-    {
-      "email_id": "197d210763e96613",
-      "email_subject": "📍 Cameron Garcia was at 166 Elm Street, Georgetown, WA 10066, 167 Park Avenue, Riverside, FL 10067, 168 First Street, Clinton, TX 10068",
-      "email_snippet": "it&#39;s pasture-cutting day in these parts… 📍 Cameron Garcia was at Dýrafjörður, Vestur-Isafjardarsysla, Iceland. 3 July at 22:41 View check-in Casey Johnson reacted to this. Was this email:Useful | Not",
-      "email_from": "Taylor Miller on Facebook <contact72@sample.net>",
-      "classification": {
-        "category": "Spam",
-        "score": 0.98,
-        "llm_response": "LLM Response: This email contains a link to unsubscribe from Meta emails and also asks not to forward it, indicating it's trying to maintain user data and may be considered spammy. (Score: 0.98)"
-      },
-      "raw_response": "LLM Response: This email contains a link to unsubscribe from Meta emails and also asks not to forward it, indicating it's trying to maintain user data and may be considered spammy. (Score: 0.98)",
-      "recorded_at": "2025-07-04T21:27:55.253434+00:00"
-    },
-    {
-      "email_id": "197d402e6a6617f7",
-      "email_subject": "Re: Tomorrow - 5.7",
-      "email_snippet": "Thank for letting us know, have fun! Riley Davis and Morgan Jones On Fri, 4 Jul 2025 at 07:41, Morgan Jones &lt;user37@sample.net&gt; wrote: Good morning all Just a heads up that tomorrow evening we are",
-      "email_from": "Casey Johnson <support39@test.org>",
-      "classification": {
-        "category": "ActionRequired",
-        "score": 0.9,
-        "llm_response": "LLM Response: The email mentions an event that requires personal action (attending a BBQ), and the sender explicitly asks recipients to let them know if they can attend. (Score: 0.90)"
-      },
-      "raw_response": "LLM Response: The email mentions an event that requires personal action (attending a BBQ), and the sender explicitly asks recipients to let them know if they can attend. (Score: 0.90)",
-      "recorded_at": "2025-07-04T21:27:34.977473+00:00"
+      "raw_response": "LLM Response: This email is a notification from LinkedIn about potential connections, which does not require personal action or contain valuable information for immediate action. (Score: 0.92)",
+      "recorded_at": "2025-07-06T10:36:57.544756+00:00"
     },
     {
       "email_id": "197d51fda01f7716",
@@ -228,167 +59,24 @@
       "email_from": "mazhewitt <info4@test.org>",
       "classification": {
         "category": "ActionRequired",
-        "score": 0.92,
-        "llm_response": "LLM Response: The email contains a failed CI run notification that requires personal action to manage GitHub Actions notifications. (Score: 0.92)"
-      },
-      "raw_response": "LLM Response: The email contains a failed CI run notification that requires personal action to manage GitHub Actions notifications. (Score: 0.92)",
-      "recorded_at": "2025-07-04T21:26:56.627881+00:00"
-    },
-    {
-      "email_id": "197d41bac3baa59f",
-      "email_subject": "Secure link to log in to Anthropic Console |  2025-07-04 08:24:30",
-      "email_snippet": "Let&#39;s get you signed in Sign in with the secure link below Sign in to Anthropic Console If you didn&#39;t request this email, you can safely ignore it. If you&#39;re experiencing issues, please",
-      "email_from": "Anthropic <user49@test.org>",
-      "classification": {
-        "category": "ActionRequired",
         "score": 0.98,
-        "llm_response": "LLM Response: The email contains a secure link to log in to Anthropic Console and explicitly states 'If you didn't request this email, you can safely ignore it' but also provides an option to contact support if experiencing issues, indicating that personal action may be required. (Score: 0.98)"
+        "llm_response": "LLM Response: This email indicates a failed CI workflow run that requires personal attention to manage GitHub Actions notifications and potential job failures. (Score: 0.98)"
       },
-      "raw_response": "LLM Response: The email contains a secure link to log in to Anthropic Console and explicitly states 'If you didn't request this email, you can safely ignore it' but also provides an option to contact support if experiencing issues, indicating that personal action may be required. (Score: 0.98)",
-      "recorded_at": "2025-07-04T21:27:19.548015+00:00"
+      "raw_response": "LLM Response: This email indicates a failed CI workflow run that requires personal attention to manage GitHub Actions notifications and potential job failures. (Score: 0.98)",
+      "recorded_at": "2025-07-06T10:33:18.712509+00:00"
     },
     {
-      "email_id": "197d0d0fec247167",
-      "email_subject": "Es ist zurück - das LOQED Touch Smart Lock",
-      "email_snippet": "Jetzt noch besser! Das LOQED Touch Smart Lock ist zurück und jetzt sogar noch besser! Die elegante schwarze Version ist schon vergriffen - aber jetzt freuen wir uns, die neue silberne (Edelstahl)-",
-      "email_from": "Taylor Miller <team104@test.org>",
+      "email_id": "197d4ac1d2d399f4",
+      "email_subject": "Economics: The Home Office ‘is to blame for the “Avery Williamswave”’",
+      "email_snippet": "Your digest of the week&#39;s leading financial news from The Spectator ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌",
+      "email_from": "The Spectator <info28@fake.ch>",
       "classification": {
         "category": "InterestingInfo",
-        "score": 0.85,
-        "llm_response": "LLM Response: The email contains valuable information about a product update, but it doesn't require personal action or contain urgent information. It's more of an informative content worth reading. (Score: 0.85)"
-      },
-      "raw_response": "LLM Response: The email contains valuable information about a product update, but it doesn't require personal action or contain urgent information. It's more of an informative content worth reading. (Score: 0.85)",
-      "recorded_at": "2025-07-04T21:28:17.143574+00:00"
-    },
-    {
-      "email_id": "197d41e558628d16",
-      "email_subject": "Your receipt from Anthropic, PBC #2162-8635-4473",
-      "email_snippet": "Your receipt from Anthropic, PBC #2162-8635-4473 ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏",
-      "email_from": "\"Anthropic, PBC\" <team26@example.com>",
-      "classification": {
-        "category": "Reference",
         "score": 0.95,
-        "llm_response": "LLM Response: This email contains a receipt with detailed information, but it does not require personal action or contain newsworthy content. It's primarily useful for reference purposes. (Score: 0.95)"
+        "llm_response": "LLM Response: The email contains valuable financial news and analysis from The Spectator, but does not require personal action or contain information that needs to be referenced frequently. (Score: 0.95)"
       },
-      "raw_response": "LLM Response: This email contains a receipt with detailed information, but it does not require personal action or contain newsworthy content. It's primarily useful for reference purposes. (Score: 0.95)",
-      "recorded_at": "2025-07-04T21:27:11.201595+00:00"
-    },
-    {
-      "email_id": "197d41dcbfca48cd",
-      "email_subject": "New login from macOS (Safari)",
-      "email_snippet": "We noticed a login to your Link account from a new device. ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏",
-      "email_from": "Link <team44@test.org>",
-      "classification": {
-        "category": "ActionRequired",
-        "score": 0.85,
-        "llm_response": "LLM Response: The email indicates a new login from an unknown device and suggests reviewing purchases for suspicious activity, which requires personal action to verify account security. (Score: 0.85)"
-      },
-      "raw_response": "LLM Response: The email indicates a new login from an unknown device and suggests reviewing purchases for suspicious activity, which requires personal action to verify account security. (Score: 0.85)",
-      "recorded_at": "2025-07-04T21:27:13.484757+00:00"
-    },
-    {
-      "email_id": "197d4ad9965e2d57",
-      "email_subject": "Your receipt from Anthropic, PBC #2648-7395-5067",
-      "email_snippet": "Your receipt from Anthropic, PBC #2648-7395-5067 ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏",
-      "email_from": "\"Anthropic, PBC\" <team26@example.com>",
-      "classification": {
-        "category": "Reference",
-        "score": 0.98,
-        "llm_response": "LLM Response: The email content provides a receipt from Anthropic PBC and includes links to view invoice and download receipt, which are useful for reference purposes but do not require personal action or contain high-value information. (Score: 0.98)"
-      },
-      "raw_response": "LLM Response: The email content provides a receipt from Anthropic PBC and includes links to view invoice and download receipt, which are useful for reference purposes but do not require personal action or contain high-value information. (Score: 0.98)",
-      "recorded_at": "2025-07-04T21:27:01.549605+00:00"
-    },
-    {
-      "email_id": "197d39d3ec0601b9",
-      "email_subject": "Your parcel is on its way",
-      "email_snippet": "‌Information about your Galaxus delivery͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏",
-      "email_from": "Galaxus <support57@sample.net>",
-      "classification": {
-        "category": "ActionRequired",
-        "score": 0.92,
-        "llm_response": "LLM Response: The email informs about a parcel shipment, provides tracking information, and mentions that orders may be shipped in multiple batches, indicating that personal action is required to monitor the delivery status. (Score: 0.92)"
-      },
-      "raw_response": "LLM Response: The email informs about a parcel shipment, provides tracking information, and mentions that orders may be shipped in multiple batches, indicating that personal action is required to monitor the delivery status. (Score: 0.92)",
-      "recorded_at": "2025-07-04T21:27:44.868287+00:00"
-    },
-    {
-      "email_id": "197d13f1658d8cf2",
-      "email_subject": "Your guide to The Athletic.",
-      "email_snippet": "Explore in-depth, personalized sports journalism. View in Browser The Athletic The Athletic Welcome to in-depth, personalized sports journalism. The Athletic delivers award-winning coverage of your",
-      "email_from": "The New York Times <user79@test.org>",
-      "classification": {
-        "category": "Reference",
-        "score": 0.85,
-        "llm_response": "LLM Response: This email appears to be a promotional newsletter with valuable information about The Athletic, but it does not require personal action and is mostly for reference purposes. (Score: 0.85)"
-      },
-      "raw_response": "LLM Response: This email appears to be a promotional newsletter with valuable information about The Athletic, but it does not require personal action and is mostly for reference purposes. (Score: 0.85)",
-      "recorded_at": "2025-07-04T21:28:06.319455+00:00"
-    },
-    {
-      "email_id": "197d4f8051b975ba",
-      "email_subject": "Schule Riverside: Neue Nachricht",
-      "email_snippet": "escola Schule Riverside Sehr geehrte Frau Morgan Jones Casey Johnson hat Ihnen eine Nachricht geschickt. Betreff: Informationen zur Klassenstruktur im kommenden Schuljahr [nicht angezeigter Inhalt in der",
-      "email_from": "\"Escola - Schule Riverside\" <admin23@fake.ch>",
-      "classification": {
-        "category": "InterestingInfo",
-        "score": 0.85,
-        "llm_response": "LLM Response: The email contains valuable information about class structure for the upcoming school year, but it doesn't require personal action from the recipient. (Score: 0.85)"
-      },
-      "raw_response": "LLM Response: The email contains valuable information about class structure for the upcoming school year, but it doesn't require personal action from the recipient. (Score: 0.85)",
-      "recorded_at": "2025-07-04T21:26:59.214221+00:00"
-    },
-    {
-      "email_id": "197d03d7f851eb57",
-      "email_subject": "Delivered: Consignment from Liechtensteinische Post AG",
-      "email_snippet": "Post Logo «My consignments» Your consignment has arrived Hello Jordan Brown We have delivered the following consignment. Consignment from Switzerland Track the consignment go to Delivered on Thursday,",
-      "email_from": "Post CH Ltd - Consignment status info <team56@example.com>",
-      "classification": {
-        "category": "Reference",
-        "score": 0.9,
-        "llm_response": "LLM Response: This email contains a delivery confirmation from a postal service, which is useful to keep for reference but does not require personal action or contain valuable new information. (Score: 0.90)"
-      },
-      "raw_response": "LLM Response: This email contains a delivery confirmation from a postal service, which is useful to keep for reference but does not require personal action or contain valuable new information. (Score: 0.90)",
-      "recorded_at": "2025-07-04T21:28:21.733208+00:00"
-    },
-    {
-      "email_id": "197d40dd69e6c292",
-      "email_subject": "Re: Tomorrow - 5.7",
-      "email_snippet": "Have fun! Avery Williams On Fri, 4 Jul 2025, 07:41 Morgan Jones, &lt;user37@sample.net&gt; wrote: Good morning all Just a heads up that tomorrow evening we are hosting a bbq for around 20-25 people.",
-      "email_from": "Jordan Brown <team8@fake.ch>",
-      "classification": {
-        "category": "ActionRequired",
-        "score": 0.95,
-        "llm_response": "LLM Response: This email requires personal action as it mentions a social event that the recipient needs to attend and participate in (Score: 0.95)"
-      },
-      "raw_response": "LLM Response: This email requires personal action as it mentions a social event that the recipient needs to attend and participate in (Score: 0.95)",
-      "recorded_at": "2025-07-04T21:27:32.754480+00:00"
-    },
-    {
-      "email_id": "197d363efc67b2e2",
-      "email_subject": "To pair with what you purchased",
-      "email_snippet": "We&#39;ve got these picks for you ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌",
-      "email_from": "AliExpress <admin59@test.org>",
-      "classification": {
-        "category": "Noise",
-        "score": 0.9,
-        "llm_response": "LLM Response: The email contains generic promotional content without a clear call-to-action or valuable information, suggesting it's low-value noise. (Score: 0.90)"
-      },
-      "raw_response": "LLM Response: The email contains generic promotional content without a clear call-to-action or valuable information, suggesting it's low-value noise. (Score: 0.90)",
-      "recorded_at": "2025-07-04T21:27:46.650678+00:00"
-    },
-    {
-      "email_id": "197d4aa41b5ae380",
-      "email_subject": "Protect yourself from scams",
-      "email_snippet": "Recent Prime Subscription Scams͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏",
-      "email_from": "\"Amazon.co.uk\" <user31@example.com>",
-      "classification": {
-        "category": "InterestingInfo",
-        "score": 0.85,
-        "llm_response": "LLM Response: The email contains valuable information about recent Prime Subscription Scams and offers advice on how to protect oneself, but it does not require personal action or immediate response. (Score: 0.85)"
-      },
-      "raw_response": "LLM Response: The email contains valuable information about recent Prime Subscription Scams and offers advice on how to protect oneself, but it does not require personal action or immediate response. (Score: 0.85)",
-      "recorded_at": "2025-07-04T21:27:06.812763+00:00"
+      "raw_response": "LLM Response: The email contains valuable financial news and analysis from The Spectator, but does not require personal action or contain information that needs to be referenced frequently. (Score: 0.95)",
+      "recorded_at": "2025-07-06T10:33:41.283498+00:00"
     },
     {
       "email_id": "197d0c47abc4a84a",
@@ -398,49 +86,153 @@
       "classification": {
         "category": "ActionRequired",
         "score": 0.95,
-        "llm_response": "LLM Response: The email requires personal action to transfer tickets or assign guests for an upcoming event, making it a high-priority item that needs attention. (Score: 0.95)"
+        "llm_response": "LLM Response: The email explicitly requires the recipient to transfer their UEFA Women's EURO tickets or assign them to guests before match day, indicating a clear personal action needed. (Score: 0.95)"
       },
-      "raw_response": "LLM Response: The email requires personal action to transfer tickets or assign guests for an upcoming event, making it a high-priority item that needs attention. (Score: 0.95)",
-      "recorded_at": "2025-07-04T21:28:19.594406+00:00"
+      "raw_response": "LLM Response: The email explicitly requires the recipient to transfer their UEFA Women's EURO tickets or assign them to guests before match day, indicating a clear personal action needed. (Score: 0.95)",
+      "recorded_at": "2025-07-06T10:37:49.685154+00:00"
     },
     {
-      "email_id": "197d41ce3c0cf467",
-      "email_subject": "Secure link to log in to Anthropic Console |  2025-07-04 08:25:50",
-      "email_snippet": "Let&#39;s get you signed in Sign in with the secure link below 146 Elm Street, Georgetown, WA 10046 If you didn&#39;t request this email, you can safely ignore it. If you&#39;re experiencing issues, please",
-      "email_from": "Anthropic <contact48@fake.ch>",
+      "email_id": "197d41dcbfca48cd",
+      "email_subject": "New login from macOS (Safari)",
+      "email_snippet": "We noticed a login to your Link account from a new device. ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏",
+      "email_from": "Link <team44@test.org>",
+      "classification": {
+        "category": "ActionRequired",
+        "score": 0.85,
+        "llm_response": "LLM Response: The email requires personal action as it notifies the recipient of a potential security issue and prompts them to review their purchases or contact support if necessary. (Score: 0.85)"
+      },
+      "raw_response": "LLM Response: The email requires personal action as it notifies the recipient of a potential security issue and prompts them to review their purchases or contact support if necessary. (Score: 0.85)",
+      "recorded_at": "2025-07-06T10:34:17.784119+00:00"
+    },
+    {
+      "email_id": "197d41bac3baa59f",
+      "email_subject": "Secure link to log in to Anthropic Console |  2025-07-04 08:24:30",
+      "email_snippet": "Let&#39;s get you signed in Sign in with the secure link below Sign in to Anthropic Console If you didn&#39;t request this email, you can safely ignore it. If you&#39;re experiencing issues, please",
+      "email_from": "Anthropic <user49@test.org>",
       "classification": {
         "category": "Spam",
-        "score": 0.99,
-        "llm_response": "LLM Response: The email appears to be a phishing attempt with a suspicious link and a vague message, asking for login credentials. The sender's domain is 'fake.ch', which is likely spoofed. (Score: 0.99)"
+        "score": 0.9,
+        "llm_response": "LLM Response: The email contains a suspicious link to sign in to Anthropic Console without any context or personalization, suggesting it may be a phishing attempt. (Score: 0.90)"
       },
-      "raw_response": "LLM Response: The email appears to be a phishing attempt with a suspicious link and a vague message, asking for login credentials. The sender's domain is 'fake.ch', which is likely spoofed. (Score: 0.99)",
-      "recorded_at": "2025-07-04T21:27:16.376347+00:00"
+      "raw_response": "LLM Response: The email contains a suspicious link to sign in to Anthropic Console without any context or personalization, suggesting it may be a phishing attempt. (Score: 0.90)",
+      "recorded_at": "2025-07-06T10:34:36.612341+00:00"
     },
     {
-      "email_id": "197d1b910945186d",
-      "email_subject": "You have 1 new message",
-      "email_snippet": "You have 1 new message ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏",
-      "email_from": "LinkedIn <team74@test.org>",
-      "classification": {
-        "category": "Noise",
-        "score": 0.85,
-        "llm_response": "LLM Response: This email appears to be a generic newsletter or notification with low-value content and an unsubscribe link, suggesting it's primarily noise. (Score: 0.85)"
-      },
-      "raw_response": "LLM Response: This email appears to be a generic newsletter or notification with low-value content and an unsubscribe link, suggesting it's primarily noise. (Score: 0.85)",
-      "recorded_at": "2025-07-04T21:27:59.214674+00:00"
-    },
-    {
-      "email_id": "197d135f45889314",
-      "email_subject": "📄 Morgan Jones posted an update",
-      "email_snippet": "Casey Johnson is my new idol 📄 Morgan Jones posted an update. 3 July at 18:21 View status Was this email:Useful | Not useful This message was sent to admin29@test.org. If you don&#39;t want to",
+      "email_id": "197d210763e96613",
+      "email_subject": "📍 Cameron Garcia was at 166 Elm Street, Georgetown, WA 10066, 167 Park Avenue, Riverside, FL 10067, 168 First Street, Clinton, TX 10068",
+      "email_snippet": "it&#39;s pasture-cutting day in these parts… 📍 Cameron Garcia was at Dýrafjörður, Vestur-Isafjardarsysla, Iceland. 3 July at 22:41 View check-in Casey Johnson reacted to this. Was this email:Useful | Not",
       "email_from": "Taylor Miller on Facebook <contact72@sample.net>",
+      "classification": {
+        "category": "Spam",
+        "score": 0.98,
+        "llm_response": "LLM Response: The email contains a link to unsubscribe from Meta emails and mentions account security, which is a common tactic used by spammers to harvest email addresses or spread malware. (Score: 0.98)"
+      },
+      "raw_response": "LLM Response: The email contains a link to unsubscribe from Meta emails and mentions account security, which is a common tactic used by spammers to harvest email addresses or spread malware. (Score: 0.98)",
+      "recorded_at": "2025-07-06T10:36:25.953833+00:00"
+    },
+    {
+      "email_id": "197d39d3ec0601b9",
+      "email_subject": "Your parcel is on its way",
+      "email_snippet": "‌Information about your Galaxus delivery͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏",
+      "email_from": "Galaxus <support57@sample.net>",
+      "classification": {
+        "category": "Reference",
+        "score": 0.85,
+        "llm_response": "LLM Response: This email contains tracking information for a parcel delivery, which is useful to keep as a record but does not require immediate action or valuable information that needs personal attention. (Score: 0.85)"
+      },
+      "raw_response": "LLM Response: This email contains tracking information for a parcel delivery, which is useful to keep as a record but does not require immediate action or valuable information that needs personal attention. (Score: 0.85)",
+      "recorded_at": "2025-07-06T10:35:59.487260+00:00"
+    },
+    {
+      "email_id": "197d363efc67b2e2",
+      "email_subject": "To pair with what you purchased",
+      "email_snippet": "We&#39;ve got these picks for you ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌",
+      "email_from": "AliExpress <admin59@test.org>",
       "classification": {
         "category": "Noise",
         "score": 0.95,
-        "llm_response": "LLM Response: This email is a generic notification from Meta regarding account updates and promotions. It does not require personal action or contain valuable information. While it's useful to have an option to unsubscribe, the content itself is low-value noise. (Score: 0.95)"
+        "llm_response": "LLM Response: The email appears to be a generic recommendation from an e-commerce platform without any personal context or specific action required, making it low-value noise (Score: 0.95)"
       },
-      "raw_response": "LLM Response: This email is a generic notification from Meta regarding account updates and promotions. It does not require personal action or contain valuable information. While it's useful to have an option to unsubscribe, the content itself is low-value noise. (Score: 0.95)",
-      "recorded_at": "2025-07-04T21:28:08.902808+00:00"
+      "raw_response": "LLM Response: The email appears to be a generic recommendation from an e-commerce platform without any personal context or specific action required, making it low-value noise (Score: 0.95)",
+      "recorded_at": "2025-07-06T10:36:06.418835+00:00"
+    },
+    {
+      "email_id": "197d0fc155ac25f8",
+      "email_subject": "⚽ Der Ball rollt",
+      "email_snippet": "Bleiben Sie dran mit unserem Sommerangebot logo logo Web Version ⚽ Der Ball rollt seit dem Start der UEFA Women&#39;s EURO 2025 Bleiben Sie dran mit unserem Sommerangebot Liebe Jordan Brown, lieber Alex Smith",
+      "email_from": "Tages-Anzeiger <contact90@demo.co.uk>",
+      "classification": {
+        "category": "Noise",
+        "score": 0.95,
+        "llm_response": "LLM Response: The email contains promotional content, such as a summer offer and a logo, but it lacks any actionable or informative elements that would make it valuable for the recipient. (Score: 0.95)"
+      },
+      "raw_response": "LLM Response: The email contains promotional content, such as a summer offer and a logo, but it lacks any actionable or informative elements that would make it valuable for the recipient. (Score: 0.95)",
+      "recorded_at": "2025-07-06T10:37:31.760073+00:00"
+    },
+    {
+      "email_id": "197d419c9c139c91",
+      "email_subject": "Welcome to the Pro plan",
+      "email_snippet": "Thanks for starting your Pro subscription Your payment method has been charged. The next charge will be on Aug 4, 2025. You can modify your payment method or cancel your subscription anytime by",
+      "email_from": "Anthropic <team50@demo.co.uk>",
+      "classification": {
+        "category": "Reference",
+        "score": 0.98,
+        "llm_response": "LLM Response: The email is a billing notification for a Pro plan subscription, providing payment details and options to modify or cancel the subscription. While it's not an urgent action, it's a record-worthy email that may need to be kept for future reference. (Score: 0.98)"
+      },
+      "raw_response": "LLM Response: The email is a billing notification for a Pro plan subscription, providing payment details and options to modify or cancel the subscription. While it's not an urgent action, it's a record-worthy email that may need to be kept for future reference. (Score: 0.98)",
+      "recorded_at": "2025-07-06T10:34:57.760481+00:00"
+    },
+    {
+      "email_id": "197d440b89e6bd76",
+      "email_subject": "Re: Tomorrow - 5.7",
+      "email_snippet": "Cool, thanks! On Fri, 4 Jul 2025 at 08:47, Morgan Jones &lt;user37@sample.net&gt; wrote: Thx. Drop by for a drink anytime if you are around. Morgan Jones 116 Park Avenue 8700 Riverside +41 79",
+      "email_from": "Casey Johnson <support39@test.org>",
+      "classification": {
+        "category": "ActionRequired",
+        "score": 0.85,
+        "llm_response": "LLM Response: The email contains a heads-up about an upcoming event (bbq) that requires personal attention and potential action. (Score: 0.85)"
+      },
+      "raw_response": "LLM Response: The email contains a heads-up about an upcoming event (bbq) that requires personal attention and potential action. (Score: 0.85)",
+      "recorded_at": "2025-07-06T10:33:58.126664+00:00"
+    },
+    {
+      "email_id": "197d55fcdb864020",
+      "email_subject": "Mazda, follow Casey Johnson - CEO at Google",
+      "email_snippet": "See your recommendations ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏",
+      "email_from": "LinkedIn <user7@sample.net>",
+      "classification": {
+        "category": "Noise",
+        "score": 0.85,
+        "llm_response": "LLM Response: This email appears to be a generic People You May Know notification from LinkedIn, which is likely low-value content and does not require personal action or contain valuable information. (Score: 0.85)"
+      },
+      "raw_response": "LLM Response: This email appears to be a generic People You May Know notification from LinkedIn, which is likely low-value content and does not require personal action or contain valuable information. (Score: 0.85)",
+      "recorded_at": "2025-07-06T10:33:01.355813+00:00"
+    },
+    {
+      "email_id": "197d4ad9965e2d57",
+      "email_subject": "Your receipt from Anthropic, PBC #2648-7395-5067",
+      "email_snippet": "Your receipt from Anthropic, PBC #2648-7395-5067 ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏",
+      "email_from": "\"Anthropic, PBC\" <team26@example.com>",
+      "classification": {
+        "category": "Reference",
+        "score": 0.98,
+        "llm_response": "LLM Response: This email contains a receipt for a payment made to Anthropic, PBC, and provides details such as invoice number, receipt number, payment method, and amount paid. It does not require personal action or contain actionable information, but is useful to keep for reference purposes. (Score: 0.98)"
+      },
+      "raw_response": "LLM Response: This email contains a receipt for a payment made to Anthropic, PBC, and provides details such as invoice number, receipt number, payment method, and amount paid. It does not require personal action or contain actionable information, but is useful to keep for reference purposes. (Score: 0.98)",
+      "recorded_at": "2025-07-06T10:33:35.716540+00:00"
+    },
+    {
+      "email_id": "197d24e3369c7475",
+      "email_subject": "On Tech: A.I. videos have never been better. Can you tell what’s real?",
+      "email_snippet": "Plus, the narrowing of Morgan Jones and Casey Johnson&#39;s philanthropy. View in browser|nytimes.com Ad On Tech July 3, 2025 Ad Here is our best tech reporting from the week. FEATURED Article",
+      "email_from": "The New York Times <support63@fake.ch>",
+      "classification": {
+        "category": "InterestingInfo",
+        "score": 0.9,
+        "llm_response": "LLM Response: The email contains informative content about AI videos and philanthropy from The New York Times, but it does not require personal action or contain sensitive information. (Score: 0.90)"
+      },
+      "raw_response": "LLM Response: The email contains informative content about AI videos and philanthropy from The New York Times, but it does not require personal action or contain sensitive information. (Score: 0.90)",
+      "recorded_at": "2025-07-06T10:36:18.627439+00:00"
     },
     {
       "email_id": "197d57dff2c1eada",
@@ -450,23 +242,166 @@
       "classification": {
         "category": "ActionRequired",
         "score": 0.95,
-        "llm_response": "LLM Response: The email indicates that a CI build failed and provides a link to manage GitHub Actions notifications, requiring personal attention (Score: 0.95)"
+        "llm_response": "LLM Response: The email notifies you of a failed CI build and workflow run, requiring personal action to manage or review the issue. (Score: 0.95)"
       },
-      "raw_response": "LLM Response: The email indicates that a CI build failed and provides a link to manage GitHub Actions notifications, requiring personal attention (Score: 0.95)",
-      "recorded_at": "2025-07-04T21:26:48.380273+00:00"
+      "raw_response": "LLM Response: The email notifies you of a failed CI build and workflow run, requiring personal action to manage or review the issue. (Score: 0.95)",
+      "recorded_at": "2025-07-06T10:32:38.193916+00:00"
     },
     {
-      "email_id": "197d0fc155ac25f8",
-      "email_subject": "⚽ Der Ball rollt",
-      "email_snippet": "Bleiben Sie dran mit unserem Sommerangebot logo logo Web Version ⚽ Der Ball rollt seit dem Start der UEFA Women&#39;s EURO 2025 Bleiben Sie dran mit unserem Sommerangebot Liebe Jordan Brown, lieber Alex Smith",
-      "email_from": "Tages-Anzeiger <contact90@demo.co.uk>",
+      "email_id": "197d3d116e4fa8f1",
+      "email_subject": "Bis zu 80% Reduktion auf Ihre Maschine!",
+      "email_snippet": "Profitieren Sie von exklusiven Vorteilen mit dem Maschinen-Abo ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ Online",
+      "email_from": "Nespresso <user55@demo.co.uk>",
       "classification": {
         "category": "Noise",
         "score": 0.85,
-        "llm_response": "LLM Response: The email contains promotional content and marketing links, but it's not addressed to a specific recipient or requiring any personal action. (Score: 0.85)"
+        "llm_response": "LLM Response: The email contains promotional content for Nespresso's machine-abo online service and does not require personal action or contain valuable information. It is likely a generic marketing email. (Score: 0.85)"
       },
-      "raw_response": "LLM Response: The email contains promotional content and marketing links, but it's not addressed to a specific recipient or requiring any personal action. (Score: 0.85)",
-      "recorded_at": "2025-07-04T21:28:14.143598+00:00"
+      "raw_response": "LLM Response: The email contains promotional content for Nespresso's machine-abo online service and does not require personal action or contain valuable information. It is likely a generic marketing email. (Score: 0.85)",
+      "recorded_at": "2025-07-06T10:35:41.748283+00:00"
+    },
+    {
+      "email_id": "197d13f1658d8cf2",
+      "email_subject": "Your guide to The Athletic.",
+      "email_snippet": "Explore in-depth, personalized sports journalism. View in Browser The Athletic The Athletic Welcome to in-depth, personalized sports journalism. The Athletic delivers award-winning coverage of your",
+      "email_from": "The New York Times <user79@test.org>",
+      "classification": {
+        "category": "InterestingInfo",
+        "score": 0.85,
+        "llm_response": "LLM Response: This email contains valuable information about personalized sports journalism from The Athletic, but it does not require personal action or appear to be a reference for future use. (Score: 0.85)"
+      },
+      "raw_response": "LLM Response: This email contains valuable information about personalized sports journalism from The Athletic, but it does not require personal action or appear to be a reference for future use. (Score: 0.85)",
+      "recorded_at": "2025-07-06T10:37:06.502531+00:00"
+    },
+    {
+      "email_id": "197d5297dd1b0ada",
+      "email_subject": "Re: Tomorrow - 5.7",
+      "email_snippet": "Hi Alex Smith &amp; Cameron Garcia Thank you for letting us know - looks as if you are lucky with the weather! Enjoy the evening. Best Avery Williams &amp; Riley Davis &gt; Am 04.07.2025 um 07:41 schrieb Morgan Jones &lt;",
+      "email_from": "Casey Johnson <support15@demo.co.uk>",
+      "classification": {
+        "category": "ActionRequired",
+        "score": 0.95,
+        "llm_response": "LLM Response: The email contains a clear invitation to a BBQ event and mentions that attendees are expected, which requires Alex Smith's personal action (Score: 0.95)"
+      },
+      "raw_response": "LLM Response: The email contains a clear invitation to a BBQ event and mentions that attendees are expected, which requires Alex Smith's personal action (Score: 0.95)",
+      "recorded_at": "2025-07-06T10:33:10.148504+00:00"
+    },
+    {
+      "email_id": "197d576488dd6e4b",
+      "email_subject": "[Avery Williams/AgenticMailPipeline] Run failed: CI - main (b03a4e3)",
+      "email_snippet": "[Avery Williams/AgenticMailPipeline] CI workflow run CI: All jobs have failed View workflow run CI / build Failed in 26 seconds annotations for CI / build 5 — You are receiving this because you are",
+      "email_from": "Avery Williams <info4@test.org>",
+      "classification": {
+        "category": "ActionRequired",
+        "score": 0.95,
+        "llm_response": "LLM Response: The email contains information about a failed CI build, which requires personal action to address the issue. (Score: 0.95)"
+      },
+      "raw_response": "LLM Response: The email contains information about a failed CI build, which requires personal action to address the issue. (Score: 0.95)",
+      "recorded_at": "2025-07-06T10:32:49.600932+00:00"
+    },
+    {
+      "email_id": "197d0d0fec247167",
+      "email_subject": "Es ist zurück - das LOQED Touch Smart Lock",
+      "email_snippet": "Jetzt noch besser! Das LOQED Touch Smart Lock ist zurück und jetzt sogar noch besser! Die elegante schwarze Version ist schon vergriffen - aber jetzt freuen wir uns, die neue silberne (Edelstahl)-",
+      "email_from": "Taylor Miller <team104@test.org>",
+      "classification": {
+        "category": "Noise",
+        "score": 0.85,
+        "llm_response": "LLM Response: The email contains promotional content for a product (LOQED Touch Smart Lock) with links to purchase or learn more, indicating it's an unsolicited marketing message and likely to be considered noise. (Score: 0.85)"
+      },
+      "raw_response": "LLM Response: The email contains promotional content for a product (LOQED Touch Smart Lock) with links to purchase or learn more, indicating it's an unsolicited marketing message and likely to be considered noise. (Score: 0.85)",
+      "recorded_at": "2025-07-06T10:37:37.915796+00:00"
+    },
+    {
+      "email_id": "197d4f8051b975ba",
+      "email_subject": "Schule Riverside: Neue Nachricht",
+      "email_snippet": "escola Schule Riverside Sehr geehrte Frau Morgan Jones Casey Johnson hat Ihnen eine Nachricht geschickt. Betreff: Informationen zur Klassenstruktur im kommenden Schuljahr [nicht angezeigter Inhalt in der",
+      "email_from": "\"Escola - Schule Riverside\" <admin23@fake.ch>",
+      "classification": {
+        "category": "ActionRequired",
+        "score": 0.92,
+        "llm_response": "LLM Response: The email contains a notification that Casey Johnson has sent a message and requires Morgan Jones to log in to read and respond to it, which indicates a need for personal action. (Score: 0.92)"
+      },
+      "raw_response": "LLM Response: The email contains a notification that Casey Johnson has sent a message and requires Morgan Jones to log in to read and respond to it, which indicates a need for personal action. (Score: 0.92)",
+      "recorded_at": "2025-07-06T10:33:27.996094+00:00"
+    },
+    {
+      "email_id": "197d3c311da0e97c",
+      "email_subject": "Ready for shipping: Parcel from Digitec Galaxus AG",
+      "email_snippet": "Post Logo «My consignments» Your consignment will soon be on its way Hello Jordan Brown The following consignment will be with you soon. Parcel from Digitec Galaxus AG Track the consignment go to",
+      "email_from": "Post CH Ltd - Consignment status info <team56@example.com>",
+      "classification": {
+        "category": "Reference",
+        "score": 0.85,
+        "llm_response": "LLM Response: This email contains a shipping update, but it's more of an automated notification rather than something requiring personal action or attention. It provides useful reference information for tracking the consignment. (Score: 0.85)"
+      },
+      "raw_response": "LLM Response: This email contains a shipping update, but it's more of an automated notification rather than something requiring personal action or attention. It provides useful reference information for tracking the consignment. (Score: 0.85)",
+      "recorded_at": "2025-07-06T10:35:48.213380+00:00"
+    },
+    {
+      "email_id": "197d028c4f6afff1",
+      "email_subject": "Festival Da Jazz 2025, WOW Museum, Mountain Calling #24, MONSTER CHETWYND uvm.!",
+      "email_snippet": "Hallo Avery Williams Deine TICKETINO Highlights: Jetzt Tickets sichern &amp; unvergessliche Momente erleben! Morgan Jones 08.08.2025 – 209 Oak Avenue, Franklin, NY 10109, 210 Main Street, Springfield, CA 10110 Klangantrisch bringt Morgan Jones, die preisgekrönte Musikerin aus",
+      "email_from": "Ticketino Marketing <info112@sample.net>",
+      "classification": {
+        "category": "ActionRequired",
+        "score": 0.8,
+        "llm_response": "LLM Response: The email contains ticket information and a call to action (\"Jetzt Tickets sichern\") which requires personal attention to secure tickets. (Score: 0.80)"
+      },
+      "raw_response": "LLM Response: The email contains ticket information and a call to action (\"Jetzt Tickets sichern\") which requires personal attention to secure tickets. (Score: 0.80)",
+      "recorded_at": "2025-07-06T10:38:04.461035+00:00"
+    },
+    {
+      "email_id": "197d40dd69e6c292",
+      "email_subject": "Re: Tomorrow - 5.7",
+      "email_snippet": "Have fun! Avery Williams On Fri, 4 Jul 2025, 07:41 Morgan Jones, &lt;user37@sample.net&gt; wrote: Good morning all Just a heads up that tomorrow evening we are hosting a bbq for around 20-25 people.",
+      "email_from": "Jordan Brown <team8@fake.ch>",
+      "classification": {
+        "category": "ActionRequired",
+        "score": 0.98,
+        "llm_response": "LLM Response: The email requires personal action as it mentions a BBQ event and asks the recipient to 'have fun', implying they are expected to attend or participate in some way. (Score: 0.98)"
+      },
+      "raw_response": "LLM Response: The email requires personal action as it mentions a BBQ event and asks the recipient to 'have fun', implying they are expected to attend or participate in some way. (Score: 0.98)",
+      "recorded_at": "2025-07-06T10:35:20.453341+00:00"
+    },
+    {
+      "email_id": "197d41b03629a2d9",
+      "email_subject": "Your receipt from Anthropic, PBC #2461-9818-4176",
+      "email_snippet": "Your receipt from Anthropic, PBC #2461-9818-4176 ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏",
+      "email_from": "\"Anthropic, PBC\" <team26@example.com>",
+      "classification": {
+        "category": "Reference",
+        "score": 0.95,
+        "llm_response": "LLM Response: The email content is primarily a receipt, which requires keeping for reference but does not require personal action or attention. (Score: 0.95)"
+      },
+      "raw_response": "LLM Response: The email content is primarily a receipt, which requires keeping for reference but does not require personal action or attention. (Score: 0.95)",
+      "recorded_at": "2025-07-06T10:34:43.458461+00:00"
+    },
+    {
+      "email_id": "197d03d7f851eb57",
+      "email_subject": "Delivered: Consignment from Liechtensteinische Post AG",
+      "email_snippet": "Post Logo «My consignments» Your consignment has arrived Hello Jordan Brown We have delivered the following consignment. Consignment from Switzerland Track the consignment go to Delivered on Thursday,",
+      "email_from": "Post CH Ltd - Consignment status info <team56@example.com>",
+      "classification": {
+        "category": "Reference",
+        "score": 0.85,
+        "llm_response": "LLM Response: This email contains a delivery confirmation from a postal service, but it does not require immediate action and is more of a record-keeping item. (Score: 0.85)"
+      },
+      "raw_response": "LLM Response: This email contains a delivery confirmation from a postal service, but it does not require immediate action and is more of a record-keeping item. (Score: 0.85)",
+      "recorded_at": "2025-07-06T10:37:57.306532+00:00"
+    },
+    {
+      "email_id": "197d41ce3c0cf467",
+      "email_subject": "Secure link to log in to Anthropic Console |  2025-07-04 08:25:50",
+      "email_snippet": "Let&#39;s get you signed in Sign in with the secure link below 146 Elm Street, Georgetown, WA 10046 If you didn&#39;t request this email, you can safely ignore it. If you&#39;re experiencing issues, please",
+      "email_from": "Anthropic <contact48@fake.ch>",
+      "classification": {
+        "category": "Spam",
+        "score": 0.95,
+        "llm_response": "LLM Response: The email contains a suspicious link to log in to Anthropic Console and multiple red flags such as 'If you didn't request this email' indicating potential phishing attempt. (Score: 0.95)"
+      },
+      "raw_response": "LLM Response: The email contains a suspicious link to log in to Anthropic Console and multiple red flags such as 'If you didn't request this email' indicating potential phishing attempt. (Score: 0.95)",
+      "recorded_at": "2025-07-06T10:34:29.273181+00:00"
     },
     {
       "email_id": "197d1eba2d095026",
@@ -476,15 +411,93 @@
       "classification": {
         "category": "Reference",
         "score": 0.85,
-        "llm_response": "LLM Response: The email requires reading to understand changes but doesn't prompt personal action; it's primarily informative and useful for keeping records of updates. (Score: 0.85)"
+        "llm_response": "LLM Response: The email contains terms and conditions updates, which are important records to keep for reference but do not require immediate personal action or contain valuable new information. (Score: 0.85)"
       },
-      "raw_response": "LLM Response: The email requires reading to understand changes but doesn't prompt personal action; it's primarily informative and useful for keeping records of updates. (Score: 0.85)",
-      "recorded_at": "2025-07-04T21:27:57.205954+00:00"
+      "raw_response": "LLM Response: The email contains terms and conditions updates, which are important records to keep for reference but do not require immediate personal action or contain valuable new information. (Score: 0.85)",
+      "recorded_at": "2025-07-06T10:36:33.312914+00:00"
+    },
+    {
+      "email_id": "197d402e6a6617f7",
+      "email_subject": "Re: Tomorrow - 5.7",
+      "email_snippet": "Thank for letting us know, have fun! Riley Davis and Morgan Jones On Fri, 4 Jul 2025 at 07:41, Morgan Jones &lt;user37@sample.net&gt; wrote: Good morning all Just a heads up that tomorrow evening we are",
+      "email_from": "Casey Johnson <support39@test.org>",
+      "classification": {
+        "category": "ActionRequired",
+        "score": 0.98,
+        "llm_response": "LLM Response: This email contains a reminder about an event (a BBQ) that requires personal action and attention, as indicated by phrases like 'Just heads up' and 'We will of course try to keep the noise down'. The tone is casual but the content implies responsibility. (Score: 0.98)"
+      },
+      "raw_response": "LLM Response: This email contains a reminder about an event (a BBQ) that requires personal action and attention, as indicated by phrases like 'Just heads up' and 'We will of course try to keep the noise down'. The tone is casual but the content implies responsibility. (Score: 0.98)",
+      "recorded_at": "2025-07-06T10:35:28.177237+00:00"
+    },
+    {
+      "email_id": "197d416f85ba467a",
+      "email_subject": "Secure link to log in to Claude.ai |  2025-07-04 08:19:22",
+      "email_snippet": "Let&#39;s get you signed in Sign in with the secure link below Sign in to Claude.ai If you didn&#39;t request this email, you can safely ignore it. If you&#39;re experiencing issues, please contact",
+      "email_from": "Anthropic <support51@example.com>",
+      "classification": {
+        "category": "ActionRequired",
+        "score": 0.95,
+        "llm_response": "LLM Response: This email requires personal action as it provides a secure link to log in to Claude.ai and asks the recipient to either sign in or contact support if they did not request the email. (Score: 0.95)"
+      },
+      "raw_response": "LLM Response: This email requires personal action as it provides a secure link to log in to Claude.ai and asks the recipient to either sign in or contact support if they did not request the email. (Score: 0.95)",
+      "recorded_at": "2025-07-06T10:35:08.270861+00:00"
+    },
+    {
+      "email_id": "197d41e558628d16",
+      "email_subject": "Your receipt from Anthropic, PBC #2162-8635-4473",
+      "email_snippet": "Your receipt from Anthropic, PBC #2162-8635-4473 ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏",
+      "email_from": "\"Anthropic, PBC\" <team26@example.com>",
+      "classification": {
+        "category": "Reference",
+        "score": 0.9,
+        "llm_response": "LLM Response: This email contains a receipt from Anthropic, PBC which is useful to keep for reference but doesn't require immediate action or contain high-priority information. (Score: 0.90)"
+      },
+      "raw_response": "LLM Response: This email contains a receipt from Anthropic, PBC which is useful to keep for reference but doesn't require immediate action or contain high-priority information. (Score: 0.90)",
+      "recorded_at": "2025-07-06T10:34:09.321371+00:00"
+    },
+    {
+      "email_id": "197d1b910945186d",
+      "email_subject": "You have 1 new message",
+      "email_snippet": "You have 1 new message ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏",
+      "email_from": "LinkedIn <team74@test.org>",
+      "classification": {
+        "category": "Noise",
+        "score": 0.85,
+        "llm_response": "LLM Response: This email appears to be a generic newsletter from LinkedIn with promotional content and notification links, which are typical characteristics of low-value noise in an inbox. (Score: 0.85)"
+      },
+      "raw_response": "LLM Response: This email appears to be a generic newsletter from LinkedIn with promotional content and notification links, which are typical characteristics of low-value noise in an inbox. (Score: 0.85)",
+      "recorded_at": "2025-07-06T10:36:41.474229+00:00"
+    },
+    {
+      "email_id": "197d58a707880c5f",
+      "email_subject": "Some of the fees you pay will change soon",
+      "email_snippet": "It&#39;s now cheaper for you to do some things with Wise ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿",
+      "email_from": "\"Wise (formerly TransferWise)\" <user1@example.com>",
+      "classification": {
+        "category": "InterestingInfo",
+        "score": 0.85,
+        "llm_response": "LLM Response: The email contains valuable information about upcoming changes to fees, but it does not require personal action and is primarily informative. (Score: 0.85)"
+      },
+      "raw_response": "LLM Response: The email contains valuable information about upcoming changes to fees, but it does not require personal action and is primarily informative. (Score: 0.85)",
+      "recorded_at": "2025-07-06T10:32:24.492401+00:00"
+    },
+    {
+      "email_id": "197d4aa41b5ae380",
+      "email_subject": "Protect yourself from scams",
+      "email_snippet": "Recent Prime Subscription Scams͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏",
+      "email_from": "\"Amazon.co.uk\" <user31@example.com>",
+      "classification": {
+        "category": "InterestingInfo",
+        "score": 0.85,
+        "llm_response": "LLM Response: The email contains valuable information about recent Prime Subscription Scams, but it does not require personal action and is not useful for reference. It's more of a notification to be aware of potential scams, making it InterestingInfo rather than ActionRequired or Reference. (Score: 0.85)"
+      },
+      "raw_response": "LLM Response: The email contains valuable information about recent Prime Subscription Scams, but it does not require personal action and is not useful for reference. It's more of a notification to be aware of potential scams, making it InterestingInfo rather than ActionRequired or Reference. (Score: 0.85)",
+      "recorded_at": "2025-07-06T10:33:49.971208+00:00"
     }
   ],
   "metadata": {
     "model": "llama3.1:8b",
-    "recorded_at": "2025-07-04T21:28:25.062007+00:00",
-    "total_responses": 37
+    "recorded_at": "2025-07-06T10:38:04.461105+00:00",
+    "total_responses": 38
   }
 }

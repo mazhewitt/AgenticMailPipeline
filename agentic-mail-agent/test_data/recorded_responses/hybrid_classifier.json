@@ -1,30 +1,17 @@
 {
   "responses": [
     {
-      "email_id": "197d58a707880c5f",
-      "email_subject": "Some of the fees you pay will change soon",
-      "email_snippet": "It&#39;s now cheaper for you to do some things with Wise ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿",
-      "email_from": "\"Wise (formerly TransferWise)\" <user1@example.com>",
-      "classification": {
-        "category": "InterestingInfo",
-        "score": 0.8,
-        "llm_response": "LLM Response: The email contains valuable information about changes to Wise's fees and provides links for further reading, making it informative but not requiring immediate action. (Score: 0.80)"
-      },
-      "raw_response": "LLM Response: The email contains valuable information about changes to Wise's fees and provides links for further reading, making it informative but not requiring immediate action. (Score: 0.80)",
-      "recorded_at": "2025-07-06T08:48:26.989828+00:00"
-    },
-    {
-      "email_id": "197d5297dd1b0ada",
-      "email_subject": "Re: Tomorrow - 5.7",
-      "email_snippet": "Hi Alex Smith &amp; Cameron Garcia Thank you for letting us know - looks as if you are lucky with the weather! Enjoy the evening. Best Avery Williams &amp; Riley Davis &gt; Am 04.07.2025 um 07:41 schrieb Morgan Jones &lt;",
-      "email_from": "Casey Johnson <support15@demo.co.uk>",
+      "email_id": "197d4ad9965e2d57",
+      "email_subject": "Your receipt from Anthropic, PBC #2648-7395-5067",
+      "email_snippet": "Your receipt from Anthropic, PBC #2648-7395-5067 ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏",
+      "email_from": "\"Anthropic, PBC\" <team26@example.com>",
       "classification": {
         "category": "Reference",
-        "score": 0.9,
-        "llm_response": "Post-processed: Personal conversation corrected to Reference"
+        "score": 0.92,
+        "llm_response": "High-confidence rule: Receipt/invoice detected"
       },
-      "raw_response": "Post-processed: Personal conversation corrected to Reference",
-      "recorded_at": "2025-07-06T08:48:46.239905+00:00"
+      "raw_response": "High-confidence rule: Receipt/invoice detected",
+      "recorded_at": "2025-07-06T10:32:48.001382+00:00"
     },
     {
       "email_id": "197d57dff2c1eada",
@@ -37,72 +24,33 @@
         "llm_response": "High-confidence rule: CI failure detected"
       },
       "raw_response": "High-confidence rule: CI failure detected",
-      "recorded_at": "2025-07-06T08:48:26.991103+00:00"
+      "recorded_at": "2025-07-06T10:32:22.938371+00:00"
     },
     {
-      "email_id": "197d4f8051b975ba",
-      "email_subject": "Schule Riverside: Neue Nachricht",
-      "email_snippet": "escola Schule Riverside Sehr geehrte Frau Morgan Jones Casey Johnson hat Ihnen eine Nachricht geschickt. Betreff: Informationen zur Klassenstruktur im kommenden Schuljahr [nicht angezeigter Inhalt in der",
-      "email_from": "\"Escola - Schule Riverside\" <admin23@fake.ch>",
+      "email_id": "197d55fcdb864020",
+      "email_subject": "Mazda, follow Casey Johnson - CEO at Google",
+      "email_snippet": "See your recommendations ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏",
+      "email_from": "LinkedIn <user7@sample.net>",
       "classification": {
-        "category": "ActionRequired",
-        "score": 0.88,
-        "llm_response": "High-confidence rule: School communication"
+        "category": "Noise",
+        "score": 0.98,
+        "llm_response": "LLM Response: The email appears to be a generic notification from LinkedIn suggesting new connections and recommending content, which is likely of low value and doesn't require personal action or contain valuable information. (Score: 0.98)"
       },
-      "raw_response": "High-confidence rule: School communication",
-      "recorded_at": "2025-07-06T08:48:46.255972+00:00"
+      "raw_response": "LLM Response: The email appears to be a generic notification from LinkedIn suggesting new connections and recommending content, which is likely of low value and doesn't require personal action or contain valuable information. (Score: 0.98)",
+      "recorded_at": "2025-07-06T10:32:36.714161+00:00"
     },
     {
-      "email_id": "197d4aa41b5ae380",
-      "email_subject": "Protect yourself from scams",
-      "email_snippet": "Recent Prime Subscription Scams͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏",
-      "email_from": "\"Amazon.co.uk\" <user31@example.com>",
+      "email_id": "197d58a707880c5f",
+      "email_subject": "Some of the fees you pay will change soon",
+      "email_snippet": "It&#39;s now cheaper for you to do some things with Wise ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿ ͏ ‌ ﻿",
+      "email_from": "\"Wise (formerly TransferWise)\" <user1@example.com>",
       "classification": {
         "category": "InterestingInfo",
         "score": 0.85,
-        "llm_response": "LLM Response: This email requires attention to inform users about potential scams and provides valuable information on how to protect themselves, but it doesn't require personal action or immediate response. (Score: 0.85)"
+        "llm_response": "LLM Response: The email contains valuable information about changes to fees and pricing for Wise services, but it doesn't require personal action or contain sensitive information that needs a response. (Score: 0.85)"
       },
-      "raw_response": "LLM Response: This email requires attention to inform users about potential scams and provides valuable information on how to protect themselves, but it doesn't require personal action or immediate response. (Score: 0.85)",
-      "recorded_at": "2025-07-06T08:48:56.099777+00:00"
-    },
-    {
-      "email_id": "197d51fda01f7716",
-      "email_subject": "[mazhewitt/AgenticMailPipeline] Run failed: CI - main (a8e5b26)",
-      "email_snippet": "[mazhewitt/AgenticMailPipeline] CI workflow run CI: All jobs have failed View workflow run CI / build Failed in 10 seconds annotations for CI / build 5 — Riley Davis are receiving this because you are",
-      "email_from": "mazhewitt <info4@test.org>",
-      "classification": {
-        "category": "ActionRequired",
-        "score": 0.95,
-        "llm_response": "High-confidence rule: CI failure detected"
-      },
-      "raw_response": "High-confidence rule: CI failure detected",
-      "recorded_at": "2025-07-06T08:48:46.241032+00:00"
-    },
-    {
-      "email_id": "197d4ac1d2d399f4",
-      "email_subject": "Economics: The Home Office ‘is to blame for the “Avery Williamswave”’",
-      "email_snippet": "Your digest of the week&#39;s leading financial news from The Spectator ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌",
-      "email_from": "The Spectator <info28@fake.ch>",
-      "classification": {
-        "category": "InterestingInfo",
-        "score": 0.83,
-        "llm_response": "High-confidence rule: Economic/financial content"
-      },
-      "raw_response": "High-confidence rule: Economic/financial content",
-      "recorded_at": "2025-07-06T08:48:46.261981+00:00"
-    },
-    {
-      "email_id": "197d4ad9965e2d57",
-      "email_subject": "Your receipt from Anthropic, PBC #2648-7395-5067",
-      "email_snippet": "Your receipt from Anthropic, PBC #2648-7395-5067 ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏",
-      "email_from": "\"Anthropic, PBC\" <team26@example.com>",
-      "classification": {
-        "category": "Reference",
-        "score": 0.92,
-        "llm_response": "High-confidence rule: Receipt/invoice detected"
-      },
-      "raw_response": "High-confidence rule: Receipt/invoice detected",
-      "recorded_at": "2025-07-06T08:48:46.257112+00:00"
+      "raw_response": "LLM Response: The email contains valuable information about changes to fees and pricing for Wise services, but it doesn't require personal action or contain sensitive information that needs a response. (Score: 0.85)",
+      "recorded_at": "2025-07-06T10:32:22.937518+00:00"
     },
     {
       "email_id": "197d576488dd6e4b",
@@ -115,25 +63,77 @@
         "llm_response": "High-confidence rule: CI failure detected"
       },
       "raw_response": "High-confidence rule: CI failure detected",
-      "recorded_at": "2025-07-06T08:48:26.991823+00:00"
+      "recorded_at": "2025-07-06T10:32:22.938718+00:00"
     },
     {
-      "email_id": "197d55fcdb864020",
-      "email_subject": "Mazda, follow Casey Johnson - CEO at Google",
-      "email_snippet": "See your recommendations ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏",
-      "email_from": "LinkedIn <user7@sample.net>",
+      "email_id": "197d4ac1d2d399f4",
+      "email_subject": "Economics: The Home Office ‘is to blame for the “Avery Williamswave”’",
+      "email_snippet": "Your digest of the week&#39;s leading financial news from The Spectator ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌ ‌",
+      "email_from": "The Spectator <info28@fake.ch>",
       "classification": {
-        "category": "Noise",
-        "score": 0.98,
-        "llm_response": "LLM Response: The email contains a notification about People You May Know, which is likely low-value content and does not require personal action or contain valuable information. (Score: 0.98)"
+        "category": "InterestingInfo",
+        "score": 0.83,
+        "llm_response": "High-confidence rule: Economic/financial content"
       },
-      "raw_response": "LLM Response: The email contains a notification about People You May Know, which is likely low-value content and does not require personal action or contain valuable information. (Score: 0.98)",
-      "recorded_at": "2025-07-06T08:48:35.690119+00:00"
+      "raw_response": "High-confidence rule: Economic/financial content",
+      "recorded_at": "2025-07-06T10:32:48.006449+00:00"
+    },
+    {
+      "email_id": "197d4f8051b975ba",
+      "email_subject": "Schule Riverside: Neue Nachricht",
+      "email_snippet": "escola Schule Riverside Sehr geehrte Frau Morgan Jones Casey Johnson hat Ihnen eine Nachricht geschickt. Betreff: Informationen zur Klassenstruktur im kommenden Schuljahr [nicht angezeigter Inhalt in der",
+      "email_from": "\"Escola - Schule Riverside\" <admin23@fake.ch>",
+      "classification": {
+        "category": "ActionRequired",
+        "score": 0.88,
+        "llm_response": "High-confidence rule: School communication"
+      },
+      "raw_response": "High-confidence rule: School communication",
+      "recorded_at": "2025-07-06T10:32:48.000045+00:00"
+    },
+    {
+      "email_id": "197d4aa41b5ae380",
+      "email_subject": "Protect yourself from scams",
+      "email_snippet": "Recent Prime Subscription Scams͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏ ‌ ͏",
+      "email_from": "\"Amazon.co.uk\" <user31@example.com>",
+      "classification": {
+        "category": "ActionRequired",
+        "score": 0.95,
+        "llm_response": "LLM Response: The email requires personal action to protect oneself from scams, and it suggests specific steps to take in case of suspicious communications. (Score: 0.95)"
+      },
+      "raw_response": "LLM Response: The email requires personal action to protect oneself from scams, and it suggests specific steps to take in case of suspicious communications. (Score: 0.95)",
+      "recorded_at": "2025-07-06T10:32:59.247425+00:00"
+    },
+    {
+      "email_id": "197d51fda01f7716",
+      "email_subject": "[mazhewitt/AgenticMailPipeline] Run failed: CI - main (a8e5b26)",
+      "email_snippet": "[mazhewitt/AgenticMailPipeline] CI workflow run CI: All jobs have failed View workflow run CI / build Failed in 10 seconds annotations for CI / build 5 — Riley Davis are receiving this because you are",
+      "email_from": "mazhewitt <info4@test.org>",
+      "classification": {
+        "category": "ActionRequired",
+        "score": 0.95,
+        "llm_response": "High-confidence rule: CI failure detected"
+      },
+      "raw_response": "High-confidence rule: CI failure detected",
+      "recorded_at": "2025-07-06T10:32:47.985175+00:00"
+    },
+    {
+      "email_id": "197d5297dd1b0ada",
+      "email_subject": "Re: Tomorrow - 5.7",
+      "email_snippet": "Hi Alex Smith &amp; Cameron Garcia Thank you for letting us know - looks as if you are lucky with the weather! Enjoy the evening. Best Avery Williams &amp; Riley Davis &gt; Am 04.07.2025 um 07:41 schrieb Morgan Jones &lt;",
+      "email_from": "Casey Johnson <support15@demo.co.uk>",
+      "classification": {
+        "category": "Reference",
+        "score": 0.85,
+        "llm_response": "Post-processed: Personal conversation corrected to Reference"
+      },
+      "raw_response": "Post-processed: Personal conversation corrected to Reference",
+      "recorded_at": "2025-07-06T10:32:47.984012+00:00"
     }
   ],
   "metadata": {
     "model": "llama3.1:8b",
-    "recorded_at": "2025-07-06T08:48:56.099818+00:00",
+    "recorded_at": "2025-07-06T10:32:59.247470+00:00",
     "total_responses": 10
   }
 }

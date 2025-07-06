@@ -297,8 +297,7 @@ mod tests {
         // Assert we have reasonable category diversity with more diverse test data
         assert!(
             category_counts.len() >= 2,
-            "Should classify emails into at least 2 different categories. Got: {:?}",
-            category_counts
+            "Should classify emails into at least 2 different categories. Got: {category_counts:?}"
         );
 
         // Check that no single category dominates too much (unless we have very specialized emails)
