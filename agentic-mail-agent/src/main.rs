@@ -6,6 +6,12 @@ use agentic_mail_agent::core::email::Email;
 use agentic_mail_agent::fetcher::{EmailFetcher, GmailFetcher, StubFetcher};
 use std::collections::HashMap;
 
+#[cfg(test)]
+use std::sync::Mutex;
+
+#[cfg(test)]
+static ENV_TEST_MUTEX: Mutex<()> = Mutex::new(());
+
 /// Configuration for the main email processing binary
 #[derive(Debug, Clone)]
 struct ProcessingConfig {
@@ -386,6 +392,8 @@ mod tests {
 
     #[test]
     fn test_processing_config_from_env() {
+        let _lock = ENV_TEST_MUTEX.lock().unwrap();
+
         // Save original values
         let orig_max = std::env::var("MAX_EMAILS").ok();
         let orig_threshold = std::env::var("REVIEW_THRESHOLD").ok();
@@ -432,6 +440,8 @@ mod tests {
 
     #[test]
     fn test_processing_config_custom_values() {
+        let _lock = ENV_TEST_MUTEX.lock().unwrap();
+
         // Save original values
         let orig_max = std::env::var("MAX_EMAILS").ok();
         let orig_threshold = std::env::var("REVIEW_THRESHOLD").ok();
