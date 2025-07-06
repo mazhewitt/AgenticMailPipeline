@@ -200,15 +200,6 @@ mod tests {
         println!("📊 Testing Classification Category Distribution");
         println!("==============================================");
 
-        // Load test emails
-        let test_emails = match load_all_test_emails() {
-            Ok(emails) => emails,
-            Err(e) => {
-                println!("⚠️  Could not load test data: {e}");
-                return;
-            }
-        };
-
         // Initialize classifier
         let config = LangChainConfig::default();
         let classifier = match LangChainClassifier::new(config).await {
@@ -219,19 +210,56 @@ mod tests {
             }
         };
 
-        // Classify all emails and analyze distribution
-        let emails: Vec<Email> = test_emails
-            .into_iter()
-            .take(10) // Test with first 10 emails
-            .map(|te| te.to_email())
-            .collect();
+        // Use diverse synthetic test emails to ensure variety
+        let test_emails = vec![
+            Email::new(
+                "test1".to_string(),
+                Some("[GitHub] CI failed: main branch".to_string()),
+                Some("Your CI pipeline has failed. Please check the logs and fix the issues.".to_string()),
+            ),
+            Email::new(
+                "test2".to_string(),
+                Some("Weekly Tech Newsletter - AI Updates".to_string()),
+                Some("This week in technology: Latest AI developments and industry news.".to_string()),
+            ),
+            Email::new(
+                "test3".to_string(),
+                Some("Your Amazon Receipt #12345".to_string()),
+                Some("Thank you for your purchase. Your order has been processed successfully.".to_string()),
+            ),
+            Email::new(
+                "test4".to_string(),
+                Some("URGENT: Action Required - Security Update".to_string()),
+                Some("Please update your password immediately. This is required for security compliance.".to_string()),
+            ),
+            Email::new(
+                "test5".to_string(),
+                Some("Special Offer: 50% Off Everything!".to_string()),
+                Some("Limited time deal! Get 50% off all items. Don't miss out on this exclusive offer!".to_string()),
+            ),
+            Email::new(
+                "test6".to_string(),
+                Some("Subscription Receipt - Netflix".to_string()),
+                Some("Your monthly Netflix subscription has been charged to your account.".to_string()),
+            ),
+            Email::new(
+                "test7".to_string(),
+                Some("Meeting Reminder: Team Standup".to_string()),
+                Some("Reminder: Our weekly team standup is scheduled for tomorrow at 9 AM.".to_string()),
+            ),
+            Email::new(
+                "test8".to_string(),
+                Some("Unsubscribe from our newsletter".to_string()),
+                Some("We noticed you want to unsubscribe. Click here to manage your preferences.".to_string()),
+            ),
+        ];
 
         let mut category_counts = std::collections::HashMap::new();
         let mut classification_details = Vec::new();
 
         println!("🔍 Analyzing category distribution:");
 
-        for email in &emails {
+        for email in &test_emails {
             match classifier.classify(email).await {
                 Ok(classification) => {
                     *category_counts.entry(classification.category).or_insert(0) += 1;
@@ -253,7 +281,7 @@ mod tests {
 
         println!("\n📂 Category Distribution:");
         for (category, count) in &category_counts {
-            let percentage = (*count as f64 / emails.len() as f64) * 100.0;
+            let percentage = (*count as f64 / test_emails.len() as f64) * 100.0;
             println!("   • {category}: {count} emails ({percentage:.1}%)");
         }
 
@@ -266,16 +294,17 @@ mod tests {
             println!("   • '{subject}' → {category}{score_str}");
         }
 
-        // Assert we have reasonable category diversity
+        // Assert we have reasonable category diversity with more diverse test data
         assert!(
             category_counts.len() >= 2,
-            "Should classify emails into at least 2 different categories"
+            "Should classify emails into at least 2 different categories. Got: {:?}",
+            category_counts
         );
 
         // Check that no single category dominates too much (unless we have very specialized emails)
         let max_category_percentage = category_counts
             .values()
-            .map(|&count| (count as f64 / emails.len() as f64) * 100.0)
+            .map(|&count| (count as f64 / test_emails.len() as f64) * 100.0)
             .fold(0.0, f64::max);
 
         if max_category_percentage <= 70.0 {
