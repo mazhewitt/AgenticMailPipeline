@@ -8,7 +8,10 @@ use std::path::Path;
 use std::process::Command;
 
 /// Download a small number of emails from Gmail inbox for testing purposes
-pub async fn download_test_emails(output_dir: &str, count: u32) -> Result<(), Box<dyn std::error::Error>> {
+pub async fn download_test_emails(
+    output_dir: &str,
+    count: u32,
+) -> Result<(), Box<dyn std::error::Error>> {
     println!("📧 Downloading {count} emails from Gmail inbox...");
 
     // Create output directory
@@ -19,7 +22,7 @@ pub async fn download_test_emails(output_dir: &str, count: u32) -> Result<(), Bo
     cmd.arg("run")
         .arg("--bin")
         .arg("download_test_data")
-        .env("EMAIL_COUNT", &count.to_string())
+        .env("EMAIL_COUNT", count.to_string())
         .env("TEST_DATA_DIR", output_dir);
 
     // Execute the download command
