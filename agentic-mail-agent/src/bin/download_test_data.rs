@@ -56,9 +56,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Get number of emails to download from environment or use default
     let email_count: u32 = std::env::var("EMAIL_COUNT")
-        .unwrap_or_else(|_| "20".to_string())
+        .unwrap_or_else(|_| "5".to_string())
         .parse()
-        .unwrap_or(20);
+        .unwrap_or(5);
 
     // Fetch emails from inbox
     println!("📧 Fetching emails from Gmail inbox (limit: {email_count})...");

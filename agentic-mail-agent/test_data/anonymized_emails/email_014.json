@@ -1,13 +1,13 @@
 {
-  "id": "197db60f361392ad",
-  "subject": "[Alex Smith/AgenticMailPipeline] Run failed: CI - main (5cda10a)",
-  "snippet": "[Alex Smith/AgenticMailPipeline] CI workflow run CI: All jobs have failed View workflow run CI / build Failed in 4 minutes and 15 seconds annotations for CI / build 5 — You are receiving this because",
-  "from": "Alex Smith <team2@sample.net>",
+  "id": "197db6fb179c7bda",
+  "subject": "[Avery Williams/AgenticMailPipeline] Run failed: CI - main (d55029f)",
+  "snippet": "[Avery Williams/AgenticMailPipeline] CI workflow run CI: All jobs have failed View workflow run CI / build Failed in 4 minutes and 14 seconds annotations for CI / build 5 — You are receiving this because",
+  "from": "Avery Williams <contact12@sample.net>",
   "to": [
-    "\"Alex Smith/AgenticMailPipeline\" <support3@fake.ch>"
+    "\"Avery Williams/AgenticMailPipeline\" <user13@fake.ch>"
   ],
-  "sent": "Sat, 05 Jul 2025 09:17:31 -0700",
-  "body": "[Alex Smith/AgenticMailPipeline] CI workflow run\r\n\r\nRepository: Alex Smith/AgenticMailPipeline\r\nWorkflow: CI\r\nDuration: 4 minutes and 18.0 seconds\r\nFinished: 2025-07-05 16:17:11 UTC\r\n\r\nView results: https://github.com/Alex Smith/AgenticMailPipeline/actions/runs/16089880518\r\n\r\nJobs:\r\n  * build failed (5 annotations)\r\n\r\n-- \r\nYou are receiving this because you are subscribed to this thread.\r\nManage your GitHub Actions notifications: https://github.com/settings/notifications\r\n",
-  "downloaded_at": "2025-07-06T08:50:51.069962+00:00",
+  "sent": "Sat, 05 Jul 2025 09:33:36 -0700",
+  "body": "[Avery Williams/AgenticMailPipeline] CI workflow run\r\n\r\nRepository: Avery Williams/AgenticMailPipeline\r\nWorkflow: CI\r\nDuration: 4 minutes and 19.0 seconds\r\nFinished: 2025-07-05 16:33:16 UTC\r\n\r\nView results: https://github.com/Avery Williams/AgenticMailPipeline/actions/runs/16090003821\r\n\r\nJobs:\r\n  * build failed (5 annotations)\r\n\r\n-- \r\nYou are receiving this because you are subscribed to this thread.\r\nManage your GitHub Actions notifications: https://github.com/settings/notifications\r\n",
+  "downloaded_at": "2025-07-06T10:54:43.444766+00:00",
   "file_index": 14
 }

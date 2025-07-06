@@ -1,13 +1,13 @@
 {
-  "id": "197db5e961ecce1d",
-  "subject": "Re: [mazhewitt/AgenticMailPipeline] [WIP] Refactor integration test to use phase-based concurrency, formal assertions, error aggregation, and improved maintainability (PR #1)",
-  "snippet": "Casey Johnson pushed 1 commit. 28af168 Implement improved integration test with concurrent operations and error aggregation — View it on GitHub or unsubscribe. You are receiving this because you are",
-  "from": "Copilot <team2@sample.net>",
+  "id": "197db6aab2823bc5",
+  "subject": "[mazhewitt/AgenticMailPipeline] PR run failed: CI - Improve integration test with concurrent operations, error aggregation, and robust cleanup (00c2042)",
+  "snippet": "[mazhewitt/AgenticMailPipeline] CI workflow run CI: All jobs have failed View workflow run CI / build Failed in 4 minutes and 24 seconds annotations for CI / build 5 — You are receiving this because",
+  "from": "mazhewitt <contact12@sample.net>",
   "to": [
-    "\"mazhewitt/AgenticMailPipeline\" <support3@fake.ch>"
+    "\"mazhewitt/AgenticMailPipeline\" <user13@fake.ch>"
   ],
-  "sent": "Sat, 05 Jul 2025 09:14:57 -0700",
-  "body": "Casey Johnson pushed 1 commit.\r\n\r\n28af168ed8fa13f9ec71c13fcb6d43f4dd1eaacb  Implement improved integration test with concurrent operations and error aggregation\r\n\r\n-- \r\nView it on GitHub:\r\nhttps://github.com/mazhewitt/AgenticMailPipeline/pull/1/files/9bd4d41bf0d4845c98ae9d339629c1ab94665724..28af168ed8fa13f9ec71c13fcb6d43f4dd1eaacb\r\nYou are receiving this because you are subscribed to this thread.\r\n\r\nMessage ID: <mazhewitt/AgenticMailPipeline/pull/1/before/9bd4d41bf0d4845c98ae9d339629c1ab94665724/after/info40@demo.co.uk>\r\n",
-  "downloaded_at": "2025-07-06T08:50:51.070109+00:00",
+  "sent": "Sat, 05 Jul 2025 09:28:08 -0700",
+  "body": "[mazhewitt/AgenticMailPipeline] CI workflow run\r\n\r\nRepository: mazhewitt/AgenticMailPipeline\r\nWorkflow: CI\r\nDuration: 4 minutes and 28.0 seconds\r\nFinished: 2025-07-05 16:27:48 UTC\r\n\r\nView results: https://github.com/mazhewitt/AgenticMailPipeline/actions/runs/16089960778\r\n\r\nJobs:\r\n  * build failed (5 annotations)\r\n\r\n-- \r\nYou are receiving this because you are subscribed to this thread.\r\nManage your GitHub Actions notifications: https://github.com/settings/notifications\r\n",
+  "downloaded_at": "2025-07-06T10:54:43.444877+00:00",
   "file_index": 15
 }

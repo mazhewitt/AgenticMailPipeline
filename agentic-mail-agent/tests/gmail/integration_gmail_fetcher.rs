@@ -41,17 +41,61 @@ SOLUTION REQUIRED:
 
 use agentic_mail_agent::fetcher::{EmailFetcher, GmailFetcher};
 
-#[tokio::test]
-async fn test_gmail_fetcher_subject_and_body() {
-    // Real integration test: requires valid Gmail OAuth2 credentials set via env vars
-
+/// Helper function to create Gmail fetcher with timeout and helpful error messages
+async fn create_gmail_fetcher_with_auth_check() -> Result<GmailFetcher, String> {
     // Install crypto provider for rustls if needed
     let _ = rustls::crypto::ring::default_provider().install_default();
 
-    // Create fetcher from environment
-    let fetcher = GmailFetcher::from_env()
-        .await
-        .expect("Failed to create GmailFetcher from env");
+    // Check if environment variables are set
+    if std::env::var("GMAIL_CLIENT_SECRET_JSON").is_err() || std::env::var("GMAIL_TOKEN_JSON").is_err() {
+        return Err(
+            "❌ Gmail authentication not configured.\n\
+            \nTo run Gmail tests, you need to:\n\
+            1. Run the auth setup: ./setup_gmail_auth.sh\n\
+            2. Source the environment: source ./set_gmail_env.sh\n\
+            3. Then run: cargo test --test gmail\n\
+            \nOr run the quick auth test: cargo run --bin quick_auth_test".to_string()
+        );
+    }
+
+    // Try to create fetcher with timeout to prevent hanging on OAuth flow
+    match tokio::time::timeout(
+        std::time::Duration::from_secs(10),
+        GmailFetcher::from_env()
+    ).await {
+        Ok(Ok(fetcher)) => Ok(fetcher),
+        Ok(Err(e)) => Err(format!(
+            "❌ Gmail fetcher creation failed: {}\n\
+            \nThis usually means:\n\
+            1. Invalid or expired OAuth2 tokens\n\
+            2. Missing required scopes\n\
+            \nTo fix:\n\
+            1. Delete the token file: rm secrets/token.json\n\
+            2. Re-run auth setup: ./setup_gmail_auth.sh\n\
+            3. Source environment: source ./set_gmail_env.sh",
+            e
+        )),
+        Err(_) => Err(
+            "⏰ Gmail fetcher creation timed out.\n\
+            \nThis usually means an OAuth2 flow is waiting for browser interaction.\n\
+            \nTo fix:\n\
+            1. Run: ./setup_gmail_auth.sh (complete the browser OAuth flow)\n\
+            2. Source environment: source ./set_gmail_env.sh\n\
+            3. Try again: cargo test --test gmail".to_string()
+        ),
+    }
+}
+
+#[tokio::test]
+async fn test_gmail_fetcher_subject_and_body() {
+    // Real integration test: requires valid Gmail OAuth2 credentials set via env vars
+    
+    let fetcher = match create_gmail_fetcher_with_auth_check().await {
+        Ok(fetcher) => fetcher,
+        Err(error_msg) => {
+            panic!("{}", error_msg);
+        }
+    };
 
     // Fetch unread emails
     let emails = fetcher
@@ -93,16 +137,16 @@ async fn test_gmail_fetcher_subject_and_body() {
 #[tokio::test]
 async fn test_gmail_fetcher_basic_connection() {
     // Test: Can we create a fetcher from environment without errors?
-
-    // Install crypto provider for rustls if needed
-    let _ = rustls::crypto::ring::default_provider().install_default();
-
-    let fetcher_result = GmailFetcher::from_env().await;
-    assert!(
-        fetcher_result.is_ok(),
-        "Failed to create GmailFetcher from env: {:?}",
-        fetcher_result.as_ref().err()
-    );
+    
+    let _fetcher = match create_gmail_fetcher_with_auth_check().await {
+        Ok(fetcher) => {
+            println!("✅ Gmail fetcher created successfully");
+            fetcher
+        },
+        Err(error_msg) => {
+            panic!("{}", error_msg);
+        }
+    };
 
     println!("✅ Successfully created GmailFetcher from environment");
 }
@@ -111,12 +155,12 @@ async fn test_gmail_fetcher_basic_connection() {
 async fn test_gmail_list_messages_only() {
     // Test: Can we at least list message IDs (the first part that works)?
 
-    // Install crypto provider for rustls if needed
-    let _ = rustls::crypto::ring::default_provider().install_default();
-
-    let fetcher = GmailFetcher::from_env()
-        .await
-        .expect("Failed to create GmailFetcher from env");
+    let fetcher = match create_gmail_fetcher_with_auth_check().await {
+        Ok(fetcher) => fetcher,
+        Err(error_msg) => {
+            panic!("{}", error_msg);
+        }
+    };
     let emails_result = fetcher.fetch_unread_emails().await;
 
     match emails_result {

@@ -7,9 +7,9 @@ use std::fs;
 use std::path::Path;
 use std::process::Command;
 
-/// Download 50 emails from Gmail inbox using the existing download_test_data binary
-pub async fn download_50_emails(output_dir: &str) -> Result<(), Box<dyn std::error::Error>> {
-    println!("📧 Downloading 50 emails from Gmail inbox...");
+/// Download a small number of emails from Gmail inbox for testing purposes
+pub async fn download_test_emails(output_dir: &str, count: u32) -> Result<(), Box<dyn std::error::Error>> {
+    println!("📧 Downloading {count} emails from Gmail inbox...");
 
     // Create output directory
     fs::create_dir_all(output_dir)?;
@@ -19,7 +19,7 @@ pub async fn download_50_emails(output_dir: &str) -> Result<(), Box<dyn std::err
     cmd.arg("run")
         .arg("--bin")
         .arg("download_test_data")
-        .env("EMAIL_COUNT", "50")
+        .env("EMAIL_COUNT", &count.to_string())
         .env("TEST_DATA_DIR", output_dir);
 
     // Execute the download command
@@ -39,6 +39,11 @@ pub async fn download_50_emails(output_dir: &str) -> Result<(), Box<dyn std::err
 
     println!("✅ Downloaded {count} emails to {output_dir}/");
     Ok(())
+}
+
+/// Download a reasonable number of emails for testing (5 emails)
+pub async fn download_few_test_emails(output_dir: &str) -> Result<(), Box<dyn std::error::Error>> {
+    download_test_emails(output_dir, 5).await
 }
 
 /// Anonymize test data using the existing pii_anonymize binary

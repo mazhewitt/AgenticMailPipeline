@@ -29,19 +29,19 @@ async fn test_create_anonymized_test_data() {
     let _ = fs::remove_dir_all(raw_data_dir);
     let _ = fs::remove_dir_all(anonymized_data_dir);
 
-    // Test that we can download emails
-    let download_result = download_50_emails(raw_data_dir).await;
+    // Test that we can download emails (use a small number for testing)
+    let download_result = download_few_test_emails(raw_data_dir).await;
     assert!(
         download_result.is_ok(),
         "Failed to download emails: {download_result:?}"
     );
 
-    // Verify we got 50 emails (or as many as available)
+    // Verify we got some emails (should be around 5)
     let downloaded_count = count_json_files(raw_data_dir).unwrap();
     assert!(downloaded_count > 0, "No emails were downloaded");
     assert!(
-        downloaded_count <= 55,
-        "Downloaded more than 55 emails: {downloaded_count}"
+        downloaded_count <= 10,
+        "Downloaded more than 10 emails: {downloaded_count}"
     ); // Allow some flexibility for Gmail API
     println!("Downloaded {downloaded_count} emails");
 
