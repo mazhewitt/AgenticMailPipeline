@@ -174,14 +174,14 @@ async fn async_main() -> Result<(), Box<dyn std::error::Error>> {
                 let replacement_count = replacer.get_replacement_log().len();
                 
                 if pii_count > 0 {
-                    println!("✅ Clean ({} PII items anonymized)", replacement_count);
+                    println!("✅ Clean ({replacement_count} PII items anonymized)");
                 } else {
                     println!("✅ Clean (no PII found)");
                 }
                 
                 // Debug: Show what was detected vs what was replaced
                 if pii_count != replacement_count {
-                    println!("   ⚠️  Note: Detected {} PII items, replaced {}", pii_count, replacement_count);
+                    println!("   ⚠️  Note: Detected {pii_count} PII items, replaced {replacement_count}");
                 }
                 
                 total_pii_found += replacement_count;

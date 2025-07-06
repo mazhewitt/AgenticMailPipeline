@@ -16,7 +16,7 @@ async fn main() {
     println!("📧 Testing Gmail fetcher...");
     match timeout(Duration::from_secs(10), GmailFetcher::from_env()).await {
         Ok(Ok(_)) => println!("  ✅ Gmail fetcher: SUCCESS"),
-        Ok(Err(e)) => println!("  ❌ Gmail fetcher error: {}", e),
+        Ok(Err(e)) => println!("  ❌ Gmail fetcher error: {e}"),
         Err(_) => println!("  ⏰ Gmail fetcher: TIMEOUT (likely waiting for browser)")
     }
     
@@ -24,7 +24,7 @@ async fn main() {
     println!("🏷️  Testing Gmail labeler...");
     match timeout(Duration::from_secs(10), ConcreteGmailLabeler::from_env()).await {
         Ok(Ok(_)) => println!("  ✅ Gmail labeler: SUCCESS"),
-        Ok(Err(e)) => println!("  ❌ Gmail labeler error: {}", e),
+        Ok(Err(e)) => println!("  ❌ Gmail labeler error: {e}"),
         Err(_) => println!("  ⏰ Gmail labeler: TIMEOUT (likely waiting for browser)")
     }
     

@@ -21,7 +21,7 @@ async fn main() {
             f
         },
         Ok(Err(e)) => {
-            println!("  ❌ Gmail fetcher error: {}", e);
+            println!("  ❌ Gmail fetcher error: {e}");
             return;
         },
         Err(_) => {
@@ -37,7 +37,7 @@ async fn main() {
             l
         },
         Ok(Err(e)) => {
-            println!("  ❌ Gmail labeler error: {}", e);
+            println!("  ❌ Gmail labeler error: {e}");
             return;
         },
         Err(_) => {
@@ -60,7 +60,7 @@ async fn main() {
             }
         },
         Ok(Err(e)) => {
-            println!("  ❌ Email fetch error: {}", e);
+            println!("  ❌ Email fetch error: {e}");
             return;
         },
         Err(_) => {
@@ -81,7 +81,7 @@ async fn main() {
             }
         },
         Ok(Err(e)) => {
-            println!("  ❌ Label list error: {}", e);
+            println!("  ❌ Label list error: {e}");
             return;
         },
         Err(_) => {

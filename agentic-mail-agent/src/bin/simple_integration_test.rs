@@ -37,7 +37,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     
     // Step 4: Create a test label name
     let test_label = format!("TEST_SIMPLE_{}", classification.category.to_uppercase());
-    println!("   📝 Test label: {}", test_label);
+    println!("   📝 Test label: {test_label}");
     
     // Step 5: Try to apply the label (this is where it might hang)
     println!("4️⃣ Applying label...");
@@ -49,7 +49,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             println!("   ✅ Label applied successfully! Created new: {}", result.created_new_label);
         },
         Ok(Err(e)) => {
-            println!("   ❌ Label application failed: {}", e);
+            println!("   ❌ Label application failed: {e}");
             return Err(e.into());
         },
         Err(_) => {
@@ -72,7 +72,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 println!("   ✅ Test label deleted successfully");
             },
             Ok(Err(e)) => {
-                println!("   ❌ Failed to delete test label: {}", e);
+                println!("   ❌ Failed to delete test label: {e}");
             },
             Err(_) => {
                 println!("   ⏰ Delete label timed out");

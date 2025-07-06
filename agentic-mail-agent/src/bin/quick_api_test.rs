@@ -27,7 +27,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             println!("   ✅ Listed {} labels successfully", labels.len());
         },
         Ok(Err(e)) => {
-            println!("   ❌ List labels failed: {}", e);
+            println!("   ❌ List labels failed: {e}");
             return Err(e.into());
         },
         Err(_) => {
@@ -46,7 +46,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             println!("   ✅ Fetched {} emails successfully", emails.len());
         },
         Ok(Err(e)) => {
-            println!("   ❌ Fetch emails failed: {}", e);
+            println!("   ❌ Fetch emails failed: {e}");
             // Don't return error, this might be expected if no unread emails
             println!("   (This might be normal if you have no unread emails)");
         },

@@ -745,7 +745,7 @@ async fn test_classifier_labeller_integration_full_workflow() {
             println!("🎉 Test completed within timeout");
         }
         Err(_) => {
-            panic!("❌ Test timed out after {} seconds. This may indicate:\n  - Gmail API is slow or unresponsive\n  - Network connectivity issues\n  - Authentication problems\n  - Rate limiting by Gmail", TEST_TIMEOUT_SECONDS);
+            panic!("❌ Test timed out after {TEST_TIMEOUT_SECONDS} seconds. This may indicate:\n  - Gmail API is slow or unresponsive\n  - Network connectivity issues\n  - Authentication problems\n  - Rate limiting by Gmail");
         }
     }
 }
@@ -897,7 +897,7 @@ async fn test_labeller_label_management() {
         let label_id = retry_with_backoff(
             || async { labeler.ensure_label_exists(label_name).await },
             &rate_limiter,
-            &format!("Create label '{}'", label_name)
+            &format!("Create label '{label_name}'")
         ).await.expect("Failed to create label");
         
         println!("    ✅ Created with ID: {label_id}");
@@ -907,7 +907,7 @@ async fn test_labeller_label_management() {
         let label_id2 = retry_with_backoff(
             || async { labeler.ensure_label_exists(label_name).await },
             &rate_limiter,
-            &format!("Ensure label '{}' exists (idempotency test)", label_name)
+            &format!("Ensure label '{label_name}' exists (idempotency test)")
         ).await.expect("Failed to ensure label exists (idempotency test)");
         
         assert_eq!(label_id, label_id2, 
@@ -1059,7 +1059,7 @@ async fn test_end_to_end_workflow_with_cleanup() {
         let result = retry_with_backoff(
             || async { labeler.get_emails_by_label(test_label).await },
             &rate_limiter,
-            &format!("Get emails by label '{}'", test_label)
+            &format!("Get emails by label '{test_label}'")
         ).await;
         
         match result {
@@ -1101,8 +1101,8 @@ async fn test_gmail_api_authentication() {
         }
         Err(e) => {
             println!("❌ GMAIL AUTHENTICATION TEST FAILED!");
-            println!("   Error: {}", e);
-            panic!("Gmail authentication failed: {}", e);
+            println!("   Error: {e}");
+            panic!("Gmail authentication failed: {e}");
         }
     }
 }

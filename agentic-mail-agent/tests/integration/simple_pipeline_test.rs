@@ -58,7 +58,7 @@ async fn test_simple_end_to_end_pipeline() {
     for (i, email) in test_emails.iter().enumerate() {
         println!("\n📧 Processing email {} of {}", i + 1, test_emails.len());
         if let Some(subject) = &email.subject {
-            println!("   Subject: {}", subject);
+            println!("   Subject: {subject}");
         }
         
         // Classify the email
@@ -89,7 +89,7 @@ async fn test_simple_end_to_end_pipeline() {
         
         let has_label = email_labels.iter().any(|label| &label.name == expected_label);
         assert!(has_label, "Email {} should have label {}", email.id, expected_label);
-        println!("   ✅ Verified label: {}", expected_label);
+        println!("   ✅ Verified label: {expected_label}");
     }
     
     // Step 5: Clean up test labels

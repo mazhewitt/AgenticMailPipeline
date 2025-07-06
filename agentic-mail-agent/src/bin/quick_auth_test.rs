@@ -21,7 +21,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             println!("   ✅ Gmail Fetcher created successfully");
         },
         Ok(Err(e)) => {
-            println!("   ❌ Gmail Fetcher failed: {}", e);
+            println!("   ❌ Gmail Fetcher failed: {e}");
             return Err(e.into());
         },
         Err(_) => {
@@ -40,7 +40,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             println!("   ✅ Gmail Labeler created successfully");
         },
         Ok(Err(e)) => {
-            println!("   ❌ Gmail Labeler failed: {}", e);
+            println!("   ❌ Gmail Labeler failed: {e}");
             return Err(e.into());
         },
         Err(_) => {

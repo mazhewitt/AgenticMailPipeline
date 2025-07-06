@@ -61,7 +61,7 @@ async fn main() {
             }
         },
         Err(e) => {
-            println!("  ❌ Failed to read email labels: {}", e);
+            println!("  ❌ Failed to read email labels: {e}");
         }
     }
     

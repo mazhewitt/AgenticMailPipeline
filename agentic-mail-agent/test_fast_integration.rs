@@ -53,7 +53,7 @@ async fn main() {
             println!("  ✅ Label applied successfully! Created new: {}", result.created_new_label);
         },
         Ok(Err(e)) => {
-            println!("  ❌ Label application error: {}", e);
+            println!("  ❌ Label application error: {e}");
             return;
         },
         Err(_) => {
@@ -77,7 +77,7 @@ async fn main() {
             }
         },
         Ok(Err(e)) => {
-            println!("  ❌ Label verification error: {}", e);
+            println!("  ❌ Label verification error: {e}");
             return;
         },
         Err(_) => {

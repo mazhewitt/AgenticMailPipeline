@@ -413,7 +413,7 @@ mod tests {
             let result = executor.execute_actions(&email, &classification).await.unwrap();
 
             assert_eq!(result.archived, should_archive, 
-                "Category '{}' archiving behavior incorrect", category);
+                "Category '{category}' archiving behavior incorrect");
             
             let expected_label = format!("AGENT_{}", category.to_uppercase());
             assert_eq!(result.label_applied, expected_label);

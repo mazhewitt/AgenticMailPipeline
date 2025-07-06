@@ -328,7 +328,7 @@ impl EmailFetcher for GmailFetcher {
                         .doit()
                 )
                 .await
-                .map_err(|_| FetchError::network(format!("Gmail API call timed out for message {}", msg_id)))?;
+                .map_err(|_| FetchError::network(format!("Gmail API call timed out for message {msg_id}")))?;
                 
                 let message = match full {
                     Ok((_, m)) => m,
@@ -385,7 +385,7 @@ impl EmailFetcher for GmailFetcher {
                         .doit()
                 )
                 .await
-                .map_err(|_| FetchError::network(format!("Gmail API call timed out for message {}", msg_id)))?;
+                .map_err(|_| FetchError::network(format!("Gmail API call timed out for message {msg_id}")))?;
                 
                 let message = match full {
                     Ok((_, m)) => m,

@@ -193,7 +193,7 @@ mod tests {
         let text = "I live in 8700 Küsnacht, Switzerland.";
         let locations = detector.detect_locations(text);
         
-        println!("Detected locations: {:?}", locations);
+        println!("Detected locations: {locations:?}");
         assert!(!locations.is_empty());
         assert!(locations.iter().any(|l| l.text.contains("8700") || l.text.contains("Küsnacht")));
     }

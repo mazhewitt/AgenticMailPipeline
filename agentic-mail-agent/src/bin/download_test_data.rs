@@ -61,7 +61,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .unwrap_or(20);
     
     // Fetch emails from inbox
-    println!("📧 Fetching emails from Gmail inbox (limit: {})...", email_count);
+    println!("📧 Fetching emails from Gmail inbox (limit: {email_count})...");
     let emails = match fetcher.fetch_inbox_emails(email_count).await {
         Ok(emails) => {
             println!("✅ Successfully fetched {} emails", emails.len());
@@ -117,7 +117,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         if let Some(snippet) = &email.snippet {
             let preview = if snippet.chars().count() > 100 {
                 let truncated: String = snippet.chars().take(100).collect();
-                format!("{}...", truncated)
+                format!("{truncated}...")
             } else {
                 snippet.clone()
             };
@@ -126,7 +126,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         if let Some(body) = &email.body {
             let body_preview = if body.chars().count() > 150 {
                 let truncated: String = body.chars().take(150).collect();
-                format!("{}...", truncated)
+                format!("{truncated}...")
             } else {
                 body.clone()
             };
@@ -161,8 +161,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("✅ Test data download complete!");
     println!("📊 Summary:");
     println!("   • Downloaded: {} emails", emails.len());
-    println!("   • Saved to: {}/", test_data_dir);
-    println!("   • Manifest: {}/manifest.json", test_data_dir);
+    println!("   • Saved to: {test_data_dir}/");
+    println!("   • Manifest: {test_data_dir}/manifest.json");
     println!();
     println!("🔬 You can now use these files for testing the email classifier:");
     println!("   cargo test -- --test-threads=1");

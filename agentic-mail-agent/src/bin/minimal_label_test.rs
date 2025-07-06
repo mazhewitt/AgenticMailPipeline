@@ -27,14 +27,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     
     // Apply simple test label
     let test_label = "TEST_MINIMAL_LABEL";
-    println!("🏷️ Applying label: {}", test_label);
+    println!("🏷️ Applying label: {test_label}");
     
     match labeler.apply_label(&email.id, test_label).await {
         Ok(result) => {
             println!("✅ SUCCESS! Label applied. Created new: {}", result.created_new_label);
         },
         Err(e) => {
-            println!("❌ FAILED: {}", e);
+            println!("❌ FAILED: {e}");
             return Err(e.into());
         }
     }

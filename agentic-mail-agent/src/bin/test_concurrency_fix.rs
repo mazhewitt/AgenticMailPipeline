@@ -55,7 +55,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 test_labels.push(test_label);
             },
             Ok(Err(e)) => {
-                println!("     ❌ Failed to apply label: {}", e);
+                println!("     ❌ Failed to apply label: {e}");
                 return Err(e.into());
             },
             Err(_) => {
@@ -81,13 +81,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 labeler.delete_label(&label.id)
             ).await {
                 Ok(Ok(_)) => {
-                    println!("     ✅ Deleted label: {}", test_label);
+                    println!("     ✅ Deleted label: {test_label}");
                 },
                 Ok(Err(e)) => {
-                    println!("     ❌ Failed to delete label {}: {}", test_label, e);
+                    println!("     ❌ Failed to delete label {test_label}: {e}");
                 },
                 Err(_) => {
-                    println!("     ⏰ Delete timed out for: {}", test_label);
+                    println!("     ⏰ Delete timed out for: {test_label}");
                 }
             }
             
