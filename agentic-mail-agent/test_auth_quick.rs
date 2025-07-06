@@ -1,8 +1,8 @@
 use std::time::Duration;
 use tokio::time::timeout;
 use agentic_mail_agent::{
-    fetcher::{EmailFetcher, GmailFetcher},
-    action::impls::labeler::{ConcreteGmailLabeler, EmailLabeler},
+    fetcher::GmailFetcher,
+    action::impls::labeler::ConcreteGmailLabeler,
 };
 
 #[tokio::main]

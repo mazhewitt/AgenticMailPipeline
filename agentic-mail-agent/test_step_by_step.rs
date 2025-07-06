@@ -2,8 +2,8 @@ use std::time::Duration;
 use tokio::time::timeout;
 use agentic_mail_agent::{
     fetcher::{EmailFetcher, GmailFetcher},
-    action::impls::labeler::{ConcreteGmailLabeler, EmailLabeler},
-    classifier::{MessageClassifier, StubClassifier},
+    action::impls::labeler::ConcreteGmailLabeler,
+    classifier::StubClassifier,
 };
 
 #[tokio::main]
@@ -92,7 +92,7 @@ async fn main() {
     
     // Step 5: Test classification (should be fast)
     println!("\n🎯 Step 5: Test classification...");
-    let classifier = StubClassifier::new();
+    let _classifier = StubClassifier::new();
     println!("  ✅ Classifier created successfully");
     
     println!("\n🎉 All basic operations completed successfully!");

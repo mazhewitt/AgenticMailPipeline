@@ -55,7 +55,7 @@ fn gmail_api_error_to_labeling_error(error: GmailApiError) -> LabelingError {
 ///     
 ///     let labeler = GmailLabeler::from_env().await?;
 ///     let result = labeler.apply_label("message123", "work").await?;
-///     println!("Applied label: {result.description}");
+///     println!("Applied label: {}", result.description);
 ///     Ok(())
 /// }
 /// ```

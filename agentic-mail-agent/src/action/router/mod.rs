@@ -250,7 +250,7 @@ impl RoutingError {
 ///     let email = Email::with_subject("test@example.com".to_string(), "Meeting reminder".to_string());
 ///     let classification = Classification::with_category("work".to_string());
 ///     let result = router.route(&email, &classification).await?;
-///     println!("Actions: {result.actions_summary(}"));
+///     println!("Actions: {}", result.actions_summary());
 ///     Ok(())
 /// }
 /// ```

@@ -1,6 +1,6 @@
 use agentic_mail_agent::{
     fetcher::{EmailFetcher, GmailFetcher},
-    action::impls::labeler::{ConcreteGmailLabeler, EmailLabeler},
+    action::impls::labeler::ConcreteGmailLabeler,
     classifier::{MessageClassifier, StubClassifier},
 };
 

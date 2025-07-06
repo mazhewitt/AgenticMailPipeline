@@ -4,7 +4,6 @@ use agentic_mail_agent::{
     fetcher::{EmailFetcher, GmailFetcher},
     action::impls::labeler::{ConcreteGmailLabeler, EmailLabeler},
     classifier::{MessageClassifier, StubClassifier},
-    core::email::Email,
 };
 
 const TEST_LABEL_PREFIX: &str = "TEST_AGENT_";

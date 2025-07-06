@@ -1,4 +1,4 @@
-use agentic_mail_agent::action::impls::labeler::{ConcreteGmailLabeler, EmailLabeler};
+use agentic_mail_agent::action::impls::labeler::ConcreteGmailLabeler;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

@@ -136,7 +136,7 @@ impl ClassificationError {
 ///     let classifier = StubClassifier::new();
 ///     let email = Email::with_subject("test@example.com".to_string(), "Meeting reminder".to_string());
 ///     let classification = classifier.classify(&email).await?;
-///     println!("Email classified as: {classification.category}");
+///     println!("Email classified as: {}", classification.category);
 ///     Ok(())
 /// }
 /// ```

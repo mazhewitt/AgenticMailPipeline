@@ -137,7 +137,7 @@ impl ArchivingError {
 /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
 ///     let archiver = StubArchiver::new();
 ///     let result = archiver.archive_email("message123").await?;
-///     println!("Archive result: {result.description}");
+///     println!("Archive result: {}", result.description);
 ///     Ok(())
 /// }
 /// ```

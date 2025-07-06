@@ -27,7 +27,7 @@ use super::{EmailLabeler, LabelingResult, LabelingError};
 /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
 ///     let labeler = StubLabeler::new();
 ///     let result = labeler.apply_label("test-message-123", "work").await?;
-///     println!("Applied label: {result.label}");
+///     println!("Applied label: {}", result.label);
 ///     Ok(())
 /// }
 /// ```

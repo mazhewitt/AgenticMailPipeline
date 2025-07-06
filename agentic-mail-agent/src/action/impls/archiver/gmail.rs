@@ -42,7 +42,7 @@ use google_gmail1::{
 ///     
 ///     let archiver = GmailArchiver::from_env().await?;
 ///     let result = archiver.archive_email("message123").await?;
-///     println!("Archive result: {result.description}");
+///     println!("Archive result: {}", result.description);
 ///     Ok(())
 /// }
 /// ```

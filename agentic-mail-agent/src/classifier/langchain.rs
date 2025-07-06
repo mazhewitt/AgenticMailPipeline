@@ -70,7 +70,7 @@ impl Default for LangChainConfig {
 ///     );
 ///     
 ///     let classification = classifier.classify(&email).await?;
-///     println!("Category: {classification.category}");
+///     println!("Category: {}", classification.category);
 ///     Ok(())
 /// }
 /// ```

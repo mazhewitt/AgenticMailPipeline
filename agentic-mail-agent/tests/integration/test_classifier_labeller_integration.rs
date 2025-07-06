@@ -50,7 +50,7 @@ const RETRY_ATTEMPTS: u32 = 3;             // Number of retries for rate limit e
 const RETRY_DELAY_MS: u64 = 1000;          // Base delay for exponential backoff
 
 // Timeout configuration
-const OPERATION_TIMEOUT_SECONDS: u64 = 30;  // 30 seconds for individual operations
+const _OPERATION_TIMEOUT_SECONDS: u64 = 30;  // 30 seconds for individual operations
 const TEST_TIMEOUT_SECONDS: u64 = 300;      // 5 minutes for entire test
 const API_CALL_TIMEOUT_SECONDS: u64 = 15;   // 15 seconds for single API calls
 
@@ -103,7 +103,7 @@ impl<T> PhaseResults<T> {
         self.failures.len()
     }
     
-    fn total_count(&self) -> usize {
+    fn _total_count(&self) -> usize {
         self.successes.len() + self.failures.len()
     }
 }
@@ -244,7 +244,7 @@ async fn verify_labels_concurrently(
         
         // Process this batch before starting the next
         while let Some(attempt) = futures.next().await {
-            let success = attempt.result.as_ref().map_or(false, |&has_label| has_label);
+            let success = attempt.result.as_ref().is_ok_and(|&has_label| has_label);
             results.add_result(attempt, success);
         }
         
@@ -418,19 +418,26 @@ impl ApiRateLimiter {
     
     /// Wait if necessary to enforce rate limiting
     async fn wait_for_rate_limit(&self) {
-        let mut last_time = self.last_request_time.lock().unwrap();
-        
-        if let Some(last) = *last_time {
-            let elapsed = last.elapsed();
-            if elapsed < self.delay_between_requests {
-                let wait_time = self.delay_between_requests - elapsed;
-                drop(last_time); // Release lock before sleeping
-                sleep(wait_time).await;
+        let wait_time = {
+            let last_time = self.last_request_time.lock().unwrap();
+            
+            if let Some(last) = *last_time {
+                let elapsed = last.elapsed();
+                if elapsed < self.delay_between_requests {
+                    Some(self.delay_between_requests - elapsed)
+                } else {
+                    None
+                }
+            } else {
+                None
             }
+        }; // Lock is released here
+        
+        if let Some(wait_duration) = wait_time {
+            sleep(wait_duration).await;
         }
         
         // Update last request time
-        #[allow(unused_mut)] // mut needed for assignment
         let mut last_time = self.last_request_time.lock().unwrap();
         *last_time = Some(Instant::now());
     }
@@ -614,7 +621,7 @@ async fn test_classifier_labeller_integration_full_workflow() {
                      format_email_context(&email.id, &email.subject));
             
             let classification = classifier.classify(email).await
-                .expect(&format!("Failed to classify {}", format_email_context(&email.id, &email.subject)));
+                .unwrap_or_else(|_| panic!("Failed to classify {}", format_email_context(&email.id, &email.subject)));
             
             let score_display = classification.score.map(|s| format!("{s:.2}")).unwrap_or_else(|| "N/A".to_string());
             println!("    🎯 Classification: {} (score: {})", 
@@ -725,7 +732,7 @@ async fn test_classifier_labeller_integration_full_workflow() {
         // Final assertions
         assert!(!emails_with_classifications.is_empty(),
                 "Should have processed at least one email");
-        assert!(classification_summary.len() > 0, 
+        assert!(!classification_summary.is_empty(), 
                 "Should have used at least one classification category");
         
         println!("\n✅ INTEGRATION TEST PASSED!");
@@ -1003,7 +1010,7 @@ async fn test_end_to_end_workflow_with_cleanup() {
         
         // Classify
         let classification = classifier.classify(email).await
-            .expect(&format!("Failed to classify {}", 
+            .unwrap_or_else(|_| panic!("Failed to classify {}", 
                             format_email_context(&email.id, &email.subject)));
         
         // Create test label
@@ -1014,7 +1021,7 @@ async fn test_end_to_end_workflow_with_cleanup() {
             || async { labeler.apply_label(&email.id, &test_label).await },
             &rate_limiter,
             &format!("Apply label '{}' to email {}", test_label, format_email_context(&email.id, &email.subject))
-        ).await.expect(&format!("Failed to apply label to {}", 
+        ).await.unwrap_or_else(|_| panic!("Failed to apply label to {}", 
                         format_email_context(&email.id, &email.subject)));
         
         println!("  ✅ Applied label: {} (new: {})", 

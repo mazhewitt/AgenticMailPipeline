@@ -14,7 +14,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let _ = rustls::crypto::ring::default_provider().install_default();
     
     // Test with VERY limited concurrency to avoid token conflicts
-    const MAX_CONCURRENT: usize = 1; // Force sequential execution
+    const _MAX_CONCURRENT: usize = 1; // Force sequential execution
     
     // Step 1: Create components
     println!("1️⃣ Creating components...");
