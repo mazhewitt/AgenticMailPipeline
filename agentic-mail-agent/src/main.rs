@@ -34,9 +34,9 @@ impl ProcessingConfig {
     fn from_env() -> Self {
         Self {
             max_emails: std::env::var("MAX_EMAILS")
-                .unwrap_or_else(|_| "50".to_string())
+                .unwrap_or_else(|_| "10".to_string())
                 .parse()
-                .unwrap_or(50),
+                .unwrap_or(10),
             review_threshold: std::env::var("REVIEW_THRESHOLD")
                 .unwrap_or_else(|_| "0.7".to_string())
                 .parse()
@@ -457,10 +457,10 @@ mod tests {
         std::env::remove_var("DRY_RUN");
 
         let config = ProcessingConfig::from_env();
-        assert_eq!(config.max_emails, 50);
+        assert_eq!(config.max_emails, 10);
         assert_eq!(config.review_threshold, 0.7);
         assert!(!config.demo_mode);
-        assert_eq!(config.classifier_type, "stub");
+        assert_eq!(config.classifier_type, "hybrid");
         assert!(!config.dry_run);
 
         // Restore original values
@@ -561,7 +561,7 @@ mod tests {
     #[test]
     fn test_should_stay_in_inbox() {
         let config = ProcessingConfig {
-            max_emails: 50,
+            max_emails: 10,
             review_threshold: 0.7,
             demo_mode: false,
             classifier_type: "stub".to_string(),
