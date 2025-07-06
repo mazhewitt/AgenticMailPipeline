@@ -33,7 +33,7 @@ async fn test_end_to_end_labeling_pipeline() {
 
     // Verify action execution results
     assert_eq!(result.message_id, "test-123");
-    assert_eq!(result.label_applied, "AGENT_ACTIONREQUIRED");
+    assert_eq!(result.label_applied, "Action Required");
     assert!(!result.archived); // ActionRequired emails should not be archived
     assert!(result
         .actions_taken
@@ -68,7 +68,7 @@ async fn test_urgent_email_labeling() {
 
     // Verify results
     assert_eq!(result.message_id, "urgent-456");
-    assert_eq!(result.label_applied, "AGENT_ACTIONREQUIRED");
+    assert_eq!(result.label_applied, "Action Required");
     assert!(!result.archived); // ActionRequired should not be archived
 }
 
@@ -96,7 +96,7 @@ async fn test_spam_email_labeling() {
 
     // Verify results
     assert_eq!(result.message_id, "spam-789");
-    assert_eq!(result.label_applied, "AGENT_REFERENCE");
+    assert_eq!(result.label_applied, "Reference");
     assert!(result.archived); // Reference should be archived
 }
 
@@ -122,7 +122,7 @@ async fn test_newsletter_email_labeling() {
 
     // Verify results
     assert_eq!(result.message_id, "newsletter-101");
-    assert_eq!(result.label_applied, "AGENT_INTERESTINGINFO");
+    assert_eq!(result.label_applied, "Interesting");
     assert!(result.archived); // InterestingInfo should be archived
 }
 
@@ -137,19 +137,19 @@ async fn test_idempotent_labeling() {
     let labeler = StubLabeler::new();
 
     // Apply label first time
-    let result1 = labeler.apply_label(&email.id, "AGENT_TEST").await.unwrap();
+    let result1 = labeler.apply_label(&email.id, "TEST_Work").await.unwrap();
     assert!(result1.created_new_label);
-    assert_eq!(result1.label, "AGENT_TEST");
+    assert_eq!(result1.label, "TEST_Work");
 
     // Apply same label again - should be idempotent
-    let result2 = labeler.apply_label(&email.id, "AGENT_TEST").await.unwrap();
+    let result2 = labeler.apply_label(&email.id, "TEST_Work").await.unwrap();
     assert!(!result2.created_new_label);
-    assert_eq!(result2.label, "AGENT_TEST");
+    assert_eq!(result2.label, "TEST_Work");
 
     // Verify only one instance
     let applied_labels = labeler.get_applied_labels(&email.id);
     assert_eq!(applied_labels.len(), 1);
-    assert_eq!(applied_labels[0], "AGENT_TEST");
+    assert_eq!(applied_labels[0], "TEST_Work");
 }
 
 #[tokio::test]
@@ -163,20 +163,20 @@ async fn test_multiple_labels_on_same_email() {
     let labeler = StubLabeler::new();
 
     // Apply multiple labels
-    labeler.apply_label(&email.id, "AGENT_WORK").await.unwrap();
+    labeler.apply_label(&email.id, "Work").await.unwrap();
     labeler
-        .apply_label(&email.id, "AGENT_URGENT")
+        .apply_label(&email.id, "Urgent")
         .await
         .unwrap();
 
     // Verify both labels are applied
-    assert!(labeler.message_has_label(&email.id, "AGENT_WORK"));
-    assert!(labeler.message_has_label(&email.id, "AGENT_URGENT"));
+    assert!(labeler.message_has_label(&email.id, "Work"));
+    assert!(labeler.message_has_label(&email.id, "Urgent"));
 
     let applied_labels = labeler.get_applied_labels(&email.id);
     assert_eq!(applied_labels.len(), 2);
-    assert!(applied_labels.contains(&"AGENT_WORK".to_string()));
-    assert!(applied_labels.contains(&"AGENT_URGENT".to_string()));
+    assert!(applied_labels.contains(&"Work".to_string()));
+    assert!(applied_labels.contains(&"Urgent".to_string()));
 }
 
 #[tokio::test]

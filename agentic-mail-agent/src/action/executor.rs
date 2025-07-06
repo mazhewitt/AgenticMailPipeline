@@ -11,6 +11,7 @@ use async_trait::async_trait;
 use crate::action::impls::archiver::{ArchivingError, EmailArchiver};
 use crate::action::impls::labeler::{EmailLabeler, LabelingError};
 use crate::classifier::Classification;
+use crate::config::LabelConfig;
 use crate::core::email::Email;
 
 /// Result of action execution on an email.
@@ -130,13 +131,15 @@ impl From<ArchivingError> for ActionExecutionError {
 /// Category-to-label mapping for the agentic mail agent.
 ///
 /// Maps the 5 classification categories to their corresponding Gmail labels:
-/// - ActionRequired → AGENT_ACTIONREQUIRED
-/// - InterestingInfo → AGENT_INTERESTINGINFO  
-/// - Reference → AGENT_REFERENCE
-/// - Noise → AGENT_NOISE
-/// - Spam → AGENT_SPAM
+/// - ActionRequired → Action Required
+/// - InterestingInfo → Interesting  
+/// - Reference → Reference
+/// - Noise → Low Priority
+/// - Spam → Spam
 pub fn get_label_for_category(category: &str) -> String {
-    format!("AGENT_{}", category.to_uppercase())
+    let label_config = LabelConfig::new();
+    label_config.get_production_label(category)
+        .unwrap_or_else(|| category.to_string())
 }
 
 /// Trait for executing actions on emails based on classification results.
@@ -342,29 +345,29 @@ mod tests {
     fn test_get_label_for_category() {
         assert_eq!(
             get_label_for_category("ActionRequired"),
-            "AGENT_ACTIONREQUIRED"
+            "Action Required"
         );
         assert_eq!(
             get_label_for_category("InterestingInfo"),
-            "AGENT_INTERESTINGINFO"
+            "Interesting"
         );
-        assert_eq!(get_label_for_category("Reference"), "AGENT_REFERENCE");
-        assert_eq!(get_label_for_category("Noise"), "AGENT_NOISE");
-        assert_eq!(get_label_for_category("Spam"), "AGENT_SPAM");
+        assert_eq!(get_label_for_category("Reference"), "Reference");
+        assert_eq!(get_label_for_category("Noise"), "Low Priority");
+        assert_eq!(get_label_for_category("Spam"), "Spam");
     }
 
     #[test]
     fn test_action_execution_result_creation() {
         let result = ActionExecutionResult::new(
             "msg123".to_string(),
-            vec!["Applied label: AGENT_WORK".to_string()],
+            vec!["Applied label: Work".to_string()],
             true,
-            "AGENT_WORK".to_string(),
+            "Work".to_string(),
         );
 
         assert_eq!(result.message_id, "msg123");
         assert!(result.archived);
-        assert_eq!(result.label_applied, "AGENT_WORK");
+        assert_eq!(result.label_applied, "Work");
         assert!(result.summary.contains("Applied label"));
         assert!(result.summary.contains("archived"));
     }
@@ -397,7 +400,7 @@ mod tests {
 
         assert_eq!(result.message_id, "msg123");
         assert!(!result.archived); // ActionRequired should not be archived
-        assert_eq!(result.label_applied, "AGENT_ACTIONREQUIRED");
+        assert_eq!(result.label_applied, "Action Required");
         assert!(result
             .actions_taken
             .iter()
@@ -425,7 +428,7 @@ mod tests {
 
         assert_eq!(result.message_id, "msg456");
         assert!(result.archived); // Noise should be archived
-        assert_eq!(result.label_applied, "AGENT_NOISE");
+        assert_eq!(result.label_applied, "Low Priority");
         assert!(result.actions_taken.iter().any(|a| a.contains("Archived")));
     }
 
@@ -455,7 +458,7 @@ mod tests {
                 "Category '{category}' archiving behavior incorrect"
             );
 
-            let expected_label = format!("AGENT_{}", category.to_uppercase());
+            let expected_label = get_label_for_category(category);
             assert_eq!(result.label_applied, expected_label);
         }
     }
