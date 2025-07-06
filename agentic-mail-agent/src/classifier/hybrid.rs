@@ -88,6 +88,19 @@ impl HybridClassifier {
             ));
         }
 
+        // Car rental and travel bookings - these require action/follow-up
+        if (cleaned_content.contains("rental") && (cleaned_content.contains("car") || cleaned_content.contains("vehicle")))
+            || (cleaned_content.contains("booking") && (cleaned_content.contains("driver") || cleaned_content.contains("coverage")))
+            || cleaned_content.contains("cross-border")
+            || (cleaned_content.contains("rent") && (cleaned_content.contains("audi") || cleaned_content.contains("enterprise")))
+        {
+            return Some(Classification::new(
+                EmailCategory::ActionRequired,
+                Some(0.89),
+                "High-confidence rule: Car rental/travel booking communication".to_string(),
+            ));
+        }
+
         // High-confidence Reference patterns
         if cleaned_content.contains("receipt") || cleaned_content.contains("invoice") {
             return Some(Classification::new(
@@ -304,7 +317,7 @@ impl MessageClassifier for HybridClassifier {
             return Ok(rule_classification);
         }
 
-        // Step 2: Use LLM for ambiguous cases
+        // Step 2: Use LLM for ambiguous cases (anything that didn't match high-confidence rules)
         if self.use_llm {
             if let Some(llm_classifier) = &self.llm_classifier {
                 match llm_classifier.classify(email).await {
@@ -319,10 +332,14 @@ impl MessageClassifier for HybridClassifier {
                         eprintln!("LLM classification failed ({e}), falling back to rule-based");
                     }
                 }
+            } else {
+                // No LLM available but use_llm is true - this shouldn't happen
+                eprintln!("Warning: use_llm=true but no LLM classifier available");
             }
         }
 
-        // Step 3: Fallback rule-based classification with lower confidence
+        // Emergency fallback: rule-based patterns with lower confidence
+        // (Only used when LLM is unavailable or fails)
         let cleaned_content = prepare_email_for_classification(
             email.subject.as_deref(),
             email.snippet.as_deref(),

@@ -1,6 +1,8 @@
-use agentic_mail_agent::action::{ActionExecutor, StubActionExecutor};
+use agentic_mail_agent::action::{ActionExecutor, GmailActionExecutor, StubActionExecutor};
+use agentic_mail_agent::action::impls::labeler::ConcreteGmailLabeler;
+use agentic_mail_agent::action::impls::archiver::GmailArchiver;
 use agentic_mail_agent::classifier::{
-    EmailCategory, LangChainClassifier, MessageClassifier, StubClassifier,
+    EmailCategory, HybridClassifier, LangChainClassifier, MessageClassifier, StubClassifier,
 };
 use agentic_mail_agent::core::email::Email;
 use agentic_mail_agent::fetcher::{EmailFetcher, GmailFetcher, StubFetcher};
@@ -41,7 +43,7 @@ impl ProcessingConfig {
                 .unwrap_or(0.7),
             demo_mode: std::env::var("DEMO_MODE").is_ok(),
             classifier_type: std::env::var("CLASSIFIER_TYPE")
-                .unwrap_or_else(|_| "stub".to_string()),
+                .unwrap_or_else(|_| "hybrid".to_string()),
             dry_run: std::env::var("DRY_RUN").is_ok(),
         }
     }
@@ -218,8 +220,22 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
                 Err(e) => {
                     eprintln!("❌ Failed to initialize LangChain classifier: {e}");
-                    eprintln!("🔄 Falling back to stub classifier...");
-                    Box::new(StubClassifier::deterministic())
+                    eprintln!("🔄 Falling back to hybrid classifier...");
+                    Box::new(HybridClassifier::new_rules_only())
+                }
+            }
+        }
+        "hybrid" => {
+            println!("🤖 Initializing Hybrid classifier with LLM support...");
+            match LangChainClassifier::with_default_config().await {
+                Ok(llm_classifier) => {
+                    println!("✅ Hybrid classifier with LLM initialized successfully");
+                    Box::new(HybridClassifier::new_with_llm(Box::new(llm_classifier)).await)
+                }
+                Err(e) => {
+                    eprintln!("❌ Failed to initialize LLM for hybrid classifier: {e}");
+                    eprintln!("🔄 Using hybrid classifier in rules-only mode...");
+                    Box::new(HybridClassifier::new_rules_only())
                 }
             }
         }
@@ -228,8 +244,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             Box::new(StubClassifier::deterministic())
         }
         _ => {
-            println!("🎯 Unknown classifier type, using deterministic stub classifier");
-            Box::new(StubClassifier::deterministic())
+            println!("🤖 Unknown classifier type, using hybrid classifier with LLM...");
+            match LangChainClassifier::with_default_config().await {
+                Ok(llm_classifier) => {
+                    println!("✅ Default hybrid classifier with LLM initialized successfully");
+                    Box::new(HybridClassifier::new_with_llm(Box::new(llm_classifier)).await)
+                }
+                Err(e) => {
+                    eprintln!("❌ Failed to initialize LLM: {e}");
+                    eprintln!("🔄 Using hybrid classifier in rules-only mode...");
+                    Box::new(HybridClassifier::new_rules_only())
+                }
+            }
         }
     };
 
@@ -238,8 +264,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("🎯 Using stub action executor (demo mode)");
         Box::new(StubActionExecutor::new())
     } else {
-        println!("🎯 Using stub action executor");
-        Box::new(StubActionExecutor::new())
+        println!("🔄 Initializing Gmail action executor...");
+        match create_gmail_action_executor().await {
+            Ok(gmail_executor) => {
+                println!("✅ Gmail action executor initialized successfully");
+                Box::new(gmail_executor)
+            }
+            Err(e) => {
+                eprintln!("❌ Failed to initialize Gmail action executor: {e}");
+                eprintln!("🔄 Falling back to stub action executor...");
+                Box::new(StubActionExecutor::new())
+            }
+        }
     };
 
     if config.dry_run {
@@ -382,6 +418,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("\n✅ Email processing completed successfully!");
     Ok(())
+}
+
+/// Create a Gmail action executor with real labeling and archiving capabilities
+async fn create_gmail_action_executor(
+) -> Result<GmailActionExecutor<ConcreteGmailLabeler, GmailArchiver>, Box<dyn std::error::Error>> {
+    // Initialize Gmail labeler
+    let labeler = ConcreteGmailLabeler::from_env().await?;
+    
+    // Initialize Gmail archiver  
+    let archiver = GmailArchiver::from_env().await?;
+    
+    Ok(GmailActionExecutor::new(labeler, archiver))
 }
 
 #[cfg(test)]
