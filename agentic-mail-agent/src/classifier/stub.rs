@@ -4,7 +4,7 @@ use async_trait::async_trait;
 use rand::Rng;
 
 use super::text_preprocessing::prepare_email_for_classification;
-use super::{Classification, ClassificationError, MessageClassifier};
+use super::{Classification, ClassificationError, EmailCategory, MessageClassifier};
 use crate::core::email::Email;
 
 /// A stub classifier that returns predefined or random classifications.
@@ -63,15 +63,15 @@ impl StubClassifier {
     /// Generate a random classification from predefined categories.
     fn random_classification(&self) -> Classification {
         let categories = [
-            "ActionRequired",
-            "InterestingInfo",
-            "Reference",
-            "Noise",
-            "Spam",
+            EmailCategory::ActionRequired,
+            EmailCategory::InterestingInfo,
+            EmailCategory::Reference,
+            EmailCategory::Noise,
+            EmailCategory::Spam,
         ];
         let mut rng = rand::rng();
 
-        let category = categories[rng.random_range(0..categories.len())].to_string();
+        let category = categories[rng.random_range(0..categories.len())];
         let score = rng.random_range(0.5..1.0);
 
         Classification::with_score(category, score)
@@ -112,7 +112,7 @@ impl StubClassifier {
             || cleaned_content.contains("school")
         // German school emails
         {
-            ("ActionRequired", 0.9)
+            (EmailCategory::ActionRequired, 0.9)
         } else if
         // InterestingInfo patterns - must come before general newsletter patterns
         // Check original content for newsletter patterns since "newsletter" is filtered out during preprocessing
@@ -154,7 +154,7 @@ impl StubClassifier {
             || sender_domain.contains("nytimes")
             || sender_domain.contains("anthropic") && cleaned_content.contains("update")
         {
-            ("InterestingInfo", 0.85)
+            (EmailCategory::InterestingInfo, 0.85)
         } else if
         // Reference patterns
         cleaned_content.contains("receipt")
@@ -170,7 +170,7 @@ impl StubClassifier {
             || cleaned_content.contains("tomorrow") && !cleaned_content.contains("meeting")
         // Personal conversations
         {
-            ("Reference", 0.8)
+            (EmailCategory::Reference, 0.8)
         } else if
         // Spam patterns
         cleaned_content.contains("lottery")
@@ -178,7 +178,7 @@ impl StubClassifier {
             || cleaned_content.contains("click here") && cleaned_content.contains("claim")
             || cleaned_content.contains("suspicious") && cleaned_content.contains("offer")
         {
-            ("Spam", 0.95)
+            (EmailCategory::Spam, 0.95)
         } else if
         // Noise patterns - Marketing and promotional content
 
@@ -252,16 +252,17 @@ impl StubClassifier {
             email.subject.as_deref().unwrap_or("").to_lowercase().contains("unsubscribe") ||
             email.snippet.as_deref().unwrap_or("").to_lowercase().contains("unsubscribe")
         {
-            ("Noise", 0.85)
+            (EmailCategory::Noise, 0.85)
         } else {
-            ("Reference", 0.6) // Default to Reference as it's the safest default
+            (EmailCategory::Reference, 0.6) // Default to Reference as it's the safest default
         };
 
         Classification::new(
-            category.to_string(),
+            category,
             Some(score),
             format!(
-                "Deterministic classification based on cleaned content and patterns: {category}"
+                "Deterministic classification based on cleaned content and patterns: {}",
+                category.as_str()
             ),
         )
     }
@@ -310,14 +311,14 @@ mod tests {
         assert!(result.is_ok());
 
         let classification = result.unwrap();
-        assert!(!classification.category.is_empty());
+
         assert!(classification.score.is_some());
         assert!(!classification.llm_response.is_empty());
     }
 
     #[tokio::test]
     async fn stub_classifier_with_fixed_classification() {
-        let fixed_classification = Classification::with_score("work".to_string(), 0.95);
+        let fixed_classification = Classification::with_score(EmailCategory::ActionRequired, 0.95);
         let classifier = StubClassifier::with_fixed_classification(fixed_classification.clone());
         let email = Email::with_subject("test@example.com".to_string(), "Test email".to_string());
 
@@ -351,7 +352,7 @@ mod tests {
             "Meeting tomorrow".to_string(),
         );
         let result = classifier.classify(&work_email).await.unwrap();
-        assert_eq!(result.category, "ActionRequired"); // Meeting tomorrow should be ActionRequired
+        assert_eq!(result.category, EmailCategory::ActionRequired); // Meeting tomorrow should be ActionRequired
         assert_eq!(result.score, Some(0.9));
 
         // Test ActionRequired classification
@@ -360,7 +361,7 @@ mod tests {
             "URGENT: Action required".to_string(),
         );
         let result = classifier.classify(&urgent_email).await.unwrap();
-        assert_eq!(result.category, "ActionRequired");
+        assert_eq!(result.category, EmailCategory::ActionRequired);
         assert_eq!(result.score, Some(0.9));
 
         // Test Noise classification (promotional content)
@@ -369,7 +370,7 @@ mod tests {
             "Unsubscribe from our newsletter".to_string(),
         );
         let result = classifier.classify(&promo_email).await.unwrap();
-        assert_eq!(result.category, "Noise");
+        assert_eq!(result.category, EmailCategory::Noise);
         assert_eq!(result.score, Some(0.85));
 
         // Test Reference classification (receipt)
@@ -378,7 +379,7 @@ mod tests {
             "Your receipt from Company".to_string(),
         );
         let result = classifier.classify(&receipt_email).await.unwrap();
-        assert_eq!(result.category, "Reference");
+        assert_eq!(result.category, EmailCategory::Reference);
         assert_eq!(result.score, Some(0.8));
 
         // Test InterestingInfo classification (newsletter with tech content)
@@ -387,7 +388,7 @@ mod tests {
             "Tech newsletter digest".to_string(),
         );
         let result = classifier.classify(&newsletter_email).await.unwrap();
-        assert_eq!(result.category, "InterestingInfo");
+        assert_eq!(result.category, EmailCategory::InterestingInfo);
         assert_eq!(result.score, Some(0.85));
 
         // Test default classification
@@ -396,7 +397,7 @@ mod tests {
             "Random content".to_string(),
         );
         let result = classifier.classify(&default_email).await.unwrap();
-        assert_eq!(result.category, "Reference");
+        assert_eq!(result.category, EmailCategory::Reference);
         assert_eq!(result.score, Some(0.6));
     }
 
@@ -409,7 +410,7 @@ mod tests {
         assert!(result.is_ok());
 
         let classification = result.unwrap();
-        assert_eq!(classification.category, "Reference"); // default category
+        assert_eq!(classification.category, EmailCategory::Reference); // default category
         assert_eq!(classification.score, Some(0.6));
     }
 
@@ -421,7 +422,6 @@ mod tests {
         let result = classifier.classify(&email).await;
         assert!(result.is_ok());
 
-        let classification = result.unwrap();
-        assert!(!classification.category.is_empty());
+        let _classification = result.unwrap();
     }
 }

@@ -1,4 +1,4 @@
-use agentic_mail_agent::classifier::{MessageClassifier, StubClassifier};
+use agentic_mail_agent::classifier::{EmailCategory, MessageClassifier, StubClassifier};
 use agentic_mail_agent::core::email::Email;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -76,7 +76,7 @@ async fn test_stub_classifier_accuracy_against_ground_truth() {
                 Ok(classification) => {
                     total_predictions += 1;
 
-                    if classification.category == gt_email.category {
+                    if gt_email.category.parse::<EmailCategory>() == Ok(classification.category) {
                         correct_predictions += 1;
                     } else {
                         misclassifications.push(format!(
@@ -122,7 +122,7 @@ async fn test_stub_classifier_accuracy_against_ground_truth() {
                     .entry(gt_email.category.clone())
                     .or_insert((0, 0));
                 entry.1 += 1; // total
-                if classification.category == gt_email.category {
+                if gt_email.category.parse::<EmailCategory>() == Ok(classification.category) {
                     entry.0 += 1; // correct
                 }
             }
@@ -168,7 +168,7 @@ async fn test_action_required_category_accuracy() {
             if let Ok(classification) = classifier.classify(&email).await {
                 total += 1;
                 println!("  '{}' -> {}", gt_email.subject, classification.category);
-                if classification.category == "ActionRequired" {
+                if classification.category == EmailCategory::ActionRequired {
                     correct += 1;
                 }
             }
@@ -211,7 +211,7 @@ async fn test_no_false_spam_classification() {
 
         if let Some(email) = try_load_test_email(&email_path) {
             if let Ok(classification) = classifier.classify(&email).await {
-                if classification.category == "Spam" {
+                if classification.category == EmailCategory::Spam {
                     false_spam_count += 1;
                     false_spam_examples.push(format!(
                         "Email '{}' (ID: {}) classified as Spam but should be '{}'",

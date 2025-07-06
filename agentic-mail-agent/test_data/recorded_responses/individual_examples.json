@@ -1,30 +1,30 @@
 {
   "responses": [
     {
+      "email_id": "receipt001",
+      "email_subject": "Order Confirmation #12345",
+      "email_snippet": "Thank you for your order. Your receipt is attached.",
+      "email_from": "orders@shop.com",
+      "classification": {
+        "category": "Reference",
+        "score": 0.95,
+        "llm_response": "LLM Response: This email contains an order confirmation and a receipt attachment, which is useful to keep for record-keeping purposes but does not require immediate action or contain valuable information that requires attention. (Score: 0.95)"
+      },
+      "raw_response": "LLM Response: This email contains an order confirmation and a receipt attachment, which is useful to keep for record-keeping purposes but does not require immediate action or contain valuable information that requires attention. (Score: 0.95)",
+      "recorded_at": "2025-07-06T08:48:59.950113+00:00"
+    },
+    {
       "email_id": "urgent001",
       "email_subject": "URGENT: Server Down",
       "email_snippet": "Production server crashed, need immediate action",
       "email_from": "ops@company.com",
       "classification": {
         "category": "ActionRequired",
-        "score": 0.95,
-        "llm_response": "LLM Response: Email contains urgent language ('URGENT' twice) and requires immediate action to resolve server crash (Score: 0.95)"
+        "score": 0.99,
+        "llm_response": "LLM Response: The email requires immediate action due to a critical server issue and uses 'URGENT' in the subject line, indicating high priority. (Score: 0.99)"
       },
-      "raw_response": "LLM Response: Email contains urgent language ('URGENT' twice) and requires immediate action to resolve server crash (Score: 0.95)",
-      "recorded_at": "2025-07-05T13:01:56.131730+00:00"
-    },
-    {
-      "email_id": "spam001",
-      "email_subject": "You've won $1 Million!",
-      "email_snippet": "Click here to claim your prize now!",
-      "email_from": "noreply@scam.com",
-      "classification": {
-        "category": "Spam",
-        "score": 0.98,
-        "llm_response": "LLM Response: The email contains a suspicious and generic claim of winning a large sum of money, with an urgent tone to 'claim' it now, which is a common tactic used by scammers. (Score: 0.98)"
-      },
-      "raw_response": "LLM Response: The email contains a suspicious and generic claim of winning a large sum of money, with an urgent tone to 'claim' it now, which is a common tactic used by scammers. (Score: 0.98)",
-      "recorded_at": "2025-07-05T13:02:20.758504+00:00"
+      "raw_response": "LLM Response: The email requires immediate action due to a critical server issue and uses 'URGENT' in the subject line, indicating high priority. (Score: 0.99)",
+      "recorded_at": "2025-07-06T08:48:30.564511+00:00"
     },
     {
       "email_id": "newsletter001",
@@ -34,28 +34,28 @@
       "classification": {
         "category": "InterestingInfo",
         "score": 0.95,
-        "llm_response": "LLM Response: The email contains a newsletter about tech trends and AI developments, suggesting valuable information for someone interested in technology, but it does not require personal action or reference. (Score: 0.95)"
+        "llm_response": "LLM Response: The email contains valuable information about the latest tech trends and AI developments, but it does not require personal action or response. (Score: 0.95)"
       },
-      "raw_response": "LLM Response: The email contains a newsletter about tech trends and AI developments, suggesting valuable information for someone interested in technology, but it does not require personal action or reference. (Score: 0.95)",
-      "recorded_at": "2025-07-05T13:02:09.985101+00:00"
+      "raw_response": "LLM Response: The email contains valuable information about the latest tech trends and AI developments, but it does not require personal action or response. (Score: 0.95)",
+      "recorded_at": "2025-07-06T08:48:38.408007+00:00"
     },
     {
-      "email_id": "receipt001",
-      "email_subject": "Order Confirmation #12345",
-      "email_snippet": "Thank you for your order. Your receipt is attached.",
-      "email_from": "orders@shop.com",
+      "email_id": "spam001",
+      "email_subject": "You've won $1 Million!",
+      "email_snippet": "Click here to claim your prize now!",
+      "email_from": "noreply@scam.com",
       "classification": {
-        "category": "Reference",
+        "category": "Spam",
         "score": 0.95,
-        "llm_response": "LLM Response: This email contains a receipt and is useful to keep for reference, but does not require personal action or contain valuable new information (Score: 0.95)"
+        "llm_response": "LLM Response: The email contains a clear phishing attempt with an attention-grabbing subject and unsolicited claim of winning a prize, and it's from a known scam domain. (Score: 0.95)"
       },
-      "raw_response": "LLM Response: This email contains a receipt and is useful to keep for reference, but does not require personal action or contain valuable new information (Score: 0.95)",
-      "recorded_at": "2025-07-05T13:02:30.805167+00:00"
+      "raw_response": "LLM Response: The email contains a clear phishing attempt with an attention-grabbing subject and unsolicited claim of winning a prize, and it's from a known scam domain. (Score: 0.95)",
+      "recorded_at": "2025-07-06T08:48:49.896660+00:00"
     }
   ],
   "metadata": {
     "model": "llama3.1:8b",
-    "recorded_at": "2025-07-05T13:02:30.805200+00:00",
+    "recorded_at": "2025-07-06T08:48:59.950150+00:00",
     "total_responses": 4
   }
 }

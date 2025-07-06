@@ -1,10 +1,10 @@
 //! Tests for Noise category detection patterns using TDD approach
 //!
 //! This test suite validates that the classifier correctly identifies various
-//! types of "Noise" emails (marketing, social, promotional content) that should
+//! types of EmailCategory::Noise emails (marketing, social, promotional content) that should
 //! not clutter the inbox but aren't actionable or particularly interesting.
 
-use agentic_mail_agent::classifier::{MessageClassifier, StubClassifier};
+use agentic_mail_agent::classifier::{EmailCategory, MessageClassifier, StubClassifier};
 use agentic_mail_agent::core::email::Email;
 
 /// Test marketing domain patterns should be classified as Noise
@@ -60,7 +60,7 @@ async fn test_marketing_domains_classified_as_noise() {
         let classification = classifier.classify(&email).await.unwrap();
         assert_eq!(
             classification.category,
-            "Noise",
+            EmailCategory::Noise,
             "Email from {} with subject '{}' should be classified as Noise",
             email.from.as_deref().unwrap_or("unknown"),
             email.subject.as_deref().unwrap_or("unknown")
@@ -130,7 +130,7 @@ async fn test_promotional_phrases_classified_as_noise() {
         let classification = classifier.classify(&email).await.unwrap();
         assert_eq!(
             classification.category,
-            "Noise",
+            EmailCategory::Noise,
             "Promotional email with subject '{}' should be classified as Noise",
             email.subject.as_deref().unwrap_or("unknown")
         );
@@ -199,7 +199,7 @@ async fn test_social_media_notifications_classified_as_noise() {
         let classification = classifier.classify(&email).await.unwrap();
         assert_eq!(
             classification.category,
-            "Noise",
+            EmailCategory::Noise,
             "Social media email from {} with subject '{}' should be classified as Noise",
             email.from.as_deref().unwrap_or("unknown"),
             email.subject.as_deref().unwrap_or("unknown")
@@ -259,7 +259,7 @@ async fn test_product_recommendations_classified_as_noise() {
         let classification = classifier.classify(&email).await.unwrap();
         assert_eq!(
             classification.category,
-            "Noise",
+            EmailCategory::Noise,
             "Product recommendation email with subject '{}' should be classified as Noise",
             email.subject.as_deref().unwrap_or("unknown")
         );
@@ -318,7 +318,7 @@ async fn test_generic_newsletters_classified_as_noise() {
         let classification = classifier.classify(&email).await.unwrap();
         assert_eq!(
             classification.category,
-            "Noise",
+            EmailCategory::Noise,
             "Generic newsletter with subject '{}' should be classified as Noise",
             email.subject.as_deref().unwrap_or("unknown")
         );
@@ -367,7 +367,7 @@ async fn test_location_event_spam_classified_as_noise() {
         let classification = classifier.classify(&email).await.unwrap();
         assert_eq!(
             classification.category,
-            "Noise",
+            EmailCategory::Noise,
             "Location/event email with subject '{}' should be classified as Noise",
             email.subject.as_deref().unwrap_or("unknown")
         );
@@ -406,7 +406,7 @@ async fn test_tech_newsletters_remain_interesting_info() {
         let classification = classifier.classify(&email).await.unwrap();
         assert_eq!(
             classification.category,
-            "InterestingInfo",
+            EmailCategory::InterestingInfo,
             "Tech newsletter with subject '{}' should remain InterestingInfo",
             email.subject.as_deref().unwrap_or("unknown")
         );
@@ -430,7 +430,8 @@ async fn test_security_content_remains_interesting_info() {
 
     let classification = classifier.classify(&security_email).await.unwrap();
     assert_eq!(
-        classification.category, "InterestingInfo",
+        classification.category,
+        EmailCategory::InterestingInfo,
         "Security alerts should remain InterestingInfo, not be classified as Noise"
     );
 }

@@ -1,13 +1,13 @@
 {
-  "id": "197d5c0e88e04275",
-  "subject": "Bestellung eingetroffen",
-  "snippet": "Guten Tag Casey Johnson, Gerne teile ich Ihnen mit, dass wir den einzelnen Ohrhänger Colour Drops mit Topas bekommen haben. Sie dürfen Ihre schönen Ohrhänger gerne bei uns im Geschäft abholen. Ich",
-  "from": "\"Jordan Brown, Alex Smith\" <team26@example.com>",
+  "id": "197db6aab2823bc5",
+  "subject": "[mazhewitt/AgenticMailPipeline] PR run failed: CI - Improve integration test with concurrent operations, error aggregation, and robust cleanup (00c2042)",
+  "snippet": "[mazhewitt/AgenticMailPipeline] CI workflow run CI: All jobs have failed View workflow run CI / build Failed in 4 minutes and 24 seconds annotations for CI / build 5 — You are receiving this because",
+  "from": "mazhewitt <team2@sample.net>",
   "to": [
-    "\"support27@sample.net\" <team14@test.org>"
+    "\"mazhewitt/AgenticMailPipeline\" <support3@fake.ch>"
   ],
-  "sent": "Fri, 4 Jul 2025 14:04:01 +0000",
-  "body": "Guten Tag Casey Johnson,\r\n\r\nGerne teile ich Ihnen mit, dass wir den einzelnen Ohrhänger Colour Drops mit Topas bekommen haben.\r\nSie dürfen Ihre schönen Ohrhänger gerne bei uns im Geschäft abholen.\r\n\r\nIch wünsche Ihnen noch einen schönen Nchmittag.\r\n\r\nFreundliche Grüsse\r\n\r\nTANJA WEHRLI\r\nClient Advisor\r\n\r\nT (123) 1027-1459 88\r\admin29@test.org\r\n\r\nBucherer AG\r\129 First Street • CH-8001 Springfield\r\nbucherer.com<http://bucherer.com/>\r\n\r\n\r\n[cid:c2d66a9a-8b35-47a9-aa72-59d5be15cc03]<https://www.facebook.com/bucherer/>         [cid:74625969-920f-4d34-a0d7-dd9db646cd1e] <https://www.instagram.com/bucherer/>          [cid:0675a11f-f6e2-4fc8-837f-cd53012a217b] <https://www.pinterest.ch/bucherer/>          [cid:7b746bc5-be8c-43db-9fea-b4970408f9b4] <https://www.youtube.com/c/BuchererWatchesJewellery>\r\n\r\nBucherer AG •  131 Park Avenue •  CH-6005 Clinton\r\n\r\n",
-  "downloaded_at": "2025-07-04T21:53:25.799907+00:00",
+  "sent": "Sat, 05 Jul 2025 09:28:08 -0700",
+  "body": "[mazhewitt/AgenticMailPipeline] CI workflow run\r\n\r\nRepository: mazhewitt/AgenticMailPipeline\r\nWorkflow: CI\r\nDuration: 4 minutes and 28.0 seconds\r\nFinished: 2025-07-05 16:27:48 UTC\r\n\r\nView results: https://github.com/mazhewitt/AgenticMailPipeline/actions/runs/16089960778\r\n\r\nJobs:\r\n  * build failed (5 annotations)\r\n\r\n-- \r\nYou are receiving this because you are subscribed to this thread.\r\nManage your GitHub Actions notifications: https://github.com/settings/notifications\r\n",
+  "downloaded_at": "2025-07-06T08:50:51.069654+00:00",
   "file_index": 12
 }

@@ -1,13 +1,13 @@
 #!/usr/bin/env cargo run --bin download_test_data --
 //! Test data downloader for Gmail emails.
-//! 
+//!
 //! This binary downloads the first 20 emails from your Gmail inbox
 //! and saves them as JSON files that can be used as test data for
 //! the email classifier.
-//! 
+//!
 //! Usage:
 //!   cargo run --bin download_test_data
-//! 
+//!
 //! Environment Variables:
 //!   GMAIL_CLIENT_SECRET_JSON - Path to OAuth2 client secret JSON file
 //!   GMAIL_TOKEN_JSON - Path to OAuth2 token JSON file
@@ -21,19 +21,19 @@ use std::path::Path;
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Install default crypto provider for rustls
     let _ = rustls::crypto::ring::default_provider().install_default();
-    
+
     println!("🔧 Gmail Test Data Downloader");
     println!("================================");
-    
+
     // Get output directory from environment or use default
     let test_data_dir = std::env::var("TEST_DATA_DIR").unwrap_or_else(|_| "test_data".to_string());
-    
+
     // Create test data directory if it doesn't exist
     if !Path::new(&test_data_dir).exists() {
         println!("📁 Creating test data directory: {test_data_dir}");
         fs::create_dir_all(&test_data_dir)?;
     }
-    
+
     // Initialize Gmail fetcher
     println!("🔑 Initializing Gmail API connection...");
     let fetcher = match GmailFetcher::from_env().await {
@@ -53,13 +53,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             std::process::exit(1);
         }
     };
-    
+
     // Get number of emails to download from environment or use default
     let email_count: u32 = std::env::var("EMAIL_COUNT")
         .unwrap_or_else(|_| "20".to_string())
         .parse()
         .unwrap_or(20);
-    
+
     // Fetch emails from inbox
     println!("📧 Fetching emails from Gmail inbox (limit: {email_count})...");
     let emails = match fetcher.fetch_inbox_emails(email_count).await {
@@ -72,18 +72,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             std::process::exit(1);
         }
     };
-    
+
     if emails.is_empty() {
         println!("⚠️  No emails found in inbox");
         return Ok(());
     }
-    
+
     // Save each email as a separate JSON file
     println!("💾 Saving emails as test data files...");
     for (index, email) in emails.iter().enumerate() {
         let filename = format!("email_{:03}.json", index + 1);
         let filepath = Path::new(&test_data_dir).join(&filename);
-        
+
         // Create a serializable version of the email with additional metadata
         let test_email = TestDataEmail {
             id: email.id.clone(),
@@ -96,11 +96,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             downloaded_at: chrono::Utc::now().to_rfc3339(),
             file_index: index + 1,
         };
-        
+
         // Save to JSON file
         let json_content = serde_json::to_string_pretty(&test_email)?;
         fs::write(&filepath, json_content)?;
-        
+
         println!("  📄 Saved: {} (ID: {})", filename, email.id);
         if let Some(subject) = &email.subject {
             println!("     Subject: {subject}");
@@ -134,13 +134,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
         println!();
     }
-    
+
     // Create a manifest file with summary information
     let manifest = TestDataManifest {
         created_at: chrono::Utc::now().to_rfc3339(),
         total_emails: emails.len(),
-        emails: emails.iter().enumerate().map(|(index, email)| {
-            EmailSummary {
+        emails: emails
+            .iter()
+            .enumerate()
+            .map(|(index, email)| EmailSummary {
                 file_index: index + 1,
                 filename: format!("email_{:03}.json", index + 1),
                 id: email.id.clone(),
@@ -150,14 +152,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 has_to: email.to.is_some(),
                 has_sent: email.sent.is_some(),
                 has_body: email.body.is_some(),
-            }
-        }).collect(),
+            })
+            .collect(),
     };
-    
+
     let manifest_path = Path::new(&test_data_dir).join("manifest.json");
     let manifest_json = serde_json::to_string_pretty(&manifest)?;
     fs::write(&manifest_path, manifest_json)?;
-    
+
     println!("✅ Test data download complete!");
     println!("📊 Summary:");
     println!("   • Downloaded: {} emails", emails.len());
@@ -166,7 +168,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!();
     println!("🔬 You can now use these files for testing the email classifier:");
     println!("   cargo test -- --test-threads=1");
-    
+
     Ok(())
 }
 

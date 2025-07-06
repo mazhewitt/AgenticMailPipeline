@@ -4,7 +4,7 @@
 //! that maps email classifications to predefined actions based on configurable rules.
 
 use super::{ActionRouter, EmailAction, RoutingError, RoutingResult};
-use crate::classifier::Classification;
+use crate::classifier::{Classification, EmailCategory};
 use crate::config::LabelConfig;
 use crate::core::email::Email;
 use std::collections::HashMap;
@@ -16,7 +16,7 @@ use std::collections::HashMap;
 #[derive(Debug, Clone)]
 pub struct RoutingConfig {
     /// Map from classification category to default actions
-    pub category_actions: HashMap<String, Vec<EmailAction>>,
+    pub category_actions: HashMap<EmailCategory, Vec<EmailAction>>,
     /// Minimum confidence threshold for applying actions (0.0 to 1.0)
     pub confidence_threshold: f32,
     /// Actions to take for low-confidence classifications
@@ -30,58 +30,42 @@ impl Default for RoutingConfig {
         let label_config = LabelConfig::new();
         let mut category_actions = HashMap::new();
 
-        // Default rules for common email categories using human-friendly labels
+        // Default rules for EmailCategory variants
         category_actions.insert(
-            "work".to_string(),
-            vec![
-                EmailAction::label(label_config.production.work.clone()),
-                EmailAction::MarkAsRead,
-            ],
+            EmailCategory::ActionRequired,
+            vec![EmailAction::label(
+                label_config.production.action_required.clone(),
+            )],
         );
 
         category_actions.insert(
-            "personal".to_string(),
-            vec![EmailAction::label(label_config.production.personal.clone())],
+            EmailCategory::InterestingInfo,
+            vec![EmailAction::label(
+                label_config.production.interesting_info.clone(),
+            )],
         );
 
         category_actions.insert(
-            "promotional".to_string(),
+            EmailCategory::Reference,
             vec![
-                EmailAction::label(label_config.production.promotional.clone()),
+                EmailAction::label(label_config.production.reference.clone()),
                 EmailAction::Archive,
             ],
         );
 
         category_actions.insert(
-            "spam".to_string(),
+            EmailCategory::Noise,
+            vec![
+                EmailAction::label(label_config.production.noise.clone()),
+                EmailAction::Archive,
+            ],
+        );
+
+        category_actions.insert(
+            EmailCategory::Spam,
             vec![
                 EmailAction::label(label_config.production.spam.clone()),
                 EmailAction::Archive,
-            ],
-        );
-
-        category_actions.insert(
-            "urgent".to_string(),
-            vec![
-                EmailAction::label(label_config.production.urgent.clone()),
-                EmailAction::MarkImportant,
-                EmailAction::escalate("Urgent email detected", 4),
-            ],
-        );
-
-        category_actions.insert(
-            "newsletter".to_string(),
-            vec![
-                EmailAction::label(label_config.production.newsletter.clone()),
-                EmailAction::move_to("newsletters"),
-            ],
-        );
-
-        category_actions.insert(
-            "notification".to_string(),
-            vec![
-                EmailAction::label(label_config.production.notification.clone()),
-                EmailAction::MarkAsRead,
             ],
         );
 
@@ -112,7 +96,11 @@ impl RoutingConfig {
     }
 
     /// Add a category mapping to the configuration.
-    pub fn with_category_mapping(mut self, category: String, actions: Vec<EmailAction>) -> Self {
+    pub fn with_category_mapping(
+        mut self,
+        category: EmailCategory,
+        actions: Vec<EmailAction>,
+    ) -> Self {
         self.category_actions.insert(category, actions);
         self
     }
@@ -179,12 +167,12 @@ impl RuleBasedRouter {
     }
 
     /// Get actions for a specific category.
-    fn get_category_actions(&self, category: &str) -> Vec<EmailAction> {
+    fn get_category_actions(&self, category: &EmailCategory) -> Vec<EmailAction> {
         self.config
             .category_actions
             .get(category)
             .cloned()
-            .unwrap_or_else(|| vec![EmailAction::label(category.to_string())])
+            .unwrap_or_else(|| vec![EmailAction::label(category.human_label().to_string())])
     }
 }
 
@@ -201,11 +189,7 @@ impl ActionRouter for RuleBasedRouter {
         email: &Email,
         classification: &Classification,
     ) -> Result<RoutingResult, RoutingError> {
-        // Check if classification is valid
-        if classification.category.is_empty() {
-            return Err(RoutingError::invalid_classification("Empty category"));
-        }
-
+        // Classification is always valid with enum - no need to check for empty
         let confidence = classification.score.unwrap_or(1.0);
         let is_urgent = self.is_urgent_email(email);
 
@@ -257,8 +241,10 @@ mod tests {
     #[test]
     fn test_routing_config_default() {
         let config = RoutingConfig::default();
-        assert!(config.category_actions.contains_key("work"));
-        assert!(config.category_actions.contains_key("spam"));
+        assert!(config
+            .category_actions
+            .contains_key(&EmailCategory::ActionRequired));
+        assert!(config.category_actions.contains_key(&EmailCategory::Spam));
         assert_eq!(config.confidence_threshold, 0.7);
     }
 
@@ -266,25 +252,27 @@ mod tests {
     fn test_routing_config_builder() {
         let config = RoutingConfig::new()
             .with_confidence_threshold(0.8)
-            .with_category_mapping("test".to_string(), vec![EmailAction::Archive]);
+            .with_category_mapping(EmailCategory::Reference, vec![EmailAction::Archive]);
 
         assert_eq!(config.confidence_threshold, 0.8);
-        assert!(config.category_actions.contains_key("test"));
+        assert!(config
+            .category_actions
+            .contains_key(&EmailCategory::Reference));
     }
 
     #[tokio::test]
     async fn test_rule_based_router_work_email() {
         let router = RuleBasedRouter::new();
         let email = Email::with_subject("1".to_string(), "Meeting tomorrow".to_string());
-        let classification = Classification::with_score("work".to_string(), 0.9);
+        let classification = Classification::with_score(EmailCategory::ActionRequired, 0.9);
 
         let result = router.route(&email, &classification).await.unwrap();
 
         assert!(result
             .actions
             .iter()
-            .any(|a| matches!(a, EmailAction::Label { label } if label == "Work")));
-        assert!(result.reasoning.contains("category: work"));
+            .any(|a| matches!(a, EmailAction::Label { label } if label == "Action Required")));
+        assert!(result.reasoning.contains("ActionRequired"));
         assert_eq!(result.confidence, 0.9);
     }
 
@@ -296,7 +284,7 @@ mod tests {
             Some("URGENT: Action Required".to_string()),
             Some("Please respond immediately".to_string()),
         );
-        let classification = Classification::with_score("work".to_string(), 0.8);
+        let classification = Classification::with_score(EmailCategory::ActionRequired, 0.8);
 
         let result = router.route(&email, &classification).await.unwrap();
 
@@ -308,7 +296,7 @@ mod tests {
     async fn test_rule_based_router_low_confidence() {
         let router = RuleBasedRouter::new();
         let email = Email::with_subject("1".to_string(), "Some email".to_string());
-        let classification = Classification::with_score("unknown".to_string(), 0.3);
+        let classification = Classification::with_score(EmailCategory::InterestingInfo, 0.3);
 
         let result = router.route(&email, &classification).await.unwrap();
 
@@ -323,7 +311,7 @@ mod tests {
     async fn test_rule_based_router_spam() {
         let router = RuleBasedRouter::new();
         let email = Email::with_subject("1".to_string(), "You won the lottery!".to_string());
-        let classification = Classification::with_score("spam".to_string(), 0.95);
+        let classification = Classification::with_score(EmailCategory::Spam, 0.95);
 
         let result = router.route(&email, &classification).await.unwrap();
 
@@ -332,21 +320,6 @@ mod tests {
             .iter()
             .any(|a| matches!(a, EmailAction::Label { label } if label == "Spam")));
         assert!(result.actions.contains(&EmailAction::Archive));
-    }
-
-    #[tokio::test]
-    async fn test_rule_based_router_invalid_classification() {
-        let router = RuleBasedRouter::new();
-        let email = Email::with_subject("1".to_string(), "Test".to_string());
-        let classification = Classification::with_category("".to_string());
-
-        let result = router.route(&email, &classification).await;
-
-        assert!(result.is_err());
-        assert!(matches!(
-            result.unwrap_err(),
-            RoutingError::InvalidClassification { .. }
-        ));
     }
 
     #[test]

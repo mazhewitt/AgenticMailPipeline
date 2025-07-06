@@ -1,5 +1,5 @@
 //! Mock Ollama classifier that can record and replay LLM responses.
-//! 
+//!
 //! This module provides a way to capture real LLM responses during testing
 //! and then replay them deterministically for unit tests.
 
@@ -65,11 +65,11 @@ impl MockOllamaClassifier {
             recording_file: recording_file.to_string(),
         })
     }
-    
+
     /// Create a new mock classifier in recording mode
     pub fn new_recording_mode(
-        recording_file: &str, 
-        real_classifier: Box<dyn MessageClassifier + Send + Sync>
+        recording_file: &str,
+        real_classifier: Box<dyn MessageClassifier + Send + Sync>,
     ) -> Self {
         Self {
             responses: std::sync::Arc::new(std::sync::Mutex::new(HashMap::new())),
@@ -78,7 +78,7 @@ impl MockOllamaClassifier {
             recording_file: recording_file.to_string(),
         }
     }
-    
+
     /// Generate a signature for an email to use as a key
     fn email_signature(email: &Email) -> String {
         format!(
@@ -89,25 +89,25 @@ impl MockOllamaClassifier {
             email.from.as_deref().unwrap_or("")
         )
     }
-    
+
     /// Load recorded responses from file
-    fn load_recordings(file_path: &str) -> Result<HashMap<String, RecordedResponse>, ClassificationError> {
+    fn load_recordings(
+        file_path: &str,
+    ) -> Result<HashMap<String, RecordedResponse>, ClassificationError> {
         if !Path::new(file_path).exists() {
             return Err(ClassificationError::config(format!(
                 "Recording file {file_path} does not exist. Run in recording mode first."
             )));
         }
-        
-        let contents = fs::read_to_string(file_path)
-            .map_err(|e| ClassificationError::config(format!(
-                "Failed to read recording file {file_path}: {e}"
-            )))?;
-            
-        let recorded: RecordedResponses = serde_json::from_str(&contents)
-            .map_err(|e| ClassificationError::config(format!(
-                "Failed to parse recording file {file_path}: {e}"
-            )))?;
-            
+
+        let contents = fs::read_to_string(file_path).map_err(|e| {
+            ClassificationError::config(format!("Failed to read recording file {file_path}: {e}"))
+        })?;
+
+        let recorded: RecordedResponses = serde_json::from_str(&contents).map_err(|e| {
+            ClassificationError::config(format!("Failed to parse recording file {file_path}: {e}"))
+        })?;
+
         let mut responses = HashMap::new();
         for response in recorded.responses {
             let key = format!(
@@ -119,21 +119,24 @@ impl MockOllamaClassifier {
             );
             responses.insert(key, response);
         }
-        
-        println!("📼 Loaded {} recorded responses from {file_path}", responses.len());
+
+        println!(
+            "📼 Loaded {} recorded responses from {file_path}",
+            responses.len()
+        );
         Ok(responses)
     }
-    
+
     /// Save recorded responses to file
     pub async fn save_recordings(&self) -> Result<(), ClassificationError> {
         if !self.recording_mode {
             return Ok(());
         }
-        
+
         let responses_guard = self.responses.lock().unwrap();
         let responses: Vec<RecordedResponse> = responses_guard.values().cloned().collect();
         drop(responses_guard);
-        
+
         let recorded = RecordedResponses {
             metadata: RecordingMetadata {
                 model: "llama3.1:8b".to_string(),
@@ -142,28 +145,32 @@ impl MockOllamaClassifier {
             },
             responses,
         };
-        
-        let json = serde_json::to_string_pretty(&recorded)
-            .map_err(|e| ClassificationError::unknown(format!(
-                "Failed to serialize recordings: {e}"
-            )))?;
-            
-        fs::write(&self.recording_file, json)
-            .map_err(|e| ClassificationError::unknown(format!(
-                "Failed to write recording file {}: {}", self.recording_file, e
-            )))?;
-            
-        println!("💾 Saved {} recorded responses to {}", recorded.metadata.total_responses, self.recording_file);
+
+        let json = serde_json::to_string_pretty(&recorded).map_err(|e| {
+            ClassificationError::unknown(format!("Failed to serialize recordings: {e}"))
+        })?;
+
+        fs::write(&self.recording_file, json).map_err(|e| {
+            ClassificationError::unknown(format!(
+                "Failed to write recording file {}: {}",
+                self.recording_file, e
+            ))
+        })?;
+
+        println!(
+            "💾 Saved {} recorded responses to {}",
+            recorded.metadata.total_responses, self.recording_file
+        );
         Ok(())
     }
-    
+
     /// Get statistics about loaded recordings
     pub fn get_stats(&self) -> (usize, Vec<String>) {
         let responses_guard = self.responses.lock().unwrap();
         let total = responses_guard.len();
         let categories: Vec<String> = responses_guard
             .values()
-            .map(|r| r.classification.category.clone())
+            .map(|r| r.classification.category.to_string())
             .collect::<std::collections::HashSet<_>>()
             .into_iter()
             .collect();
@@ -175,13 +182,13 @@ impl MockOllamaClassifier {
 impl MessageClassifier for MockOllamaClassifier {
     async fn classify(&self, email: &Email) -> Result<Classification, ClassificationError> {
         let signature = Self::email_signature(email);
-        
+
         if self.recording_mode {
             // Recording mode: use real classifier and save response
             if let Some(ref real_classifier) = self.real_classifier {
                 println!("🎥 Recording response for email: {}", email.id);
                 let classification = real_classifier.classify(email).await?;
-                
+
                 let recorded = RecordedResponse {
                     email_id: email.id.clone(),
                     email_subject: email.subject.clone(),
@@ -191,26 +198,32 @@ impl MessageClassifier for MockOllamaClassifier {
                     raw_response: classification.llm_response.clone(),
                     recorded_at: chrono::Utc::now().to_rfc3339(),
                 };
-                
+
                 // Store in memory (will be saved later)
                 let mut responses_guard = self.responses.lock().unwrap();
                 responses_guard.insert(signature, recorded);
                 drop(responses_guard);
-                
+
                 Ok(classification)
             } else {
-                Err(ClassificationError::config("Recording mode requires a real classifier".to_string()))
+                Err(ClassificationError::config(
+                    "Recording mode requires a real classifier".to_string(),
+                ))
             }
         } else {
             // Replay mode: return recorded response
             let responses_guard = self.responses.lock().unwrap();
             if let Some(recorded) = responses_guard.get(&signature) {
-                println!("📼 Replaying response for email: {} -> {}", email.id, recorded.classification.category);
+                println!(
+                    "📼 Replaying response for email: {} -> {}",
+                    email.id, recorded.classification.category
+                );
                 let classification = recorded.classification.clone();
                 drop(responses_guard);
                 Ok(classification)
             } else {
-                let available_signatures: Vec<String> = responses_guard.keys().take(5).cloned().collect();
+                let available_signatures: Vec<String> =
+                    responses_guard.keys().take(5).cloned().collect();
                 drop(responses_guard);
                 Err(ClassificationError::unknown(format!(
                     "No recorded response found for email signature: {}. Available signatures: [{}]",
@@ -226,36 +239,36 @@ impl MessageClassifier for MockOllamaClassifier {
 mod tests {
     use super::*;
     use crate::classifier::StubClassifier;
-    
+
     #[tokio::test]
     async fn test_mock_classifier_recording_mode() {
         let real_classifier = Box::new(StubClassifier::deterministic());
-        let mock = MockOllamaClassifier::new_recording_mode(
-            "/tmp/test_recordings.json", 
-            real_classifier
-        );
-        
+        let mock =
+            MockOllamaClassifier::new_recording_mode("/tmp/test_recordings.json", real_classifier);
+
         let email = Email::new_full(
             "test123".to_string(),
             Some("Test Subject".to_string()),
             Some("Test snippet".to_string()),
             Some("test@example.com".to_string()),
-            None, None, None,
+            None,
+            None,
+            None,
         );
-        
-        let classification = mock.classify(&email).await.unwrap();
-        assert!(!classification.category.is_empty());
-        
+
+        let _classification = mock.classify(&email).await.unwrap();
+        // EmailCategory is always valid as an enum - no need to check if empty
+
         // Save recordings
         mock.save_recordings().await.unwrap();
-        
+
         // Verify file was created
         assert!(Path::new("/tmp/test_recordings.json").exists());
-        
+
         // Clean up
         let _ = fs::remove_file("/tmp/test_recordings.json");
     }
-    
+
     #[test]
     fn test_email_signature() {
         let email = Email::new_full(
@@ -263,9 +276,11 @@ mod tests {
             Some("Subject".to_string()),
             Some("Snippet".to_string()),
             Some("from@example.com".to_string()),
-            None, None, None,
+            None,
+            None,
+            None,
         );
-        
+
         let signature = MockOllamaClassifier::email_signature(&email);
         assert_eq!(signature, "id123:Subject:Snippet:from@example.com");
     }

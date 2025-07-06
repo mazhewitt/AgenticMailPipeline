@@ -1,9 +1,9 @@
 //! PII detection logic and entity management
 
 pub mod detector;
-pub mod parsing;
 pub mod entities;
+pub mod parsing;
 
 pub use detector::PiiDetector;
-pub use parsing::ResponseParser;
 pub use entities::EntityManager;
+pub use parsing::ResponseParser;

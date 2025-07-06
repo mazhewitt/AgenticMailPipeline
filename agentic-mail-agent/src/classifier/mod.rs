@@ -1,38 +1,38 @@
 //! Email classification trait and implementations.
-//! 
+//!
 //! This module provides an abstraction for classifying emails using various
 //! classification methods, including local LLM integration via Ollama.
 
-mod stub;
-mod langchain;
-mod text_preprocessing;
+mod category;
 mod hybrid;
+mod langchain;
 mod mock_ollama;
+mod stub;
+mod text_preprocessing;
 
-pub mod rules;
 pub mod llm;
+pub mod rules;
 
-pub use stub::StubClassifier;
-pub use langchain::{LangChainClassifier, LangChainConfig};
+pub use category::EmailCategory;
 pub use hybrid::HybridClassifier;
+pub use langchain::{LangChainClassifier, LangChainConfig};
 pub use mock_ollama::{MockOllamaClassifier, RecordedResponse, RecordedResponses};
+pub use stub::StubClassifier;
 pub use text_preprocessing::{
-    clean_html_for_classification,
-    clean_text_for_classification,
-    prepare_email_for_classification,
+    clean_html_for_classification, clean_text_for_classification, prepare_email_for_classification,
     prepare_email_metadata_for_classification,
 };
 
 use crate::core::email::Email;
 
 /// Result of email classification.
-/// 
+///
 /// Contains the classification category, optional confidence score,
 /// and the raw LLM response for debugging and audit purposes.
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct Classification {
-    /// The classified category (e.g., "work", "personal", "promotional", "spam")
-    pub category: String,
+    /// The classified category (e.g., ActionRequired, Spam, etc.)
+    pub category: EmailCategory,
     /// Optional confidence score from 0.0 to 1.0, where 1.0 is highest confidence
     pub score: Option<f32>,
     /// Raw response from the LLM for debugging and audit purposes
@@ -41,27 +41,27 @@ pub struct Classification {
 
 impl Classification {
     /// Create a new Classification result.
-    pub fn new(category: String, score: Option<f32>, llm_response: String) -> Self {
+    pub fn new(category: EmailCategory, score: Option<f32>, llm_response: String) -> Self {
         Self {
             category,
             score,
             llm_response,
         }
     }
-    
+
     /// Create a Classification with just a category (no score).
-    pub fn with_category(category: String) -> Self {
+    pub fn with_category(category: EmailCategory) -> Self {
         Self {
-            llm_response: format!("Category: {category}"),
+            llm_response: format!("Category: {}", category.as_str()),
             category,
             score: None,
         }
     }
-    
+
     /// Create a Classification with category and score.
-    pub fn with_score(category: String, score: f32) -> Self {
+    pub fn with_score(category: EmailCategory, score: f32) -> Self {
         Self {
-            llm_response: format!("Category: {category} (score: {score:.2})"),
+            llm_response: format!("Category: {} (score: {:.2})", category.as_str(), score),
             category,
             score: Some(score),
         }
@@ -74,19 +74,19 @@ pub enum ClassificationError {
     /// LLM service communication error
     #[error("LLM service error: {message}")]
     LlmService { message: String },
-    
+
     /// Invalid LLM response format
     #[error("Invalid response format: {message}")]
     InvalidResponse { message: String },
-    
+
     /// Configuration error for the classifier
     #[error("Classifier configuration error: {message}")]
     Config { message: String },
-    
+
     /// Network or connectivity error
     #[error("Network error: {message}")]
     Network { message: String },
-    
+
     /// Unknown or unexpected error
     #[error("Unknown classification error: {message}")]
     Unknown { message: String },
@@ -95,42 +95,52 @@ pub enum ClassificationError {
 impl ClassificationError {
     /// Create a new LLM service error with a message
     pub fn llm_service(message: impl Into<String>) -> Self {
-        Self::LlmService { message: message.into() }
+        Self::LlmService {
+            message: message.into(),
+        }
     }
-    
+
     /// Create a new invalid response error with a message
     pub fn invalid_response(message: impl Into<String>) -> Self {
-        Self::InvalidResponse { message: message.into() }
+        Self::InvalidResponse {
+            message: message.into(),
+        }
     }
-    
+
     /// Create a new config error with a message
     pub fn config(message: impl Into<String>) -> Self {
-        Self::Config { message: message.into() }
+        Self::Config {
+            message: message.into(),
+        }
     }
-    
+
     /// Create a new network error with a message
     pub fn network(message: impl Into<String>) -> Self {
-        Self::Network { message: message.into() }
+        Self::Network {
+            message: message.into(),
+        }
     }
-    
+
     /// Create a new unknown error with a message
     pub fn unknown(message: impl Into<String>) -> Self {
-        Self::Unknown { message: message.into() }
+        Self::Unknown {
+            message: message.into(),
+        }
     }
 }
 
 /// Trait for classifying email messages.
-/// 
+///
 /// This trait provides a unified interface for classifying emails using different
 /// classification methods, from simple rule-based systems to sophisticated LLM-powered
 /// classification.
-/// 
+///
 /// # Examples
-/// 
+///
 /// ```rust,no_run
 /// use agentic_mail_agent::classifier::{MessageClassifier, StubClassifier};
 /// use agentic_mail_agent::core::email::Email;
-/// 
+///
 /// #[tokio::main]
 /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
 ///     let classifier = StubClassifier::new();
@@ -143,17 +153,17 @@ impl ClassificationError {
 #[async_trait::async_trait]
 pub trait MessageClassifier {
     /// Classify an email and return the classification result.
-    /// 
+    ///
     /// This method analyzes the email content (subject, snippet, etc.) and
     /// returns a classification with category, optional confidence score,
     /// and raw LLM response for audit purposes.
-    /// 
+    ///
     /// # Arguments
-    /// 
+    ///
     /// * `email` - The email to classify
-    /// 
+    ///
     /// # Returns
-    /// 
+    ///
     /// Returns a `Classification` containing the category, optional score,
     /// and raw LLM response, or a `ClassificationError` if classification fails.
     async fn classify(&self, email: &Email) -> Result<Classification, ClassificationError>;
@@ -166,48 +176,54 @@ mod tests {
     #[test]
     fn classification_new() {
         let classification = Classification::new(
-            "work".to_string(),
+            EmailCategory::ActionRequired,
             Some(0.85),
-            "This email appears to be work-related".to_string(),
+            "This email appears to require action".to_string(),
         );
-        
-        assert_eq!(classification.category, "work");
+
+        assert_eq!(classification.category, EmailCategory::ActionRequired);
         assert_eq!(classification.score, Some(0.85));
-        assert_eq!(classification.llm_response, "This email appears to be work-related");
+        assert_eq!(
+            classification.llm_response,
+            "This email appears to require action"
+        );
     }
-    
+
     #[test]
     fn classification_with_category() {
-        let classification = Classification::with_category("personal".to_string());
-        
-        assert_eq!(classification.category, "personal");
+        let classification = Classification::with_category(EmailCategory::Reference);
+
+        assert_eq!(classification.category, EmailCategory::Reference);
         assert_eq!(classification.score, None);
-        assert_eq!(classification.llm_response, "Category: personal");
+        assert_eq!(classification.llm_response, "Category: Reference");
     }
-    
+
     #[test]
     fn classification_with_score() {
-        let classification = Classification::with_score("spam".to_string(), 0.92);
-        
-        assert_eq!(classification.category, "spam");
+        let classification = Classification::with_score(EmailCategory::Spam, 0.92);
+
+        assert_eq!(classification.category, EmailCategory::Spam);
         assert_eq!(classification.score, Some(0.92));
-        assert_eq!(classification.llm_response, "Category: spam (score: 0.92)");
+        assert_eq!(classification.llm_response, "Category: Spam (score: 0.92)");
     }
-    
+
     #[test]
     fn classification_error_creation() {
         let llm_error = ClassificationError::llm_service("Connection failed");
         assert!(matches!(llm_error, ClassificationError::LlmService { .. }));
-        
+
         let invalid_error = ClassificationError::invalid_response("Malformed JSON");
-        assert!(matches!(invalid_error, ClassificationError::InvalidResponse { .. }));
-        
+        assert!(matches!(
+            invalid_error,
+            ClassificationError::InvalidResponse { .. }
+        ));
+
         let config_error = ClassificationError::config("Missing API key");
         assert!(matches!(config_error, ClassificationError::Config { .. }));
-        
+
         let network_error = ClassificationError::network("Timeout");
         assert!(matches!(network_error, ClassificationError::Network { .. }));
-        
+
         let unknown_error = ClassificationError::unknown("Unexpected error");
         assert!(matches!(unknown_error, ClassificationError::Unknown { .. }));
     }

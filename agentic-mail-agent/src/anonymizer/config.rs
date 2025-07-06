@@ -2,8 +2,8 @@
 
 use crate::anonymizer::types::LlmBackend;
 use serde::Deserialize;
-use std::path::Path;
 use std::fs;
+use std::path::Path;
 
 /// Configuration for the anonymization pipeline
 #[derive(Debug, Clone)]
@@ -23,17 +23,21 @@ pub struct AnonymizationConfig {
 }
 
 impl AnonymizationConfig {
-    pub fn new(backend: LlmBackend, model: Option<String>) -> Result<Self, Box<dyn std::error::Error>> {
+    pub fn new(
+        backend: LlmBackend,
+        model: Option<String>,
+    ) -> Result<Self, Box<dyn std::error::Error>> {
         let (model, openai_api_key) = match backend {
-            LlmBackend::Ollama => {
-                (model.unwrap_or_else(|| "llama3:8b".to_string()), None)
-            }
+            LlmBackend::Ollama => (model.unwrap_or_else(|| "llama3:8b".to_string()), None),
             LlmBackend::OpenAI => {
                 let api_key = Self::load_openai_key()?;
-                (model.unwrap_or_else(|| "gpt-4o-mini".to_string()), Some(api_key))
+                (
+                    model.unwrap_or_else(|| "gpt-4o-mini".to_string()),
+                    Some(api_key),
+                )
             }
         };
-        
+
         Ok(Self {
             backend,
             openai_api_key,
@@ -43,21 +47,24 @@ impl AnonymizationConfig {
             llm_timeout_secs: 120,
         })
     }
-    
+
     fn load_openai_key() -> Result<String, Box<dyn std::error::Error>> {
         let secrets_path = Path::new("../secrets/openai.json");
         if !secrets_path.exists() {
-            return Err("OpenAI API key not found. Please create ../secrets/openai.json with your API key.".into());
+            return Err(
+                "OpenAI API key not found. Please create ../secrets/openai.json with your API key."
+                    .into(),
+            );
         }
-        
+
         #[derive(Deserialize)]
         struct SecretsFile {
             openai_api_key: String,
         }
-        
+
         let secrets_content = fs::read_to_string(secrets_path)?;
         let secrets: SecretsFile = serde_json::from_str(&secrets_content)?;
-        
+
         Ok(secrets.openai_api_key)
     }
 }

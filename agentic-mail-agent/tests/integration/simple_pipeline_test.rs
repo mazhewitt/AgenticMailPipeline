@@ -77,7 +77,7 @@ async fn test_simple_end_to_end_pipeline() {
         let test_label = format!(
             "{}{}",
             TEST_LABEL_PREFIX,
-            classification.category.to_uppercase()
+            classification.category.as_str().to_uppercase()
         );
 
         // Apply the label

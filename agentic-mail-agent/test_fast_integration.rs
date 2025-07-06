@@ -1,15 +1,15 @@
 use agentic_mail_agent::{
     action::impls::labeler::{ConcreteGmailLabeler, EmailLabeler},
-    classifier::{MessageClassifier, StubClassifier},
+    classifier::{EmailCategory, MessageClassifier, StubClassifier},
     config::LabelConfig,
     fetcher::{EmailFetcher, GmailFetcher},
 };
 use std::time::Duration;
 use tokio::time::timeout;
 
-fn create_test_label(category: &str) -> String {
+fn create_test_label(category: &EmailCategory) -> String {
     let label_config = LabelConfig::new();
-    label_config.get_test_label(category)
+    label_config.get_test_label(category.as_str())
 }
 
 #[tokio::main]

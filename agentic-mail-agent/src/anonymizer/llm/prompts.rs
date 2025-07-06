@@ -19,7 +19,7 @@ Email text:
 JSON array:"#
         )
     }
-    
+
     /// Generate a prompt for extracting addresses from email text
     pub fn extract_addresses(email_text: &str) -> String {
         format!(
@@ -41,7 +41,7 @@ Email text:
 JSON array:"#
         )
     }
-    
+
     /// Generate a prompt for extracting general PII from email text
     pub fn extract_pii(email_text: &str) -> String {
         format!(

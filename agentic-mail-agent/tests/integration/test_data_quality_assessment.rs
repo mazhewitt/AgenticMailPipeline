@@ -297,10 +297,7 @@ mod tests {
 
                 // Verify classifications have expected structure
                 for classification in &classifications {
-                    assert!(
-                        !classification.category.is_empty(),
-                        "Category should not be empty"
-                    );
+                    // EmailCategory is always valid as an enum - no need to check if empty
                     if let Some(score) = classification.score {
                         assert!(
                             (0.0..=1.0).contains(&score),

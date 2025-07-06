@@ -7,28 +7,28 @@
 #[derive(Debug, Clone, thiserror::Error, PartialEq, Eq)]
 pub enum FetchError {
     /// Network or API communication error
-    /// 
+    ///
     /// This occurs when there are issues connecting to the email service,
     /// timeouts, or other network-related problems.
     #[error("Network error: {message}")]
     Network { message: String },
-    
+
     /// Authentication or authorization error
-    /// 
+    ///
     /// This occurs when credentials are missing, invalid, expired,
     /// or when the user lacks permission to access the requested resource.
     #[error("Authentication error: {message}")]
     Auth { message: String },
-    
+
     /// Configuration error
-    /// 
+    ///
     /// This occurs when environment variables are missing or configuration
     /// files are malformed or inaccessible.
     #[error("Configuration error: {message}")]
     Config { message: String },
-    
+
     /// Unknown or unexpected error
-    /// 
+    ///
     /// This is a catch-all for errors that don't fit other categories.
     #[error("Unknown error: {message}")]
     Unknown { message: String },
@@ -37,22 +37,30 @@ pub enum FetchError {
 impl FetchError {
     /// Create a new Network error with a message
     pub fn network(message: impl Into<String>) -> Self {
-        Self::Network { message: message.into() }
+        Self::Network {
+            message: message.into(),
+        }
     }
-    
+
     /// Create a new Auth error with a message
     pub fn auth(message: impl Into<String>) -> Self {
-        Self::Auth { message: message.into() }
+        Self::Auth {
+            message: message.into(),
+        }
     }
-    
+
     /// Create a new Config error with a message
     pub fn config(message: impl Into<String>) -> Self {
-        Self::Config { message: message.into() }
+        Self::Config {
+            message: message.into(),
+        }
     }
-    
+
     /// Create a new Unknown error with a message
     pub fn unknown(message: impl Into<String>) -> Self {
-        Self::Unknown { message: message.into() }
+        Self::Unknown {
+            message: message.into(),
+        }
     }
 }
 
@@ -60,12 +68,8 @@ impl FetchError {
 impl From<crate::gmail::GmailClientError> for FetchError {
     fn from(error: crate::gmail::GmailClientError) -> Self {
         match error {
-            crate::gmail::GmailClientError::Config { message } => {
-                FetchError::config(message)
-            }
-            crate::gmail::GmailClientError::Auth { message } => {
-                FetchError::auth(message)
-            }
+            crate::gmail::GmailClientError::Config { message } => FetchError::config(message),
+            crate::gmail::GmailClientError::Auth { message } => FetchError::auth(message),
         }
     }
 }

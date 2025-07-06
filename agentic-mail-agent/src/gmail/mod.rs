@@ -1,28 +1,32 @@
 //! Shared Gmail API client utilities.
-//! 
+//!
 //! This module provides common Gmail API client creation and authentication
 //! logic shared between the fetcher and labeler implementations.
 
 pub mod api;
 
 use async_trait::async_trait;
+use google_gmail1::api::{Label, Message, ModifyMessageRequest};
 use google_gmail1::{
     hyper_rustls,
-    yup_oauth2::{InstalledFlowAuthenticator, InstalledFlowReturnMethod, ApplicationSecret},
+    yup_oauth2::{ApplicationSecret, InstalledFlowAuthenticator, InstalledFlowReturnMethod},
     Gmail,
 };
-use google_gmail1::api::{Label, Message, ModifyMessageRequest};
 
 use self::api::{GmailApi, GmailApiError, GmailApiResult};
 use std::fmt;
 
 /// Shared Gmail client with authentication.
-/// 
+///
 /// This struct provides a configured Gmail API client that can be used
 /// by both fetcher and labeler implementations.
 #[derive(Clone)]
 pub struct GmailClient {
-    pub hub: Gmail<hyper_rustls::HttpsConnector<google_gmail1::hyper_util::client::legacy::connect::HttpConnector>>,
+    pub hub: Gmail<
+        hyper_rustls::HttpsConnector<
+            google_gmail1::hyper_util::client::legacy::connect::HttpConnector,
+        >,
+    >,
 }
 
 /// Configuration for Gmail authentication.
@@ -52,11 +56,15 @@ impl std::error::Error for GmailClientError {}
 
 impl GmailClientError {
     pub fn config<S: Into<String>>(message: S) -> Self {
-        Self::Config { message: message.into() }
+        Self::Config {
+            message: message.into(),
+        }
     }
 
     pub fn auth<S: Into<String>>(message: S) -> Self {
-        Self::Auth { message: message.into() }
+        Self::Auth {
+            message: message.into(),
+        }
     }
 }
 
@@ -68,9 +76,9 @@ impl GmailAuthConfig {
             token_path,
         }
     }
-    
+
     /// Create GmailAuthConfig from environment variables with sensible defaults.
-    /// 
+    ///
     /// This method looks for environment variables first, but falls back to
     /// default paths relative to the project root if the variables aren't set.
     pub fn from_env() -> Result<Self, GmailClientError> {
@@ -82,7 +90,7 @@ impl GmailAuthConfig {
                 Self::find_default_path("secrets/client-secret.json")?
             }
         };
-        
+
         let token_path = match std::env::var("GMAIL_TOKEN_JSON") {
             Ok(path) => path,
             Err(_) => {
@@ -90,28 +98,28 @@ impl GmailAuthConfig {
                 Self::find_default_path("secrets/token.json")?
             }
         };
-        
+
         Ok(Self::new(client_secret_path, token_path))
     }
-    
+
     /// Find default path by looking in parent directories for the secrets folder.
     fn find_default_path(relative_path: &str) -> Result<String, GmailClientError> {
-        
         let current_dir = std::env::current_dir()
             .map_err(|_| GmailClientError::config("Could not determine current directory"))?;
-        
+
         // Look for secrets directory in current dir and parent directories
         let mut search_dir = current_dir.as_path();
         let mut tried_paths = Vec::new();
-        
-        for _ in 0..5 { // Limit search to 5 levels up
+
+        for _ in 0..5 {
+            // Limit search to 5 levels up
             let candidate = search_dir.join(relative_path);
             tried_paths.push(candidate.clone());
-            
+
             if candidate.exists() {
                 return Ok(candidate.to_string_lossy().to_string());
             }
-            
+
             // Try one level up
             if let Some(parent) = search_dir.parent() {
                 search_dir = parent;
@@ -119,22 +127,22 @@ impl GmailAuthConfig {
                 break;
             }
         }
-        
+
         // If not found, provide helpful error message with all searched locations
-        let tried_list: Vec<String> = tried_paths.iter()
+        let tried_list: Vec<String> = tried_paths
+            .iter()
             .map(|p| format!("  - {}", p.display()))
             .collect();
-        
+
         Err(GmailClientError::config(format!(
             "Gmail credentials not found. Searched for {} in:\n{}\n\nTo set up Gmail credentials:\n  1. Run: ./setup_gmail_auth.sh (from project root)\n  2. Or set environment variables:\n     export GMAIL_CLIENT_SECRET_JSON=/path/to/client-secret.json\n     export GMAIL_TOKEN_JSON=/path/to/token.json",
             relative_path,
             tried_list.join("\n")
         )))
     }
-    
+
     /// Validate that the required files exist and have valid content.
     pub fn validate_files(&self) -> Result<(), GmailClientError> {
-        
         // Check client secret file
         let secret_path = std::path::Path::new(&self.client_secret_path);
         if !secret_path.exists() {
@@ -144,15 +152,15 @@ impl GmailAuthConfig {
                 self.client_secret_path
             )));
         }
-        
+
         // Validate client secret content
         if let Err(e) = std::fs::read_to_string(&self.client_secret_path) {
             return Err(GmailClientError::config(format!(
-                "Cannot read client secret file {}: {}", 
+                "Cannot read client secret file {}: {}",
                 self.client_secret_path, e
             )));
         }
-        
+
         // Check token file
         let token_path = std::path::Path::new(&self.token_path);
         if !token_path.exists() {
@@ -161,7 +169,7 @@ impl GmailAuthConfig {
                 self.token_path
             )));
         }
-        
+
         // Validate token content
         match std::fs::read_to_string(&self.token_path) {
             Ok(content) => {
@@ -172,7 +180,7 @@ impl GmailAuthConfig {
                         self.token_path
                     )));
                 }
-                
+
                 // Try to parse as JSON to ensure it's valid
                 if serde_json::from_str::<serde_json::Value>(&content).is_err() {
                     return Err(GmailClientError::config(format!(
@@ -184,12 +192,12 @@ impl GmailAuthConfig {
             }
             Err(e) => {
                 return Err(GmailClientError::config(format!(
-                    "Cannot read token file {}: {}", 
+                    "Cannot read token file {}: {}",
                     self.token_path, e
                 )));
             }
         }
-        
+
         Ok(())
     }
 }
@@ -210,34 +218,39 @@ impl GmailClient {
     /// Create and configure the Gmail API hub.
     async fn create_gmail_hub(
         config: GmailAuthConfig,
-    ) -> Result<Gmail<hyper_rustls::HttpsConnector<google_gmail1::hyper_util::client::legacy::connect::HttpConnector>>, GmailClientError> {
+    ) -> Result<
+        Gmail<
+            hyper_rustls::HttpsConnector<
+                google_gmail1::hyper_util::client::legacy::connect::HttpConnector,
+            >,
+        >,
+        GmailClientError,
+    > {
         // Validate file paths
         config.validate_files()?;
 
         // Read and parse client secret
-        let secret = std::fs::read_to_string(&config.client_secret_path)
-            .map_err(|e| GmailClientError::config(format!(
-                "Failed to read client secret file: {e}"
-            )))?;
+        let secret = std::fs::read_to_string(&config.client_secret_path).map_err(|e| {
+            GmailClientError::config(format!("Failed to read client secret file: {e}"))
+        })?;
 
         let secret: ApplicationSecret = {
             // Parse the JSON first
-            let google_secret: serde_json::Value = serde_json::from_str(&secret)
-                .map_err(|e| GmailClientError::config(format!(
-                    "Failed to parse client secret JSON: {e}"
-                )))?;
-            
+            let google_secret: serde_json::Value = serde_json::from_str(&secret).map_err(|e| {
+                GmailClientError::config(format!("Failed to parse client secret JSON: {e}"))
+            })?;
+
             // Check if it's in the Google "installed" format
             if let Some(installed) = google_secret.get("installed") {
-                serde_json::from_value(installed.clone())
-                    .map_err(|e| GmailClientError::config(format!(
+                serde_json::from_value(installed.clone()).map_err(|e| {
+                    GmailClientError::config(format!(
                         "Failed to parse installed client secret: {e}"
-                    )))?
+                    ))
+                })?
             } else {
-                serde_json::from_str(&secret)
-                    .map_err(|e| GmailClientError::config(format!(
-                        "Failed to parse ApplicationSecret: {e}"
-                    )))?
+                serde_json::from_str(&secret).map_err(|e| {
+                    GmailClientError::config(format!("Failed to parse ApplicationSecret: {e}"))
+                })?
             }
         };
 
@@ -250,7 +263,7 @@ impl GmailClient {
             .build();
 
         let executor = google_gmail1::hyper_util::rt::TokioExecutor::new();
-        
+
         // Add timeout to authentication build process to prevent hanging
         let auth = tokio::time::timeout(
             std::time::Duration::from_secs(60), // 60 second timeout for auth
@@ -258,23 +271,25 @@ impl GmailClient {
                 secret,
                 InstalledFlowReturnMethod::HTTPRedirect,
                 google_gmail1::yup_oauth2::client::CustomHyperClientBuilder::from(
-                    google_gmail1::hyper_util::client::legacy::Client::builder(executor).build(connector.clone()),
+                    google_gmail1::hyper_util::client::legacy::Client::builder(executor)
+                        .build(connector.clone()),
                 ),
             )
             .persist_tokens_to_disk(&config.token_path)
-            .build()
+            .build(),
         )
         .await
-        .map_err(|_| GmailClientError::auth("OAuth2 authentication timed out after 60 seconds".to_string()))?
-        .map_err(|e| GmailClientError::auth(format!(
-            "Failed to build authenticator: {e}"
-        )))?;
+        .map_err(|_| {
+            GmailClientError::auth("OAuth2 authentication timed out after 60 seconds".to_string())
+        })?
+        .map_err(|e| GmailClientError::auth(format!("Failed to build authenticator: {e}")))?;
 
         // Create Gmail hub
         let gmail_hub = Gmail::new(
             google_gmail1::hyper_util::client::legacy::Client::builder(
-                google_gmail1::hyper_util::rt::TokioExecutor::new()
-            ).build(connector),
+                google_gmail1::hyper_util::rt::TokioExecutor::new(),
+            )
+            .build(connector),
             auth,
         );
 
@@ -287,10 +302,7 @@ impl GmailApi for GmailClient {
     async fn list_labels(&self) -> GmailApiResult<Vec<Label>> {
         let result = tokio::time::timeout(
             std::time::Duration::from_secs(30), // 30 second timeout for API calls
-            self.hub
-                .users()
-                .labels_list("me")
-                .doit()
+            self.hub.users().labels_list("me").doit(),
         )
         .await
         .map_err(|_| GmailApiError::api("Gmail API call timed out after 30 seconds".to_string()))?
@@ -302,10 +314,7 @@ impl GmailApi for GmailClient {
     async fn create_label(&self, label: Label) -> GmailApiResult<Label> {
         let result = tokio::time::timeout(
             std::time::Duration::from_secs(30), // 30 second timeout for API calls
-            self.hub
-                .users()
-                .labels_create(label, "me")
-                .doit()
+            self.hub.users().labels_create(label, "me").doit(),
         )
         .await
         .map_err(|_| GmailApiError::api("Gmail API call timed out after 30 seconds".to_string()))?
@@ -317,10 +326,7 @@ impl GmailApi for GmailClient {
     async fn delete_label(&self, label_id: &str) -> GmailApiResult<()> {
         tokio::time::timeout(
             std::time::Duration::from_secs(30), // 30 second timeout for API calls
-            self.hub
-                .users()
-                .labels_delete("me", label_id)
-                .doit()
+            self.hub.users().labels_delete("me", label_id).doit(),
         )
         .await
         .map_err(|_| GmailApiError::api("Gmail API call timed out after 30 seconds".to_string()))?
@@ -332,10 +338,7 @@ impl GmailApi for GmailClient {
     async fn get_message(&self, message_id: &str) -> GmailApiResult<Message> {
         let result = tokio::time::timeout(
             std::time::Duration::from_secs(30), // 30 second timeout for API calls
-            self.hub
-                .users()
-                .messages_get("me", message_id)
-                .doit()
+            self.hub.users().messages_get("me", message_id).doit(),
         )
         .await
         .map_err(|_| GmailApiError::api("Gmail API call timed out after 30 seconds".to_string()))?
@@ -360,13 +363,15 @@ impl GmailApi for GmailClient {
             self.hub
                 .users()
                 .messages_modify(modify_request, "me", message_id)
-                .doit()
+                .doit(),
         )
         .await
         .map_err(|_| GmailApiError::api("Gmail API call timed out after 30 seconds".to_string()))?
-        .map_err(|e| GmailApiError::api(format!(
-            "Failed to modify labels for message {message_id}: {e}"
-        )))?;
+        .map_err(|e| {
+            GmailApiError::api(format!(
+                "Failed to modify labels for message {message_id}: {e}"
+            ))
+        })?;
 
         Ok(result.1)
     }
@@ -377,12 +382,12 @@ impl GmailApi for GmailClient {
         max_results: Option<u32>,
     ) -> GmailApiResult<Vec<String>> {
         let mut request = self.hub.users().messages_list("me");
-        
+
         // Add label filters
         for label_id in label_ids {
             request = request.add_label_ids(label_id);
         }
-        
+
         // Set max results if specified
         if let Some(max) = max_results {
             request = request.max_results(max);
@@ -390,13 +395,15 @@ impl GmailApi for GmailClient {
 
         let result = tokio::time::timeout(
             std::time::Duration::from_secs(30), // 30 second timeout for API calls
-            request.doit()
+            request.doit(),
         )
         .await
         .map_err(|_| GmailApiError::api("Gmail API call timed out after 30 seconds".to_string()))?
         .map_err(|e| GmailApiError::api(format!("Failed to list messages: {e}")))?;
 
-        let message_ids = result.1.messages
+        let message_ids = result
+            .1
+            .messages
             .unwrap_or_default()
             .into_iter()
             .filter_map(|msg| msg.id)
@@ -425,17 +432,17 @@ mod tests {
         // Temporarily unset environment variables
         std::env::remove_var("GMAIL_CLIENT_SECRET_JSON");
         std::env::remove_var("GMAIL_TOKEN_JSON");
-        
+
         // Change to a directory where secrets won't be found
         let original_dir = std::env::current_dir().unwrap();
         let temp_dir = std::env::temp_dir();
         std::env::set_current_dir(&temp_dir).unwrap();
-        
+
         let result = GmailAuthConfig::from_env();
-        
+
         // Restore original directory
         std::env::set_current_dir(original_dir).unwrap();
-        
+
         assert!(result.is_err());
     }
 
@@ -458,12 +465,12 @@ mod tests {
     fn test_gmail_client_errors() {
         let config_error = GmailClientError::config("Test config error");
         let auth_error = GmailClientError::auth("Test auth error");
-        
+
         match config_error {
             GmailClientError::Config { .. } => (),
             _ => panic!("Expected Config error"),
         }
-        
+
         match auth_error {
             GmailClientError::Auth { .. } => (),
             _ => panic!("Expected Auth error"),

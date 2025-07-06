@@ -271,14 +271,14 @@ impl RoutingError {
 ///
 /// ```rust,no_run
 /// use agentic_mail_agent::action::router::{ActionRouter, RuleBasedRouter};
-/// use agentic_mail_agent::classifier::Classification;
+/// use agentic_mail_agent::classifier::{Classification, EmailCategory};
 /// use agentic_mail_agent::core::email::Email;
 ///
 /// #[tokio::main]
 /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
 ///     let router = RuleBasedRouter::new();
 ///     let email = Email::with_subject("test@example.com".to_string(), "Meeting reminder".to_string());
-///     let classification = Classification::with_category("work".to_string());
+///     let classification = Classification::with_category(EmailCategory::ActionRequired);
 ///     let result = router.route(&email, &classification).await?;
 ///     println!("Actions: {}", result.actions_summary());
 ///     Ok(())

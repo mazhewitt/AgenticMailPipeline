@@ -5,7 +5,7 @@
 
 use agentic_mail_agent::{
     action::router::{ActionRouter, RuleBasedRouter},
-    classifier::{Classification, MessageClassifier, StubClassifier},
+    classifier::{Classification, EmailCategory, MessageClassifier, StubClassifier},
     core::email::Email,
     fetcher::{EmailFetcher, StubFetcher},
 };
@@ -56,14 +56,14 @@ async fn test_complete_workflow_with_full_email_fields() {
 
     // Step 3: Classify the email (using stub classifier for deterministic results)
     let classifier = StubClassifier::with_fixed_classification(Classification::with_score(
-        "urgent".to_string(),
+        EmailCategory::ActionRequired,
         0.95,
     ));
     let classification = classifier
         .classify(email)
         .await
         .expect("Should classify email");
-    assert_eq!(classification.category, "urgent");
+    assert_eq!(classification.category, EmailCategory::ActionRequired);
     assert_eq!(classification.score, Some(0.95));
 
     // Step 4: Route the email to actions
@@ -106,19 +106,22 @@ async fn test_classification_uses_all_email_fields() {
 
     // Use stub classifier to simulate different classifications
     let work_classifier = StubClassifier::with_fixed_classification(Classification::with_score(
-        "work".to_string(),
+        EmailCategory::ActionRequired,
         0.85,
     ));
     let personal_classifier = StubClassifier::with_fixed_classification(
-        Classification::with_score("personal".to_string(), 0.90),
+        Classification::with_score(EmailCategory::InterestingInfo, 0.90),
     );
 
     // Classify emails
     let work_classification = work_classifier.classify(&work_email).await.unwrap();
     let personal_classification = personal_classifier.classify(&personal_email).await.unwrap();
 
-    assert_eq!(work_classification.category, "work");
-    assert_eq!(personal_classification.category, "personal");
+    assert_eq!(work_classification.category, EmailCategory::ActionRequired);
+    assert_eq!(
+        personal_classification.category,
+        EmailCategory::InterestingInfo
+    );
 
     // Test that we can access all the new fields
     assert_eq!(work_email.from_or_default(), "project-manager@company.com");
@@ -155,7 +158,7 @@ async fn test_urgent_detection_in_body_content() {
 
     // Set up routing
     let router = RuleBasedRouter::new();
-    let classification = Classification::with_score("work".to_string(), 0.80);
+    let classification = Classification::with_score(EmailCategory::ActionRequired, 0.80);
 
     // Route the email
     let routing_result = router

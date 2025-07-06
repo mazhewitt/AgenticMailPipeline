@@ -149,11 +149,7 @@ mod tests {
                             .collect::<String>()
                     );
 
-                    // Basic validation
-                    assert!(
-                        !classification.category.is_empty(),
-                        "Category should not be empty"
-                    );
+                    // Basic validation - EmailCategory is always valid as an enum
                     assert!(
                         !classification.llm_response.is_empty(),
                         "LLM response should not be empty"
@@ -238,12 +234,10 @@ mod tests {
         for email in &emails {
             match classifier.classify(email).await {
                 Ok(classification) => {
-                    *category_counts
-                        .entry(classification.category.clone())
-                        .or_insert(0) += 1;
+                    *category_counts.entry(classification.category).or_insert(0) += 1;
                     classification_details.push((
                         email.subject_or_default(),
-                        classification.category.clone(),
+                        classification.category,
                         classification.score,
                     ));
                 }

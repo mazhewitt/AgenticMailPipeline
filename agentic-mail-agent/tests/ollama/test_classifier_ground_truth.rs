@@ -1,5 +1,5 @@
 use agentic_mail_agent::classifier::{
-    HybridClassifier, LangChainClassifier, MessageClassifier, StubClassifier,
+    EmailCategory, HybridClassifier, LangChainClassifier, MessageClassifier, StubClassifier,
 };
 use agentic_mail_agent::core::email::Email;
 use serde::{Deserialize, Serialize};
@@ -91,7 +91,7 @@ async fn test_llm_classifier_accuracy_against_ground_truth() {
                 Ok(classification) => {
                     total_predictions += 1;
 
-                    if classification.category == gt_email.category {
+                    if gt_email.category.parse::<EmailCategory>() == Ok(classification.category) {
                         correct_predictions += 1;
                     } else {
                         misclassifications.push(format!(
@@ -137,7 +137,7 @@ async fn test_llm_classifier_accuracy_against_ground_truth() {
                     .entry(gt_email.category.clone())
                     .or_insert((0, 0));
                 entry.1 += 1; // total
-                if classification.category == gt_email.category {
+                if gt_email.category.parse::<EmailCategory>() == Ok(classification.category) {
                     entry.0 += 1; // correct
                 }
             }
@@ -197,7 +197,7 @@ async fn test_hybrid_classifier_accuracy_against_ground_truth() {
                 Ok(classification) => {
                     total_predictions += 1;
 
-                    if classification.category == gt_email.category {
+                    if gt_email.category.parse::<EmailCategory>() == Ok(classification.category) {
                         correct_predictions += 1;
                     } else {
                         misclassifications.push(format!(
@@ -244,7 +244,7 @@ async fn test_hybrid_classifier_accuracy_against_ground_truth() {
                     .entry(gt_email.category.clone())
                     .or_insert((0, 0));
                 entry.1 += 1; // total
-                if classification.category == gt_email.category {
+                if gt_email.category.parse::<EmailCategory>() == Ok(classification.category) {
                     entry.0 += 1; // correct
                 }
             }

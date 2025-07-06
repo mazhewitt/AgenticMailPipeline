@@ -1,17 +1,17 @@
 //! Hybrid classifier combining rule-based and LLM approaches for optimal accuracy
-//! 
+//!
 //! This classifier uses the strengths of both rule-based classification and LLM inference:
 //! - Rule-based for high-confidence patterns (CI failures, receipts, etc.)
 //! - LLM for nuanced decisions (Noise vs InterestingInfo, complex content analysis)
 
-use crate::classifier::{Classification, ClassificationError, MessageClassifier};
 use crate::classifier::text_preprocessing::prepare_email_for_classification;
+use crate::classifier::{Classification, ClassificationError, EmailCategory, MessageClassifier};
 use crate::core::email::Email;
 use async_trait::async_trait;
 use std::sync::Arc;
 
 /// Hybrid classifier that combines rule-based and LLM classification
-/// 
+///
 /// Strategy:
 /// 1. Apply high-confidence rule-based patterns first
 /// 2. Use LLM for ambiguous cases requiring semantic understanding
@@ -44,10 +44,13 @@ impl HybridClassifier {
             email.subject.as_deref(),
             email.snippet.as_deref(),
             email.body.as_deref(),
-            100
-        ).to_lowercase();
+            100,
+        )
+        .to_lowercase();
 
-        let sender_domain = email.from.as_deref()
+        let sender_domain = email
+            .from
+            .as_deref()
             .and_then(|from| from.split('@').nth(1))
             .unwrap_or("")
             .to_lowercase();
@@ -55,7 +58,7 @@ impl HybridClassifier {
         // High-confidence ActionRequired patterns
         if cleaned_content.contains("ci") && cleaned_content.contains("failed") {
             return Some(Classification::new(
-                "ActionRequired".to_string(),
+                EmailCategory::ActionRequired,
                 Some(0.95),
                 "High-confidence rule: CI failure detected".to_string(),
             ));
@@ -63,7 +66,7 @@ impl HybridClassifier {
 
         if cleaned_content.contains("urgent") || cleaned_content.contains("asap") {
             return Some(Classification::new(
-                "ActionRequired".to_string(),
+                EmailCategory::ActionRequired,
                 Some(0.90),
                 "High-confidence rule: Urgent content detected".to_string(),
             ));
@@ -71,7 +74,7 @@ impl HybridClassifier {
 
         if cleaned_content.contains("transfer") && cleaned_content.contains("ticket") {
             return Some(Classification::new(
-                "ActionRequired".to_string(),
+                EmailCategory::ActionRequired,
                 Some(0.92),
                 "High-confidence rule: Ticket transfer required".to_string(),
             ));
@@ -79,7 +82,7 @@ impl HybridClassifier {
 
         if cleaned_content.contains("schule") || cleaned_content.contains("school") {
             return Some(Classification::new(
-                "ActionRequired".to_string(),
+                EmailCategory::ActionRequired,
                 Some(0.88),
                 "High-confidence rule: School communication".to_string(),
             ));
@@ -88,7 +91,7 @@ impl HybridClassifier {
         // High-confidence Reference patterns
         if cleaned_content.contains("receipt") || cleaned_content.contains("invoice") {
             return Some(Classification::new(
-                "Reference".to_string(),
+                EmailCategory::Reference,
                 Some(0.92),
                 "High-confidence rule: Receipt/invoice detected".to_string(),
             ));
@@ -96,7 +99,7 @@ impl HybridClassifier {
 
         if cleaned_content.contains("delivered") || cleaned_content.contains("consignment") {
             return Some(Classification::new(
-                "Reference".to_string(),
+                EmailCategory::Reference,
                 Some(0.90),
                 "High-confidence rule: Delivery confirmation".to_string(),
             ));
@@ -104,51 +107,61 @@ impl HybridClassifier {
 
         if cleaned_content.contains("welcome") && cleaned_content.contains("plan") {
             return Some(Classification::new(
-                "Reference".to_string(),
+                EmailCategory::Reference,
                 Some(0.85),
                 "High-confidence rule: Service welcome message".to_string(),
             ));
         }
 
         // High-confidence Noise patterns
-        
+
         // Marketing and promotional domains
-        if sender_domain.contains("noreply") || sender_domain.contains("no-reply") ||
-           sender_domain.contains("marketing") || sender_domain.contains("mailchimp") ||
-           sender_domain.contains("sendgrid") || sender_domain.contains("constantcontact") {
+        if sender_domain.contains("noreply")
+            || sender_domain.contains("no-reply")
+            || sender_domain.contains("marketing")
+            || sender_domain.contains("mailchimp")
+            || sender_domain.contains("sendgrid")
+            || sender_domain.contains("constantcontact")
+        {
             return Some(Classification::new(
-                "Noise".to_string(),
+                EmailCategory::Noise,
                 Some(0.92),
                 "High-confidence rule: Marketing/promotional domain".to_string(),
             ));
         }
 
         // Social media platforms
-        if sender_domain.contains("facebook") || sender_domain.contains("linkedin") ||
-           sender_domain.contains("twitter") || sender_domain.contains("instagram") {
+        if sender_domain.contains("facebook")
+            || sender_domain.contains("linkedin")
+            || sender_domain.contains("twitter")
+            || sender_domain.contains("instagram")
+        {
             return Some(Classification::new(
-                "Noise".to_string(),
+                EmailCategory::Noise,
                 Some(0.88),
                 "High-confidence rule: Social media platform".to_string(),
             ));
         }
 
         // Promotional phrases with high confidence
-        if (cleaned_content.contains("limited time") && cleaned_content.contains("offer")) ||
-           (cleaned_content.contains("exclusive") && cleaned_content.contains("deal")) ||
-           (cleaned_content.contains("flash sale") || cleaned_content.contains("special offer")) {
+        if (cleaned_content.contains("limited time") && cleaned_content.contains("offer"))
+            || (cleaned_content.contains("exclusive") && cleaned_content.contains("deal"))
+            || (cleaned_content.contains("flash sale") || cleaned_content.contains("special offer"))
+        {
             return Some(Classification::new(
-                "Noise".to_string(),
+                EmailCategory::Noise,
                 Some(0.90),
                 "High-confidence rule: Promotional language detected".to_string(),
             ));
         }
 
         // Product recommendations and shopping suggestions
-        if cleaned_content.contains("to pair with") || 
-           (cleaned_content.contains("you might like") || cleaned_content.contains("recommended for you")) {
+        if cleaned_content.contains("to pair with")
+            || (cleaned_content.contains("you might like")
+                || cleaned_content.contains("recommended for you"))
+        {
             return Some(Classification::new(
-                "Noise".to_string(),
+                EmailCategory::Noise,
                 Some(0.88),
                 "High-confidence rule: Product recommendation".to_string(),
             ));
@@ -157,7 +170,7 @@ impl HybridClassifier {
         // Social connection and engagement patterns
         if cleaned_content.contains("follow") && cleaned_content.contains("ceo") {
             return Some(Classification::new(
-                "Noise".to_string(),
+                EmailCategory::Noise,
                 Some(0.85),
                 "High-confidence rule: Social connection suggestion".to_string(),
             ));
@@ -165,18 +178,20 @@ impl HybridClassifier {
 
         if cleaned_content.contains("notification") && sender_domain.contains("facebook") {
             return Some(Classification::new(
-                "Noise".to_string(),
+                EmailCategory::Noise,
                 Some(0.87),
                 "High-confidence rule: Facebook notification".to_string(),
             ));
         }
 
         // Generic newsletters (exclude tech/security)
-        if cleaned_content.contains("newsletter") && 
-           !cleaned_content.contains("tech") && !cleaned_content.contains("security") && 
-           !cleaned_content.contains("ai") {
+        if cleaned_content.contains("newsletter")
+            && !cleaned_content.contains("tech")
+            && !cleaned_content.contains("security")
+            && !cleaned_content.contains("ai")
+        {
             return Some(Classification::new(
-                "Noise".to_string(),
+                EmailCategory::Noise,
                 Some(0.82),
                 "High-confidence rule: Generic newsletter content".to_string(),
             ));
@@ -185,7 +200,7 @@ impl HybridClassifier {
         // High-confidence InterestingInfo patterns
         if cleaned_content.contains("security") && cleaned_content.contains("alert") {
             return Some(Classification::new(
-                "InterestingInfo".to_string(),
+                EmailCategory::InterestingInfo,
                 Some(0.85),
                 "High-confidence rule: Security alert".to_string(),
             ));
@@ -193,7 +208,7 @@ impl HybridClassifier {
 
         if cleaned_content.contains("economics") || cleaned_content.contains("financial") {
             return Some(Classification::new(
-                "InterestingInfo".to_string(),
+                EmailCategory::InterestingInfo,
                 Some(0.83),
                 "High-confidence rule: Economic/financial content".to_string(),
             ));
@@ -203,30 +218,42 @@ impl HybridClassifier {
     }
 
     /// Post-process LLM results to fix common over-classification issues
-    fn post_process_llm_result(&self, classification: Classification, email: &Email) -> Classification {
+    fn post_process_llm_result(
+        &self,
+        classification: Classification,
+        email: &Email,
+    ) -> Classification {
         let cleaned_content = prepare_email_for_classification(
             email.subject.as_deref(),
             email.snippet.as_deref(),
             email.body.as_deref(),
-            100
-        ).to_lowercase();
+            100,
+        )
+        .to_lowercase();
 
         // Fix over-classification of ActionRequired
-        if classification.category == "ActionRequired" {
+        if classification.category == EmailCategory::ActionRequired {
             // Login links should be Reference, not ActionRequired
             if cleaned_content.contains("login") && cleaned_content.contains("secure") {
                 return Classification::new(
-                    "Reference".to_string(),
+                    EmailCategory::Reference,
                     classification.score,
                     "Post-processed: Login link corrected to Reference".to_string(),
                 );
             }
 
             // Personal BBQ conversations should be Reference
-            if email.subject.as_deref().unwrap_or("").to_lowercase().contains("tomorrow") &&
-               !cleaned_content.contains("meeting") && !cleaned_content.contains("deadline") {
+            if email
+                .subject
+                .as_deref()
+                .unwrap_or("")
+                .to_lowercase()
+                .contains("tomorrow")
+                && !cleaned_content.contains("meeting")
+                && !cleaned_content.contains("deadline")
+            {
                 return Classification::new(
-                    "Reference".to_string(),
+                    EmailCategory::Reference,
                     classification.score,
                     "Post-processed: Personal conversation corrected to Reference".to_string(),
                 );
@@ -235,7 +262,7 @@ impl HybridClassifier {
             // Product recommendations should be Noise
             if cleaned_content.contains("purchased") || cleaned_content.contains("pair with") {
                 return Classification::new(
-                    "Noise".to_string(),
+                    EmailCategory::Noise,
                     classification.score,
                     "Post-processed: Product recommendation corrected to Noise".to_string(),
                 );
@@ -243,12 +270,13 @@ impl HybridClassifier {
         }
 
         // Fix over-classification of Spam
-        if classification.category == "Spam" {
+        if classification.category == EmailCategory::Spam {
             // Legitimate login links should not be spam
-            if cleaned_content.contains("login") && 
-               (cleaned_content.contains("claude") || cleaned_content.contains("anthropic")) {
+            if cleaned_content.contains("login")
+                && (cleaned_content.contains("claude") || cleaned_content.contains("anthropic"))
+            {
                 return Classification::new(
-                    "Reference".to_string(),
+                    EmailCategory::Reference,
                     classification.score,
                     "Post-processed: Legitimate login link corrected from Spam".to_string(),
                 );
@@ -257,7 +285,7 @@ impl HybridClassifier {
             // Newsletter content should be Noise, not Spam
             if cleaned_content.contains("newsletter") || cleaned_content.contains("unsubscribe") {
                 return Classification::new(
-                    "Noise".to_string(),
+                    EmailCategory::Noise,
                     classification.score,
                     "Post-processed: Newsletter corrected from Spam to Noise".to_string(),
                 );
@@ -282,7 +310,8 @@ impl MessageClassifier for HybridClassifier {
                 match llm_classifier.classify(email).await {
                     Ok(llm_classification) => {
                         // Step 3: Post-process LLM result
-                        let final_classification = self.post_process_llm_result(llm_classification, email);
+                        let final_classification =
+                            self.post_process_llm_result(llm_classification, email);
                         return Ok(final_classification);
                     }
                     Err(e) => {
@@ -298,10 +327,13 @@ impl MessageClassifier for HybridClassifier {
             email.subject.as_deref(),
             email.snippet.as_deref(),
             email.body.as_deref(),
-            100
-        ).to_lowercase();
+            100,
+        )
+        .to_lowercase();
 
-        let sender_domain = email.from.as_deref()
+        let sender_domain = email
+            .from
+            .as_deref()
             .and_then(|from| from.split('@').nth(1))
             .unwrap_or("")
             .to_lowercase();
@@ -309,19 +341,19 @@ impl MessageClassifier for HybridClassifier {
         // Fallback patterns with lower confidence
         if cleaned_content.contains("newsletter") && cleaned_content.contains("tech") {
             Ok(Classification::new(
-                "InterestingInfo".to_string(),
+                EmailCategory::InterestingInfo,
                 Some(0.70),
                 "Fallback rule: Tech newsletter content".to_string(),
             ))
         } else if cleaned_content.contains("terms") && cleaned_content.contains("conditions") {
             Ok(Classification::new(
-                "Reference".to_string(),
+                EmailCategory::Reference,
                 Some(0.75),
                 "Fallback rule: Terms and conditions update".to_string(),
             ))
-        } else if 
-            // Expanded fallback Noise patterns
-            cleaned_content.contains("unsubscribe") || 
+        } else if
+        // Expanded fallback Noise patterns
+        cleaned_content.contains("unsubscribe") || 
             sender_domain.contains("marketing") ||
             cleaned_content.contains("offer") ||
             cleaned_content.contains("deal") ||
@@ -341,14 +373,14 @@ impl MessageClassifier for HybridClassifier {
             cleaned_content.contains("follow") || cleaned_content.contains("connection")
         {
             Ok(Classification::new(
-                "Noise".to_string(),
+                EmailCategory::Noise,
                 Some(0.70),
                 "Fallback rule: Marketing/promotional content".to_string(),
             ))
         } else {
             // Ultimate fallback
             Ok(Classification::new(
-                "Reference".to_string(),
+                EmailCategory::Reference,
                 Some(0.60),
                 "Ultimate fallback: Default to Reference".to_string(),
             ))
@@ -364,16 +396,16 @@ mod tests {
     #[tokio::test]
     async fn test_hybrid_classifier_rule_based() {
         let classifier = HybridClassifier::new_rules_only();
-        
+
         // Test CI failure detection
         let ci_email = Email::new(
             "test1".to_string(),
             Some("[Repo] CI failed: main".to_string()),
             Some("CI workflow run failed with 5 errors".to_string()),
         );
-        
+
         let result = classifier.classify(&ci_email).await.unwrap();
-        assert_eq!(result.category, "ActionRequired");
+        assert_eq!(result.category, EmailCategory::ActionRequired);
         assert!(result.score.unwrap() > 0.9);
 
         // Test receipt detection
@@ -382,9 +414,9 @@ mod tests {
             Some("Your receipt from Company".to_string()),
             Some("Thank you for your purchase, here is your receipt".to_string()),
         );
-        
+
         let result = classifier.classify(&receipt_email).await.unwrap();
-        assert_eq!(result.category, "Reference");
+        assert_eq!(result.category, EmailCategory::Reference);
         assert!(result.score.unwrap() > 0.9);
     }
 
@@ -392,16 +424,16 @@ mod tests {
     async fn test_hybrid_classifier_with_llm() {
         let stub_llm = Box::new(StubClassifier::deterministic());
         let classifier = HybridClassifier::new_with_llm(stub_llm).await;
-        
+
         // High-confidence rule should override LLM
         let ci_email = Email::new(
             "test1".to_string(),
             Some("[Repo] CI failed: main".to_string()),
             Some("CI workflow run failed with 5 errors".to_string()),
         );
-        
+
         let result = classifier.classify(&ci_email).await.unwrap();
-        assert_eq!(result.category, "ActionRequired");
+        assert_eq!(result.category, EmailCategory::ActionRequired);
         assert!(result.llm_response.contains("High-confidence rule"));
 
         // Ambiguous case should use LLM (stub)
@@ -410,7 +442,7 @@ mod tests {
             Some("Random content".to_string()),
             Some("Some random email content that doesn't match rules".to_string()),
         );
-        
+
         let result = classifier.classify(&ambiguous_email).await.unwrap();
         // Should use LLM logic (stub classifier would classify this)
         assert!(!result.llm_response.contains("High-confidence rule"));
@@ -419,23 +451,23 @@ mod tests {
     #[tokio::test]
     async fn test_post_processing() {
         let classifier = HybridClassifier::new_rules_only();
-        
+
         // Test login link correction
         let login_email = Email::new(
             "test1".to_string(),
             Some("Secure link to log in".to_string()),
             Some("Click here to login securely to your account".to_string()),
         );
-        
+
         // Simulate LLM over-classifying as ActionRequired
         let over_classified = Classification::new(
-            "ActionRequired".to_string(),
+            EmailCategory::ActionRequired,
             Some(0.8),
             "LLM classified as action required".to_string(),
         );
-        
+
         let corrected = classifier.post_process_llm_result(over_classified, &login_email);
-        assert_eq!(corrected.category, "Reference");
+        assert_eq!(corrected.category, EmailCategory::Reference);
         assert!(corrected.llm_response.contains("Post-processed"));
     }
 }

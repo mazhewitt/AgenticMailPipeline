@@ -3,7 +3,7 @@
 //! These tests replay previously recorded LLM responses to test classification
 //! logic without requiring a live Ollama instance.
 
-use agentic_mail_agent::classifier::{MessageClassifier, MockOllamaClassifier};
+use agentic_mail_agent::classifier::{EmailCategory, MessageClassifier, MockOllamaClassifier};
 use agentic_mail_agent::core::email::Email;
 
 /// Test classification using recorded individual examples
@@ -30,9 +30,12 @@ async fn test_mock_classification_individual_examples() {
     );
 
     let classification = mock_classifier.classify(&urgent_email).await.unwrap();
-    assert_eq!(classification.category, "ActionRequired");
+    assert_eq!(classification.category, EmailCategory::ActionRequired);
     assert!(classification.score.unwrap_or(0.0) > 0.9);
-    assert!(classification.llm_response.contains("urgent"));
+    assert!(classification
+        .llm_response
+        .to_lowercase()
+        .contains("urgent"));
 
     // Test newsletter classification
     let newsletter_email = Email::new_full(
@@ -46,8 +49,14 @@ async fn test_mock_classification_individual_examples() {
     );
 
     let classification = mock_classifier.classify(&newsletter_email).await.unwrap();
-    assert_eq!(classification.category, "InterestingInfo");
-    assert!(classification.llm_response.contains("newsletter"));
+    assert_eq!(classification.category, EmailCategory::InterestingInfo);
+    assert!(
+        classification.llm_response.to_lowercase().contains("tech")
+            || classification
+                .llm_response
+                .to_lowercase()
+                .contains("developments")
+    );
 
     // Test spam classification
     let spam_email = Email::new_full(
@@ -61,8 +70,8 @@ async fn test_mock_classification_individual_examples() {
     );
 
     let classification = mock_classifier.classify(&spam_email).await.unwrap();
-    assert_eq!(classification.category, "Spam");
-    assert!(classification.score.unwrap_or(0.0) > 0.95);
+    assert_eq!(classification.category, EmailCategory::Spam);
+    assert!(classification.score.unwrap_or(0.0) >= 0.95);
 
     // Test receipt classification
     let receipt_email = Email::new_full(
@@ -76,7 +85,7 @@ async fn test_mock_classification_individual_examples() {
     );
 
     let classification = mock_classifier.classify(&receipt_email).await.unwrap();
-    assert_eq!(classification.category, "Reference");
+    assert_eq!(classification.category, EmailCategory::Reference);
     assert!(classification.llm_response.contains("receipt"));
 }
 

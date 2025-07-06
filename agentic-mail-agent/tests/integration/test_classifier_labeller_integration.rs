@@ -688,9 +688,9 @@ async fn test_classifier_labeller_integration_full_workflow() {
                 classification.category, score_display
             );
 
-            let test_label = create_test_label(&classification.category);
+            let test_label = create_test_label(classification.category.as_str());
             *classification_summary
-                .entry(classification.category.clone())
+                .entry(classification.category)
                 .or_insert(0) += 1;
             emails_with_classifications.push((email.clone(), classification, test_label));
         }
@@ -927,9 +927,7 @@ async fn test_classifier_with_real_emails_quality_assessment() {
         );
         println!("  💭 Reasoning: {}", classification.llm_response);
 
-        *category_counts
-            .entry(classification.category.clone())
-            .or_insert(0) += 1;
+        *category_counts.entry(classification.category).or_insert(0) += 1;
         scores.push(classification.score);
         detailed_results.push((email.clone(), classification));
     }
@@ -1191,7 +1189,7 @@ async fn test_end_to_end_workflow_with_cleanup() {
         });
 
         // Create test label
-        let test_label = create_test_label(&classification.category);
+        let test_label = create_test_label(classification.category.as_str());
 
         // Apply label with rate limiting and retry logic
         let label_result = retry_with_backoff(

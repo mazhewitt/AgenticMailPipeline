@@ -5,10 +5,12 @@
 //! 2. Archives all emails except ActionRequired
 //! 3. Keeps ActionRequired emails in the inbox with proper labels
 
-use agentic_mail_agent::action::executor::{ActionExecutor, GmailActionExecutor};
+use agentic_mail_agent::action::executor::{
+    get_label_for_category, ActionExecutor, GmailActionExecutor,
+};
 use agentic_mail_agent::action::impls::archiver::StubArchiver;
 use agentic_mail_agent::action::impls::labeler::StubLabeler;
-use agentic_mail_agent::classifier::Classification;
+use agentic_mail_agent::classifier::{Classification, EmailCategory};
 use agentic_mail_agent::core::email::Email;
 
 /// Test action executor that applies labels and archives based on classification
@@ -32,15 +34,15 @@ async fn test_action_required_emails_stay_in_inbox() {
         Some("CI workflow run failed with 5 errors".to_string()),
     );
 
-    let classification = Classification::with_category("ActionRequired".to_string());
+    let classification = Classification::with_category(EmailCategory::ActionRequired);
 
     let result = executor
         .execute_actions(&email, &classification)
         .await
         .unwrap();
 
-    // Should apply AGENT_ACTIONREQUIRED label
-    assert_eq!(result.label_applied, "AGENT_ACTIONREQUIRED");
+    // Should apply Action Required label (human-friendly format)
+    assert_eq!(result.label_applied, "Action Required");
 
     // Should NOT archive (keep in inbox)
     assert!(!result.archived);
@@ -65,15 +67,15 @@ async fn test_interesting_info_emails_get_archived() {
         Some("We detected unusual activity on your account".to_string()),
     );
 
-    let classification = Classification::with_category("InterestingInfo".to_string());
+    let classification = Classification::with_category(EmailCategory::InterestingInfo);
 
     let result = executor
         .execute_actions(&email, &classification)
         .await
         .unwrap();
 
-    // Should apply AGENT_INTERESTINGINFO label
-    assert_eq!(result.label_applied, "AGENT_INTERESTINGINFO");
+    // Should apply Interesting label
+    assert_eq!(result.label_applied, "Interesting");
 
     // Should archive (remove from inbox)
     assert!(result.archived);
@@ -98,15 +100,15 @@ async fn test_reference_emails_get_archived() {
         Some("Thank you for your purchase, here is your receipt".to_string()),
     );
 
-    let classification = Classification::with_category("Reference".to_string());
+    let classification = Classification::with_category(EmailCategory::Reference);
 
     let result = executor
         .execute_actions(&email, &classification)
         .await
         .unwrap();
 
-    // Should apply AGENT_REFERENCE label
-    assert_eq!(result.label_applied, "AGENT_REFERENCE");
+    // Should apply Reference label
+    assert_eq!(result.label_applied, "Reference");
 
     // Should archive (remove from inbox)
     assert!(result.archived);
@@ -127,15 +129,15 @@ async fn test_noise_emails_get_archived() {
         Some("See your recommendations on LinkedIn".to_string()),
     );
 
-    let classification = Classification::with_category("Noise".to_string());
+    let classification = Classification::with_category(EmailCategory::Noise);
 
     let result = executor
         .execute_actions(&email, &classification)
         .await
         .unwrap();
 
-    // Should apply AGENT_NOISE label
-    assert_eq!(result.label_applied, "AGENT_NOISE");
+    // Should apply Low Priority label
+    assert_eq!(result.label_applied, "Low Priority");
 
     // Should archive (remove from inbox)
     assert!(result.archived);
@@ -156,15 +158,15 @@ async fn test_spam_emails_get_archived() {
         Some("Claim your prize now by clicking this suspicious link".to_string()),
     );
 
-    let classification = Classification::with_category("Spam".to_string());
+    let classification = Classification::with_category(EmailCategory::Spam);
 
     let result = executor
         .execute_actions(&email, &classification)
         .await
         .unwrap();
 
-    // Should apply AGENT_SPAM label
-    assert_eq!(result.label_applied, "AGENT_SPAM");
+    // Should apply Spam label
+    assert_eq!(result.label_applied, "Spam");
 
     // Should archive (remove from inbox)
     assert!(result.archived);
@@ -177,20 +179,24 @@ async fn test_spam_emails_get_archived() {
 /// Test all 5 categories have correct label mapping
 #[tokio::test]
 async fn test_all_category_labels() {
-    use agentic_mail_agent::action::executor::get_label_for_category;
-
     // Test all 5 current categories
     assert_eq!(
-        get_label_for_category("ActionRequired"),
-        "AGENT_ACTIONREQUIRED"
+        get_label_for_category(&EmailCategory::ActionRequired),
+        "Action Required"
     );
     assert_eq!(
-        get_label_for_category("InterestingInfo"),
-        "AGENT_INTERESTINGINFO"
+        get_label_for_category(&EmailCategory::InterestingInfo),
+        "Interesting"
     );
-    assert_eq!(get_label_for_category("Reference"), "AGENT_REFERENCE");
-    assert_eq!(get_label_for_category("Noise"), "AGENT_NOISE");
-    assert_eq!(get_label_for_category("Spam"), "AGENT_SPAM");
+    assert_eq!(
+        get_label_for_category(&EmailCategory::Reference),
+        "Reference"
+    );
+    assert_eq!(
+        get_label_for_category(&EmailCategory::Noise),
+        "Low Priority"
+    );
+    assert_eq!(get_label_for_category(&EmailCategory::Spam), "Spam");
 }
 
 /// Integration test: Process multiple emails with different classifications
@@ -199,11 +205,21 @@ async fn test_batch_email_processing() {
     let executor = create_test_executor();
 
     let test_cases = vec![
-        ("msg1", "ActionRequired", "Meeting tomorrow", false), // should not archive
-        ("msg2", "InterestingInfo", "Tech newsletter", true),  // should archive
-        ("msg3", "Reference", "Receipt", true),                // should archive
-        ("msg4", "Noise", "Social notification", true),        // should archive
-        ("msg5", "Spam", "Suspicious offer", true),            // should archive
+        (
+            "msg1",
+            EmailCategory::ActionRequired,
+            "Meeting tomorrow",
+            false,
+        ), // should not archive
+        (
+            "msg2",
+            EmailCategory::InterestingInfo,
+            "Tech newsletter",
+            true,
+        ), // should archive
+        ("msg3", EmailCategory::Reference, "Receipt", true), // should archive
+        ("msg4", EmailCategory::Noise, "Social notification", true), // should archive
+        ("msg5", EmailCategory::Spam, "Suspicious offer", true), // should archive
     ];
 
     let mut inbox_count = 0;
@@ -211,7 +227,7 @@ async fn test_batch_email_processing() {
 
     for (msg_id, category, subject, should_archive) in test_cases {
         let email = Email::new(msg_id.to_string(), Some(subject.to_string()), None);
-        let classification = Classification::with_category(category.to_string());
+        let classification = Classification::with_category(category);
 
         let result = executor
             .execute_actions(&email, &classification)
@@ -219,7 +235,7 @@ async fn test_batch_email_processing() {
             .unwrap();
 
         // Verify correct label applied
-        let expected_label = format!("AGENT_{}", category.to_uppercase());
+        let expected_label = get_label_for_category(&category);
         assert_eq!(result.label_applied, expected_label);
 
         // Count inbox vs archived
@@ -235,25 +251,4 @@ async fn test_batch_email_processing() {
     // Only ActionRequired should remain in inbox
     assert_eq!(inbox_count, 1);
     assert_eq!(archived_count, 4);
-}
-
-/// Test error handling for invalid categories
-#[tokio::test]
-async fn test_invalid_category_handling() {
-    let executor = create_test_executor();
-
-    let email = Email::new("msg999".to_string(), Some("Test".to_string()), None);
-    let classification = Classification::with_category("InvalidCategory".to_string());
-
-    // Should still work (create label for any category)
-    let result = executor
-        .execute_actions(&email, &classification)
-        .await
-        .unwrap();
-
-    // Should apply AGENT_INVALIDCATEGORY label
-    assert_eq!(result.label_applied, "AGENT_INVALIDCATEGORY");
-
-    // Should archive (since it's not ActionRequired)
-    assert!(result.archived);
 }

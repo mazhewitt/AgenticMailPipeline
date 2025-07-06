@@ -2,7 +2,7 @@
 
 use agentic_mail_agent::action::executor::{ActionExecutor, StubActionExecutor};
 use agentic_mail_agent::action::impls::labeler::{EmailLabeler, StubLabeler};
-use agentic_mail_agent::classifier::{MessageClassifier, StubClassifier};
+use agentic_mail_agent::classifier::{EmailCategory, MessageClassifier, StubClassifier};
 use agentic_mail_agent::core::email::Email;
 
 #[tokio::test]
@@ -21,7 +21,7 @@ async fn test_end_to_end_labeling_pipeline() {
         .await
         .expect("Classification should succeed");
 
-    assert_eq!(classification.category, "ActionRequired"); // Meeting = ActionRequired
+    assert_eq!(classification.category, EmailCategory::ActionRequired); // Meeting = ActionRequired
     assert_eq!(classification.score, Some(0.9));
 
     // Execute actions (label and archive)
@@ -57,7 +57,7 @@ async fn test_urgent_email_labeling() {
     let classification = classifier.classify(&email).await.unwrap();
 
     // Should be classified as ActionRequired
-    assert_eq!(classification.category, "ActionRequired");
+    assert_eq!(classification.category, EmailCategory::ActionRequired);
 
     // Execute actions
     let action_executor = StubActionExecutor::new();
@@ -84,7 +84,7 @@ async fn test_spam_email_labeling() {
     let classification = classifier.classify(&email).await.unwrap();
 
     // This email should be classified as Reference (fallback for unmatched content)
-    assert_eq!(classification.category, "Reference"); // Falls back to Reference
+    assert_eq!(classification.category, EmailCategory::Reference); // Falls back to Reference
     assert_eq!(classification.score, Some(0.6)); // Default score
 
     // Execute actions
@@ -111,7 +111,7 @@ async fn test_newsletter_email_labeling() {
     let classifier = StubClassifier::deterministic();
     let classification = classifier.classify(&email).await.unwrap();
 
-    assert_eq!(classification.category, "InterestingInfo"); // Newsletter with "news" = InterestingInfo
+    assert_eq!(classification.category, EmailCategory::InterestingInfo); // Newsletter with "news" = InterestingInfo
 
     // Execute actions
     let action_executor = StubActionExecutor::new();
@@ -164,10 +164,7 @@ async fn test_multiple_labels_on_same_email() {
 
     // Apply multiple labels
     labeler.apply_label(&email.id, "Work").await.unwrap();
-    labeler
-        .apply_label(&email.id, "Urgent")
-        .await
-        .unwrap();
+    labeler.apply_label(&email.id, "Urgent").await.unwrap();
 
     // Verify both labels are applied
     assert!(labeler.message_has_label(&email.id, "Work"));

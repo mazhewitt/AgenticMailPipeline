@@ -1,23 +1,23 @@
 //! Stub implementation of EmailFetcher for testing and development.
 
-use async_trait::async_trait;
 use crate::core::email::Email;
-use crate::fetcher::EmailFetcher;
 use crate::core::types::FetchError;
+use crate::fetcher::EmailFetcher;
+use async_trait::async_trait;
 
 /// Stub fetcher for development and testing.
-/// 
+///
 /// This implementation provides a simple stub that can be used during
 /// development and testing when you don't want to make actual API calls.
 /// It can be configured to return specific emails or errors for testing
 /// different scenarios.
-/// 
+///
 /// # Examples
-/// 
+///
 /// ```rust
 /// use agentic_mail_agent::fetcher::{EmailFetcher, StubFetcher};
 /// use agentic_mail_agent::core::email::Email;
-/// 
+///
 /// #[tokio::main]
 /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
 ///     let fetcher = StubFetcher::new();
@@ -41,7 +41,7 @@ impl StubFetcher {
             error: None,
         }
     }
-    
+
     /// Create a StubFetcher that returns the specified emails.
     pub fn with_emails(emails: Vec<Email>) -> Self {
         Self {
@@ -49,7 +49,7 @@ impl StubFetcher {
             error: None,
         }
     }
-    
+
     /// Create a StubFetcher that returns the specified error.
     pub fn with_error(error: FetchError) -> Self {
         Self {
@@ -80,7 +80,9 @@ impl EmailFetcher for StubFetcher {
             Err(error.clone())
         } else {
             // Return up to max_results emails from our configured emails
-            let emails = self.emails.iter()
+            let emails = self
+                .emails
+                .iter()
                 .take(max_results as usize)
                 .cloned()
                 .collect();
@@ -105,14 +107,14 @@ mod tests {
     async fn stub_fetcher_returns_configured_emails() {
         let emails = vec![
             Email::new(
-                "1".to_string(), 
+                "1".to_string(),
                 Some("Test Email 1".to_string()),
-                Some("This is the first test email".to_string())
+                Some("This is the first test email".to_string()),
             ),
             Email::new(
-                "2".to_string(), 
+                "2".to_string(),
                 Some("Test Email 2".to_string()),
-                Some("This is the second test email".to_string())
+                Some("This is the second test email".to_string()),
             ),
         ];
         let fetcher = StubFetcher::with_emails(emails.clone());
@@ -146,27 +148,27 @@ mod tests {
     async fn stub_fetcher_fetch_inbox_emails_with_limit() {
         let emails = vec![
             Email::new(
-                "1".to_string(), 
+                "1".to_string(),
                 Some("Test Email 1".to_string()),
-                Some("This is the first test email".to_string())
+                Some("This is the first test email".to_string()),
             ),
             Email::new(
-                "2".to_string(), 
+                "2".to_string(),
                 Some("Test Email 2".to_string()),
-                Some("This is the second test email".to_string())
+                Some("This is the second test email".to_string()),
             ),
             Email::new(
-                "3".to_string(), 
+                "3".to_string(),
                 Some("Test Email 3".to_string()),
-                Some("This is the third test email".to_string())
+                Some("This is the third test email".to_string()),
             ),
         ];
         let fetcher = StubFetcher::with_emails(emails.clone());
-        
+
         // Test with limit less than available emails
         let result = fetcher.fetch_inbox_emails(2).await;
         assert_eq!(result.unwrap().len(), 2);
-        
+
         // Test with limit greater than available emails
         let result = fetcher.fetch_inbox_emails(5).await;
         assert_eq!(result.unwrap().len(), 3);

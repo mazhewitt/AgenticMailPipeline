@@ -15,14 +15,23 @@ impl ResponseParser {
     pub fn new() -> Self {
         Self
     }
-    
+
     /// Parse LLM response and extract PII entities
-    pub fn parse_pii_response(&self, response: &str) -> Result<Vec<LlmPiiEntity>, Box<dyn std::error::Error>> {
+    pub fn parse_pii_response(
+        &self,
+        response: &str,
+    ) -> Result<Vec<LlmPiiEntity>, Box<dyn std::error::Error>> {
         // Clean the response - sometimes LLMs add markdown or extra text
         let mut cleaned_response = response.trim();
 
         // Remove common LLM prefixes
-        let prefixes = ["JSON output:", "Here's the JSON:", "```json", "```", "JSON array:"];
+        let prefixes = [
+            "JSON output:",
+            "Here's the JSON:",
+            "```json",
+            "```",
+            "JSON array:",
+        ];
         for prefix in &prefixes {
             if cleaned_response.starts_with(prefix) {
                 cleaned_response = cleaned_response[prefix.len()..].trim();
@@ -50,16 +59,17 @@ impl ResponseParser {
                         pii_type: "name".to_string(),
                         text: full_name.clone(),
                     });
-                    
+
                     // Also add individual name parts (first name, last name, hyphenated parts)
                     let name_parts: Vec<&str> = full_name.split_whitespace().collect();
                     for part in name_parts {
-                        if part.len() > 1 { // Only consider meaningful name parts
+                        if part.len() > 1 {
+                            // Only consider meaningful name parts
                             entities.push(LlmPiiEntity {
                                 pii_type: "name".to_string(),
                                 text: part.to_string(),
                             });
-                            
+
                             // Also handle hyphenated names like "Hewitt-Fry"
                             if part.contains('-') {
                                 let hyphen_parts: Vec<&str> = part.split('-').collect();
@@ -83,7 +93,8 @@ impl ResponseParser {
                 Ok(entities) => return Ok(entities),
                 Err(_) => {
                     // If that fails, try parsing as raw JSON and converting field names
-                    let raw_entities: Result<Vec<serde_json::Value>, _> = serde_json::from_str(&cleaned_json);
+                    let raw_entities: Result<Vec<serde_json::Value>, _> =
+                        serde_json::from_str(&cleaned_json);
                     match raw_entities {
                         Ok(raw_entities) => {
                             let mut entities = Vec::new();
@@ -102,9 +113,12 @@ impl ResponseParser {
             }
         }
 
-        Err(format!("Failed to parse any valid JSON from LLM response. Response was: {cleaned_response}").into())
+        Err(format!(
+            "Failed to parse any valid JSON from LLM response. Response was: {cleaned_response}"
+        )
+        .into())
     }
-    
+
     /// Extract JSON arrays from the LLM response text
     pub fn extract_json_arrays(&self, text: &str) -> Vec<String> {
         const MAX_RESPONSE_LENGTH: usize = 1_048_576; // 1MB
@@ -153,7 +167,7 @@ impl ResponseParser {
                 escape_next = false;
                 continue;
             }
-            
+
             if ch == '\\' && in_string {
                 if in_array {
                     current_array.push(ch);
@@ -196,56 +210,55 @@ impl ResponseParser {
         }
         arrays
     }
-    
+
     fn parse_single_llm_entity(&self, raw_entity: &serde_json::Value) -> Option<LlmPiiEntity> {
-        let pii_type = raw_entity.get("type")
+        let pii_type = raw_entity
+            .get("type")
             .or_else(|| raw_entity.get("pii_type"))
             .and_then(|v| v.as_str())
             .unwrap_or("unknown")
             .to_string();
-        
-        let text = raw_entity.get("text")
+
+        let text = raw_entity
+            .get("text")
             .and_then(|v| v.as_str())
             .unwrap_or("")
             .to_string();
-        
+
         // Only return valid entities (must have text)
         if !text.is_empty() {
-            Some(LlmPiiEntity {
-                pii_type,
-                text,
-            })
+            Some(LlmPiiEntity { pii_type, text })
         } else {
             None
         }
     }
-    
+
     /// Remove JSON comments that LLMs sometimes add
     fn remove_json_comments(&self, json_str: &str) -> String {
         let mut result = String::new();
         let mut in_string = false;
         let mut escape_next = false;
         let mut chars = json_str.chars().peekable();
-        
+
         while let Some(ch) = chars.next() {
             if escape_next {
                 result.push(ch);
                 escape_next = false;
                 continue;
             }
-            
+
             if ch == '\\' && in_string {
                 result.push(ch);
                 escape_next = true;
                 continue;
             }
-            
+
             if ch == '"' {
                 in_string = !in_string;
                 result.push(ch);
                 continue;
             }
-            
+
             if !in_string && ch == '/' {
                 if let Some(&'/') = chars.peek() {
                     // Skip line comment
@@ -271,10 +284,10 @@ impl ResponseParser {
                     continue;
                 }
             }
-            
+
             result.push(ch);
         }
-        
+
         result
     }
 }

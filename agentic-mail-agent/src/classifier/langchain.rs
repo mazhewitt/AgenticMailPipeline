@@ -1,19 +1,19 @@
 //! LangChain-based email classifier using local Ollama LLM.
-//! 
+//!
 //! This module provides an implementation of the MessageClassifier trait
 //! that uses the langchain-rust crate with Ollama for local LLM-based
 //! email classification.
 
-use crate::classifier::{Classification, ClassificationError, MessageClassifier};
-use crate::classifier::text_preprocessing::{prepare_email_for_classification, prepare_email_metadata_for_classification};
+use crate::classifier::text_preprocessing::{
+    prepare_email_for_classification, prepare_email_metadata_for_classification,
+};
+use crate::classifier::{Classification, ClassificationError, EmailCategory, MessageClassifier};
 use crate::core::email::Email;
 use async_trait::async_trait;
-use langchain_rust::{
-    llm::client::Ollama,
-    language_models::llm::LLM,
-};
+use langchain_rust::{language_models::llm::LLM, llm::client::Ollama};
 use ollama_rs::Ollama as OllamaClient;
 use serde::{Deserialize, Serialize};
+use std::str::FromStr;
 use std::sync::Arc;
 
 /// Response format expected from the LLM for email classification.
@@ -49,16 +49,16 @@ impl Default for LangChainConfig {
 }
 
 /// LangChain-based email classifier using Ollama.
-/// 
+///
 /// This classifier uses a local Ollama instance with LangChain patterns
 /// to classify emails into categories using an LLM.
-/// 
+///
 /// # Examples
-/// 
+///
 /// ```rust,no_run
 /// use agentic_mail_agent::classifier::{MessageClassifier, LangChainClassifier, LangChainConfig};
 /// use agentic_mail_agent::core::email::Email;
-/// 
+///
 /// #[tokio::main]
 /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
 ///     let config = LangChainConfig::default();
@@ -84,13 +84,13 @@ pub struct LangChainClassifier {
 
 impl LangChainClassifier {
     /// Create a new LangChainClassifier with the given configuration.
-    /// 
+    ///
     /// # Arguments
-    /// 
+    ///
     /// * `config` - Configuration for the classifier including Ollama URL and model
-    /// 
+    ///
     /// # Returns
-    /// 
+    ///
     /// Returns a new LangChainClassifier instance or a ClassificationError
     /// if the Ollama connection cannot be established.
     pub async fn new(config: LangChainConfig) -> Result<Self, ClassificationError> {
@@ -130,14 +130,12 @@ impl LangChainClassifier {
             email.subject.as_deref(),
             email.snippet.as_deref(),
             email.body.as_deref(),
-            200 // Limit to 200 words for better LLM processing
+            200, // Limit to 200 words for better LLM processing
         );
-        
+
         // Extract metadata features that help with classification
-        let metadata = prepare_email_metadata_for_classification(
-            email.from.as_deref(),
-            email.to.as_deref()
-        );
+        let metadata =
+            prepare_email_metadata_for_classification(email.from.as_deref(), email.to.as_deref());
 
         format!(
             r#"You are an expert email classifier for inbox management. Your task is to classify emails into one of these categories:
@@ -185,7 +183,10 @@ Only respond with the JSON object, no additional text."#
     }
 
     /// Parse the LLM response into a structured classification.
-    fn parse_llm_response(&self, response: &str) -> Result<LLMClassificationResponse, ClassificationError> {
+    fn parse_llm_response(
+        &self,
+        response: &str,
+    ) -> Result<LLMClassificationResponse, ClassificationError> {
         // Try to extract JSON from the response in case there's extra text
         let json_start = response.find('{');
         let json_end = response.rfind('}');
@@ -196,16 +197,21 @@ Only respond with the JSON object, no additional text."#
             response
         };
 
-        serde_json::from_str::<LLMClassificationResponse>(json_str)
-            .map_err(|e| ClassificationError::invalid_response(format!(
+        serde_json::from_str::<LLMClassificationResponse>(json_str).map_err(|e| {
+            ClassificationError::invalid_response(format!(
                 "Failed to parse LLM response as JSON: {e}. Response was: {response}"
-            )))
+            ))
+        })
     }
 
     /// Validate that the classification category is one of the expected values.
     fn validate_category(&self, category: &str) -> Result<(), ClassificationError> {
         const VALID_CATEGORIES: &[&str] = &[
-            "ActionRequired", "InterestingInfo", "Reference", "Noise", "Spam"
+            "ActionRequired",
+            "InterestingInfo",
+            "Reference",
+            "Noise",
+            "Spam",
         ];
 
         if VALID_CATEGORIES.contains(&category) {
@@ -226,12 +232,10 @@ impl MessageClassifier for LangChainClassifier {
         let prompt = self.build_prompt(email);
 
         // Invoke the LLM with the prompt
-        let response = self.llm
-            .invoke(&prompt)
-            .await
-            .map_err(|e| ClassificationError::llm_service(format!(
-                "LLM invocation failed: {e}"
-            )))?;
+        let response =
+            self.llm.invoke(&prompt).await.map_err(|e| {
+                ClassificationError::llm_service(format!("LLM invocation failed: {e}"))
+            })?;
 
         // Parse the response
         let parsed_response = self.parse_llm_response(&response)?;
@@ -250,8 +254,11 @@ impl MessageClassifier for LangChainClassifier {
         };
 
         // Create the classification result
+        let category = EmailCategory::from_str(&parsed_response.category)
+            .unwrap_or(EmailCategory::InterestingInfo);
+
         Ok(Classification::new(
-            parsed_response.category,
+            category,
             Some(score),
             format!(
                 "LLM Response: {} (Score: {score:.2})",
@@ -288,7 +295,7 @@ mod tests {
         );
 
         let prompt = classifier.build_prompt(&email);
-        
+
         assert!(prompt.contains("Meeting reminder"));
         assert!(prompt.contains("Don't forget our meeting tomorrow at 2pm"));
         assert!(prompt.contains("from_domain:example.com"));
@@ -313,7 +320,7 @@ mod tests {
             )),
             config,
         };
-        
+
         let email = Email::new_full(
             "test123".to_string(),
             Some("Meeting Tomorrow".to_string()),
@@ -327,12 +334,27 @@ mod tests {
         let prompt = classifier.build_prompt(&email);
 
         // Verify metadata domains are included (not full email addresses for privacy)
-        assert!(prompt.contains("from_domain:company.com"), "Prompt should contain from domain");
-        assert!(prompt.contains("to_domain:company.com"), "Prompt should contain to domain");
+        assert!(
+            prompt.contains("from_domain:company.com"),
+            "Prompt should contain from domain"
+        );
+        assert!(
+            prompt.contains("to_domain:company.com"),
+            "Prompt should contain to domain"
+        );
         // Note: sent date is not included in the prompt for privacy and simplicity
-        assert!(prompt.contains("Meeting Tomorrow"), "Prompt should contain subject");
-        assert!(prompt.contains("Hi Team"), "Prompt should contain full body");
-        assert!(prompt.contains("Best regards"), "Prompt should contain full body");
+        assert!(
+            prompt.contains("Meeting Tomorrow"),
+            "Prompt should contain subject"
+        );
+        assert!(
+            prompt.contains("Hi Team"),
+            "Prompt should contain full body"
+        );
+        assert!(
+            prompt.contains("Best regards"),
+            "Prompt should contain full body"
+        );
     }
 
     #[test]
@@ -346,10 +368,11 @@ mod tests {
             )),
             config,
         };
-        let response = r#"{"category": "work", "score": 0.95, "explanation": "This is work-related"}"#;
-        
+        let response =
+            r#"{"category": "work", "score": 0.95, "explanation": "This is work-related"}"#;
+
         let parsed = classifier.parse_llm_response(response).unwrap();
-        
+
         assert_eq!(parsed.category, "work");
         assert_eq!(parsed.score, 0.95);
         assert_eq!(parsed.explanation, "This is work-related");
@@ -367,9 +390,9 @@ mod tests {
             config,
         };
         let response = r#"Here's my analysis: {"category": "spam", "score": 0.88, "explanation": "Suspicious content"} Hope this helps!"#;
-        
+
         let parsed = classifier.parse_llm_response(response).unwrap();
-        
+
         assert_eq!(parsed.category, "spam");
         assert_eq!(parsed.score, 0.88);
         assert_eq!(parsed.explanation, "Suspicious content");
@@ -387,11 +410,14 @@ mod tests {
             config,
         };
         let response = "This is not JSON at all";
-        
+
         let result = classifier.parse_llm_response(response);
-        
+
         assert!(result.is_err());
-        assert!(matches!(result.unwrap_err(), ClassificationError::InvalidResponse { .. }));
+        assert!(matches!(
+            result.unwrap_err(),
+            ClassificationError::InvalidResponse { .. }
+        ));
     }
 
     #[test]
@@ -405,7 +431,7 @@ mod tests {
             )),
             config,
         };
-        
+
         assert!(classifier.validate_category("ActionRequired").is_ok());
         assert!(classifier.validate_category("InterestingInfo").is_ok());
         assert!(classifier.validate_category("Reference").is_ok());
@@ -424,17 +450,20 @@ mod tests {
             )),
             config,
         };
-        
+
         let result = classifier.validate_category("invalid_category");
-        
+
         assert!(result.is_err());
-        assert!(matches!(result.unwrap_err(), ClassificationError::InvalidResponse { .. }));
+        assert!(matches!(
+            result.unwrap_err(),
+            ClassificationError::InvalidResponse { .. }
+        ));
     }
 
     #[test]
     fn test_langchain_config_default() {
         let config = LangChainConfig::default();
-        
+
         assert_eq!(config.ollama_url, "http://localhost:11434");
         assert_eq!(config.model, "llama3.1:8b");
         assert_eq!(config.temperature, 0.1);

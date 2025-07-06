@@ -1,13 +1,13 @@
 {
-  "id": "197d41e558628d16",
-  "subject": "Your receipt from Anthropic, PBC #2162-8635-4473",
-  "snippet": "Your receipt from Anthropic, PBC #2162-8635-4473 ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏",
-  "from": "\"Anthropic, PBC\" <info4@test.org>",
+  "id": "197da456e55d375f",
+  "subject": "[192.168.1.31] Storage Pool 1 degraded and was removed from the data scrubbing schedule",
+  "snippet": "Storage Pool 1 degraded and was removed from the data scrubbing schedule. The storage pool will be added back to the schedule once it has been repaired. From aduki-nas",
+  "from": "aduki-nas - Synology DiskStation <admin53@fake.ch>",
   "to": [
-    "admin5@demo.co.uk"
+    "<user7@sample.net>"
   ],
-  "sent": "Fri, 4 Jul 2025 06:27:24 +0000",
-  "body": "Anthropic, PBC  (https://www.anthropic.com/)\r\n\r\nAnthropic, PBC\r\n\r\nReceipt from Anthropic, PBC $5.41 Paid July 3, 2025 (invoice illustration [https://stripe-images.s3.amazonaws.com/emails/invoices_invoice_illustration.png]) Download invoice (https://pay.stripe.com/invoice/acct_1MExQ9BjIQrRQnux/live_YWNjdF8xTUV4UTlCaklRclJRbnV4LF9TY0hleTl5RVFmYTdjTmxZSXNscUh3UWk5MVh4ZlhjLDE0MjE1MTIzOA02003kiv0efB/pdf?s=em) Download receipt (https://dashboard.stripe.com/receipts/invoices/CAcQARoXChVhY2N0XzFNRXhROUJqSVFyUlFudXgoxuidwwYyBpFvVuyQ8DovFqctOJdmTd8gmotDiGrqzyTAFZisOTAtNRo4NqkI99gOBhLpiu7EcPD6EemxCis/pdf?s=em) Receipt number 2162-8635-4473 Invoice number UW8XX3DU-0001 Payment method Link\r\n\r\nReceipt #2162-8635-4473 One-time credit purchase Qty 1 $5.00 Subtotal $5.00 Total excluding tax $5.00 Tax (8.2%) $0.41 Total $5.41 Amount paid $5.41 Questions? Visit our support site (https://support.anthropic.com/).\r\n\r\nPowered by    stripe logo (https://stripe.com)  |   Learn more about Stripe Invoicing (https://stripe.com/invoicing)",
-  "downloaded_at": "2025-07-04T21:53:25.801966+00:00",
+  "sent": "Sat, 5 Jul 2025 07:07:53 -0400",
+  "body": "Storage Pool 1 degraded and was removed from the data scrubbing schedule. The storage pool will be added back to the schedule once it has been repaired.<BR><BR>From aduki-nas<BR><BR><BR>",
+  "downloaded_at": "2025-07-06T08:50:51.072602+00:00",
   "file_index": 30
 }

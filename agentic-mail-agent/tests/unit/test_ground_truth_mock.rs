@@ -3,7 +3,7 @@
 //! These tests use real LLM responses recorded from the ground truth dataset
 //! to test classification accuracy without requiring a live Ollama instance.
 
-use agentic_mail_agent::classifier::{MessageClassifier, MockOllamaClassifier};
+use agentic_mail_agent::classifier::{EmailCategory, MessageClassifier, MockOllamaClassifier};
 use agentic_mail_agent::core::email::Email;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -82,16 +82,18 @@ async fn test_recorded_llm_classification_accuracy() {
                 Ok(classification) => {
                     total_predictions += 1;
 
-                    if classification.category == gt_email.category {
-                        correct_predictions += 1;
-                    } else {
-                        misclassifications.push(format!(
-                            "Email {}: Expected '{}', Got '{}' (Subject: '{}')",
-                            gt_email.id,
-                            gt_email.category,
-                            classification.category,
-                            gt_email.subject
-                        ));
+                    if let Ok(expected_category) = gt_email.category.parse::<EmailCategory>() {
+                        if classification.category == expected_category {
+                            correct_predictions += 1;
+                        } else {
+                            misclassifications.push(format!(
+                                "Email {}: Expected '{}', Got '{}' (Subject: '{}')",
+                                gt_email.id,
+                                gt_email.category,
+                                classification.category,
+                                gt_email.subject
+                            ));
+                        }
                     }
                 }
                 Err(_) => {
@@ -161,7 +163,7 @@ async fn test_recorded_action_required_classification() {
                     "   '{}' -> {} (expected ActionRequired)",
                     gt_email.subject, classification.category
                 );
-                if classification.category == "ActionRequired" {
+                if classification.category == EmailCategory::ActionRequired {
                     correct += 1;
                 }
             }

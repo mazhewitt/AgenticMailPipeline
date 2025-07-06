@@ -10,7 +10,7 @@ use async_trait::async_trait;
 
 use crate::action::impls::archiver::{ArchivingError, EmailArchiver};
 use crate::action::impls::labeler::{EmailLabeler, LabelingError};
-use crate::classifier::Classification;
+use crate::classifier::{Classification, EmailCategory};
 use crate::config::LabelConfig;
 use crate::core::email::Email;
 
@@ -136,10 +136,11 @@ impl From<ArchivingError> for ActionExecutionError {
 /// - Reference → Reference
 /// - Noise → Low Priority
 /// - Spam → Spam
-pub fn get_label_for_category(category: &str) -> String {
+pub fn get_label_for_category(category: &EmailCategory) -> String {
     let label_config = LabelConfig::new();
-    label_config.get_production_label(category)
-        .unwrap_or_else(|| category.to_string())
+    label_config
+        .get_production_label(category.as_str())
+        .unwrap_or_else(|| category.human_label().to_string())
 }
 
 /// Trait for executing actions on emails based on classification results.
@@ -226,7 +227,7 @@ impl<L: EmailLabeler + Send + Sync, A: EmailArchiver + Send + Sync> ActionExecut
         }
 
         // Step 2: Archive email if not ActionRequired
-        let should_archive = classification.category != "ActionRequired";
+        let should_archive = classification.category != EmailCategory::ActionRequired;
 
         if should_archive {
             match self.archiver.archive_email(&email.id).await {
@@ -311,7 +312,7 @@ impl ActionExecutor for StubActionExecutor {
         }
 
         // Step 2: Archive email if not ActionRequired
-        let should_archive = classification.category != "ActionRequired";
+        let should_archive = classification.category != EmailCategory::ActionRequired;
 
         if should_archive {
             actions_taken.push("Archived email (removed from inbox)".to_string());
@@ -344,16 +345,22 @@ mod tests {
     #[test]
     fn test_get_label_for_category() {
         assert_eq!(
-            get_label_for_category("ActionRequired"),
+            get_label_for_category(&EmailCategory::ActionRequired),
             "Action Required"
         );
         assert_eq!(
-            get_label_for_category("InterestingInfo"),
+            get_label_for_category(&EmailCategory::InterestingInfo),
             "Interesting"
         );
-        assert_eq!(get_label_for_category("Reference"), "Reference");
-        assert_eq!(get_label_for_category("Noise"), "Low Priority");
-        assert_eq!(get_label_for_category("Spam"), "Spam");
+        assert_eq!(
+            get_label_for_category(&EmailCategory::Reference),
+            "Reference"
+        );
+        assert_eq!(
+            get_label_for_category(&EmailCategory::Noise),
+            "Low Priority"
+        );
+        assert_eq!(get_label_for_category(&EmailCategory::Spam), "Spam");
     }
 
     #[test]
@@ -391,7 +398,7 @@ mod tests {
     async fn test_stub_action_executor() {
         let executor = StubActionExecutor::new();
         let email = Email::new("msg123".to_string(), Some("Test".to_string()), None);
-        let classification = Classification::with_category("ActionRequired".to_string());
+        let classification = Classification::with_category(EmailCategory::ActionRequired);
 
         let result = executor
             .execute_actions(&email, &classification)
@@ -419,7 +426,7 @@ mod tests {
         let executor = GmailActionExecutor::new(labeler, archiver);
 
         let email = Email::new("msg456".to_string(), Some("Newsletter".to_string()), None);
-        let classification = Classification::with_category("Noise".to_string());
+        let classification = Classification::with_category(EmailCategory::Noise);
 
         let result = executor
             .execute_actions(&email, &classification)
@@ -437,16 +444,20 @@ mod tests {
         let executor = StubActionExecutor::new();
 
         let test_cases = vec![
-            ("ActionRequired", false), // Should NOT be archived
-            ("InterestingInfo", true), // Should be archived
-            ("Reference", true),       // Should be archived
-            ("Noise", true),           // Should be archived
-            ("Spam", true),            // Should be archived
+            (EmailCategory::ActionRequired, false), // Should NOT be archived
+            (EmailCategory::InterestingInfo, true), // Should be archived
+            (EmailCategory::Reference, true),       // Should be archived
+            (EmailCategory::Noise, true),           // Should be archived
+            (EmailCategory::Spam, true),            // Should be archived
         ];
 
         for (category, should_archive) in test_cases {
-            let email = Email::new(format!("msg_{category}"), Some("Test".to_string()), None);
-            let classification = Classification::with_category(category.to_string());
+            let email = Email::new(
+                format!("msg_{}", category.as_str()),
+                Some("Test".to_string()),
+                None,
+            );
+            let classification = Classification::with_category(category);
 
             let result = executor
                 .execute_actions(&email, &classification)
@@ -454,11 +465,13 @@ mod tests {
                 .unwrap();
 
             assert_eq!(
-                result.archived, should_archive,
-                "Category '{category}' archiving behavior incorrect"
+                result.archived,
+                should_archive,
+                "Category '{}' archiving behavior incorrect",
+                category.as_str()
             );
 
-            let expected_label = get_label_for_category(category);
+            let expected_label = get_label_for_category(&category);
             assert_eq!(result.label_applied, expected_label);
         }
     }

@@ -6,7 +6,7 @@ use html2text::from_read;
 pub fn clean_html_for_llm(html: &str) -> String {
     // Convert HTML to plain text
     let plain_text = from_read(html.as_bytes(), 80);
-    
+
     // Clean up the text to make it more readable for the LLM
     plain_text
         // Remove excessive whitespace and control characters
