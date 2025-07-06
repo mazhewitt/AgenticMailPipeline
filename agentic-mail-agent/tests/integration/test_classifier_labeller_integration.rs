@@ -177,7 +177,7 @@ async fn apply_labels_concurrently(
                 let result = retry_with_backoff(
                     || async { labeler_clone.apply_label(&email_id, &label).await },
                     rate_limiter_ref,
-                    &format!("Apply label '{}' to email {}", label, email_id)
+                    &format!("Apply label '{label}' to email {email_id}")
                 ).await;
                 
                 LabelingAttempt {
@@ -230,7 +230,7 @@ async fn verify_labels_concurrently(
                             .map(|labels| labels.iter().any(|l| l.name == label))
                     },
                     rate_limiter_ref,
-                    &format!("Verify label '{}' on email {}", label, email_id)
+                    &format!("Verify label '{label}' on email {email_id}")
                 ).await;
                 
                 VerificationAttempt {
@@ -272,7 +272,7 @@ async fn cleanup_test_labels_concurrently(
     ).await {
         Ok(labels) => labels,
         Err(e) => {
-            println!("⚠️  Failed to list labels for cleanup: {}", e);
+            println!("⚠️  Failed to list labels for cleanup: {e}");
             return results;
         }
     };
@@ -300,10 +300,10 @@ async fn cleanup_test_labels_concurrently(
                 let result = retry_with_backoff(
                     || async {
                         labeler_clone.delete_label(&label_id).await
-                            .map_err(|e| LabelingError::unknown(format!("Failed to delete label: {}", e)))
+                            .map_err(|e| LabelingError::unknown(format!("Failed to delete label: {e}")))
                     },
                     rate_limiter_ref,
-                    &format!("Delete label '{}'", label_name)
+                    &format!("Delete label '{label_name}'")
                 ).await;
                 (label_name, result)
             });
@@ -327,8 +327,8 @@ async fn cleanup_test_labels_concurrently(
 /// Format email context for error messages
 fn format_email_context(email_id: &str, subject: &Option<String>) -> String {
     match subject {
-        Some(s) => format!("email {} ('{}')", email_id, s),
-        None => format!("email {}", email_id),
+        Some(s) => format!("email {email_id} ('{s}')"),
+        None => format!("email {email_id}"),
     }
 }
 
@@ -380,17 +380,17 @@ async fn cleanup_test_labels_with_retries(labeler: &ConcreteGmailLabeler) -> Res
     // Report details
     for (label_name, result) in &results.successes {
         match result {
-            Ok(_) => println!("    ✅ Deleted: {}", label_name),
-            Err(e) => println!("    ⚠️  Error deleting {}: {}", label_name, e),
+            Ok(_) => println!("    ✅ Deleted: {label_name}"),
+            Err(e) => println!("    ⚠️  Error deleting {label_name}: {e}"),
         }
     }
     
     for (label_name, result) in &results.failures {
         if let Err(e) = result {
             if is_quota_error(e) {
-                println!("    🚫 Quota error deleting {}: {}", label_name, e);
+                println!("    🚫 Quota error deleting {label_name}: {e}");
             } else {
-                println!("    ❌ Failed to delete {}: {}", label_name, e);
+                println!("    ❌ Failed to delete {label_name}: {e}");
             }
         }
     }
@@ -462,7 +462,7 @@ where
         let timeout_duration = Duration::from_secs(API_CALL_TIMEOUT_SECONDS);
         let operation_with_timeout = async {
             timeout(timeout_duration, operation()).await
-                .map_err(|_| format!("Operation timed out after {:?}", timeout_duration))
+                .map_err(|_| format!("Operation timed out after {timeout_duration:?}"))
                 .and_then(|result| result.map_err(|e| e.to_string()))
         };
         
@@ -570,7 +570,7 @@ async fn test_classifier_labeller_integration_full_workflow() {
         println!("  3. Apply TEST_AGENT_* labels concurrently based on classification");
         println!("  4. Verify labels were applied correctly (concurrent verification)");
         println!("  5. Clean up all test labels concurrently");
-        println!("  ⏰ Test timeout: {} seconds", TEST_TIMEOUT_SECONDS);
+        println!("  ⏰ Test timeout: {TEST_TIMEOUT_SECONDS} seconds");
         println!();
         
         // Step 1: Initialize components
@@ -674,7 +674,7 @@ async fn test_classifier_labeller_integration_full_workflow() {
                     failure_messages.push(format!("{} missing expected label '{}'", context, attempt.expected_label));
                 }
                 Err(e) => {
-                    failure_messages.push(format!("{} verification error: {}", context, e));
+                    failure_messages.push(format!("{context} verification error: {e}"));
                 }
                 _ => unreachable!(),
             }
