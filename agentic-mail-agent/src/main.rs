@@ -1,6 +1,6 @@
-use agentic_mail_agent::action::{ActionExecutor, GmailActionExecutor, StubActionExecutor};
-use agentic_mail_agent::action::impls::labeler::ConcreteGmailLabeler;
 use agentic_mail_agent::action::impls::archiver::GmailArchiver;
+use agentic_mail_agent::action::impls::labeler::ConcreteGmailLabeler;
+use agentic_mail_agent::action::{ActionExecutor, GmailActionExecutor, StubActionExecutor};
 use agentic_mail_agent::classifier::{
     EmailCategory, HybridClassifier, LangChainClassifier, MessageClassifier, StubClassifier,
 };
@@ -425,10 +425,10 @@ async fn create_gmail_action_executor(
 ) -> Result<GmailActionExecutor<ConcreteGmailLabeler, GmailArchiver>, Box<dyn std::error::Error>> {
     // Initialize Gmail labeler
     let labeler = ConcreteGmailLabeler::from_env().await?;
-    
-    // Initialize Gmail archiver  
+
+    // Initialize Gmail archiver
     let archiver = GmailArchiver::from_env().await?;
-    
+
     Ok(GmailActionExecutor::new(labeler, archiver))
 }
 

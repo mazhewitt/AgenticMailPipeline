@@ -89,10 +89,13 @@ impl HybridClassifier {
         }
 
         // Car rental and travel bookings - these require action/follow-up
-        if (cleaned_content.contains("rental") && (cleaned_content.contains("car") || cleaned_content.contains("vehicle")))
-            || (cleaned_content.contains("booking") && (cleaned_content.contains("driver") || cleaned_content.contains("coverage")))
+        if (cleaned_content.contains("rental")
+            && (cleaned_content.contains("car") || cleaned_content.contains("vehicle")))
+            || (cleaned_content.contains("booking")
+                && (cleaned_content.contains("driver") || cleaned_content.contains("coverage")))
             || cleaned_content.contains("cross-border")
-            || (cleaned_content.contains("rent") && (cleaned_content.contains("audi") || cleaned_content.contains("enterprise")))
+            || (cleaned_content.contains("rent")
+                && (cleaned_content.contains("audi") || cleaned_content.contains("enterprise")))
         {
             return Some(Classification::new(
                 EmailCategory::ActionRequired,
