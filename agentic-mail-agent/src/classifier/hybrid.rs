@@ -146,6 +146,22 @@ impl HybridClassifier {
             ));
         }
 
+        // Food delivery services and promotional platforms
+        if sender_domain.contains("just-eat")
+            || sender_domain.contains("justeat")
+            || sender_domain.contains("ubereats")
+            || sender_domain.contains("foodora")
+            || sender_domain.contains("deliveroo")
+            || sender_domain.contains("grubhub")
+            || sender_domain.contains("doordash")
+        {
+            return Some(Classification::new(
+                EmailCategory::Noise,
+                Some(0.93),
+                "High-confidence rule: Food delivery promotional email".to_string(),
+            ));
+        }
+
         // Social media platforms
         if sender_domain.contains("facebook")
             || sender_domain.contains("linkedin")
@@ -159,15 +175,19 @@ impl HybridClassifier {
             ));
         }
 
-        // Promotional phrases with high confidence
+        // Promotional phrases with high confidence (English and German)
         if (cleaned_content.contains("limited time") && cleaned_content.contains("offer"))
             || (cleaned_content.contains("exclusive") && cleaned_content.contains("deal"))
             || (cleaned_content.contains("flash sale") || cleaned_content.contains("special offer"))
+            || (cleaned_content.contains("nicht verpassen") && cleaned_content.contains("rabatt"))
+            || (cleaned_content.contains("angebot") && cleaned_content.contains("sparen"))
+            || cleaned_content.contains("exklusiv")
+            || (cleaned_content.contains("rabatt") && cleaned_content.contains("chf"))
         {
             return Some(Classification::new(
                 EmailCategory::Noise,
                 Some(0.90),
-                "High-confidence rule: Promotional language detected".to_string(),
+                "High-confidence rule: Promotional language detected (German/English)".to_string(),
             ));
         }
 

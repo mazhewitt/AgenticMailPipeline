@@ -41,8 +41,8 @@ async fn test_action_required_emails_stay_in_inbox() {
         .await
         .unwrap();
 
-    // Should apply Action Required label (human-friendly format)
-    assert_eq!(result.label_applied, "Action Required");
+    // Should apply Action Required label (hierarchical format)
+    assert_eq!(result.label_applied, "Agentic/Action Required");
 
     // Should NOT archive (keep in inbox)
     assert!(!result.archived);
@@ -75,7 +75,7 @@ async fn test_interesting_info_emails_get_archived() {
         .unwrap();
 
     // Should apply Interesting label
-    assert_eq!(result.label_applied, "Interesting");
+    assert_eq!(result.label_applied, "Agentic/Interesting");
 
     // Should archive (remove from inbox)
     assert!(result.archived);
@@ -108,7 +108,7 @@ async fn test_reference_emails_get_archived() {
         .unwrap();
 
     // Should apply Reference label
-    assert_eq!(result.label_applied, "Reference");
+    assert_eq!(result.label_applied, "Agentic/Reference");
 
     // Should archive (remove from inbox)
     assert!(result.archived);
@@ -137,7 +137,7 @@ async fn test_noise_emails_get_archived() {
         .unwrap();
 
     // Should apply Low Priority label
-    assert_eq!(result.label_applied, "Low Priority");
+    assert_eq!(result.label_applied, "Agentic/Low Priority");
 
     // Should archive (remove from inbox)
     assert!(result.archived);
@@ -166,7 +166,7 @@ async fn test_spam_emails_get_archived() {
         .unwrap();
 
     // Should apply Spam label
-    assert_eq!(result.label_applied, "Spam");
+    assert_eq!(result.label_applied, "Agentic/Spam");
 
     // Should archive (remove from inbox)
     assert!(result.archived);
@@ -176,27 +176,27 @@ async fn test_spam_emails_get_archived() {
         .any(|action| action.contains("Archived")));
 }
 
-/// Test all 5 categories have correct label mapping
+/// Test all 5 categories have correct hierarchical label mapping
 #[tokio::test]
 async fn test_all_category_labels() {
-    // Test all 5 current categories
+    // Test all 5 current categories with new hierarchical labels
     assert_eq!(
         get_label_for_category(&EmailCategory::ActionRequired),
-        "Action Required"
+        "Agentic/Action Required"
     );
     assert_eq!(
         get_label_for_category(&EmailCategory::InterestingInfo),
-        "Interesting"
+        "Agentic/Interesting"
     );
     assert_eq!(
         get_label_for_category(&EmailCategory::Reference),
-        "Reference"
+        "Agentic/Reference"
     );
     assert_eq!(
         get_label_for_category(&EmailCategory::Noise),
-        "Low Priority"
+        "Agentic/Low Priority"
     );
-    assert_eq!(get_label_for_category(&EmailCategory::Spam), "Spam");
+    assert_eq!(get_label_for_category(&EmailCategory::Spam), "Agentic/Spam");
 }
 
 /// Integration test: Process multiple emails with different classifications

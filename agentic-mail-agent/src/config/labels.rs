@@ -53,18 +53,18 @@ pub struct TestLabels {
 impl Default for ProductionLabels {
     fn default() -> Self {
         Self {
-            action_required: "Action Required".to_string(),
-            interesting_info: "Interesting".to_string(),
-            reference: "Reference".to_string(),
-            noise: "Low Priority".to_string(),
-            spam: "Spam".to_string(),
-            work: "Work".to_string(),
-            personal: "Personal".to_string(),
-            promotional: "Promotional".to_string(),
-            urgent: "Urgent".to_string(),
-            newsletter: "Newsletter".to_string(),
-            notification: "Notification".to_string(),
-            needs_review: "Needs Review".to_string(),
+            action_required: "Agentic/Action Required".to_string(),
+            interesting_info: "Agentic/Interesting".to_string(),
+            reference: "Agentic/Reference".to_string(),
+            noise: "Agentic/Low Priority".to_string(),
+            spam: "Agentic/Spam".to_string(),
+            work: "Agentic/Work".to_string(),
+            personal: "Agentic/Personal".to_string(),
+            promotional: "Agentic/Promotional".to_string(),
+            urgent: "Agentic/Urgent".to_string(),
+            newsletter: "Agentic/Newsletter".to_string(),
+            notification: "Agentic/Notification".to_string(),
+            needs_review: "Agentic/Needs Review".to_string(),
         }
     }
 }
@@ -190,19 +190,20 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_default_labels_are_human_friendly() {
+    fn test_default_labels_are_hierarchical() {
         let config = LabelConfig::default();
 
-        // Check that production labels are human-friendly
-        assert_eq!(config.production.action_required, "Action Required");
-        assert_eq!(config.production.interesting_info, "Interesting");
-        assert_eq!(config.production.reference, "Reference");
-        assert_eq!(config.production.noise, "Low Priority");
-        assert_eq!(config.production.spam, "Spam");
+        // Check that production labels use hierarchical structure
+        assert_eq!(config.production.action_required, "Agentic/Action Required");
+        assert_eq!(config.production.interesting_info, "Agentic/Interesting");
+        assert_eq!(config.production.reference, "Agentic/Reference");
+        assert_eq!(config.production.noise, "Agentic/Low Priority");
+        assert_eq!(config.production.spam, "Agentic/Spam");
 
-        // Check that they don't contain the old AGENT_ prefix
-        assert!(!config.production.action_required.contains("AGENT_"));
-        assert!(!config.production.work.contains("AGENT_"));
+        // Check that they all use the Agentic parent label
+        assert!(config.production.action_required.starts_with("Agentic/"));
+        assert!(config.production.work.starts_with("Agentic/"));
+        assert!(config.production.personal.starts_with("Agentic/"));
     }
 
     #[test]
@@ -211,15 +212,15 @@ mod tests {
 
         assert_eq!(
             config.get_production_label("ActionRequired"),
-            Some("Action Required".to_string())
+            Some("Agentic/Action Required".to_string())
         );
         assert_eq!(
             config.get_production_label("actionrequired"),
-            Some("Action Required".to_string())
+            Some("Agentic/Action Required".to_string())
         );
         assert_eq!(
             config.get_production_label("action_required"),
-            Some("Action Required".to_string())
+            Some("Agentic/Action Required".to_string())
         );
         assert_eq!(config.get_production_label("unknown"), None);
     }
@@ -230,7 +231,7 @@ mod tests {
 
         assert_eq!(
             config.get_test_label("ActionRequired"),
-            "TEST_Action Required"
+            "TEST_Agentic/Action Required"
         );
         assert_eq!(config.get_test_label("unknown"), "TEST_unknown");
     }
@@ -239,9 +240,9 @@ mod tests {
     fn test_is_test_label() {
         let config = LabelConfig::default();
 
-        assert!(config.is_test_label("TEST_Action Required"));
+        assert!(config.is_test_label("TEST_Agentic/Action Required"));
         assert!(config.is_test_label("TEST_anything"));
-        assert!(!config.is_test_label("Action Required"));
+        assert!(!config.is_test_label("Agentic/Action Required"));
         assert!(!config.is_test_label("AGENT_WORK"));
     }
 
@@ -251,9 +252,9 @@ mod tests {
         let labels = config.get_all_production_labels();
 
         assert_eq!(labels.len(), 12);
-        assert!(labels.contains(&"Action Required".to_string()));
-        assert!(labels.contains(&"Interesting".to_string()));
-        assert!(labels.contains(&"Work".to_string()));
+        assert!(labels.contains(&"Agentic/Action Required".to_string()));
+        assert!(labels.contains(&"Agentic/Interesting".to_string()));
+        assert!(labels.contains(&"Agentic/Work".to_string()));
     }
 
     #[test]
@@ -263,12 +264,12 @@ mod tests {
 
         assert_eq!(
             mappings.get("ActionRequired"),
-            Some(&"Action Required".to_string())
+            Some(&"Agentic/Action Required".to_string())
         );
         assert_eq!(
             mappings.get("InterestingInfo"),
-            Some(&"Interesting".to_string())
+            Some(&"Agentic/Interesting".to_string())
         );
-        assert_eq!(mappings.get("Noise"), Some(&"Low Priority".to_string()));
+        assert_eq!(mappings.get("Noise"), Some(&"Agentic/Low Priority".to_string()));
     }
 }

@@ -33,7 +33,7 @@ async fn test_end_to_end_labeling_pipeline() {
 
     // Verify action execution results
     assert_eq!(result.message_id, "test-123");
-    assert_eq!(result.label_applied, "Action Required");
+    assert_eq!(result.label_applied, "Agentic/Action Required");
     assert!(!result.archived); // ActionRequired emails should not be archived
     assert!(result
         .actions_taken
@@ -68,7 +68,7 @@ async fn test_urgent_email_labeling() {
 
     // Verify results
     assert_eq!(result.message_id, "urgent-456");
-    assert_eq!(result.label_applied, "Action Required");
+    assert_eq!(result.label_applied, "Agentic/Action Required");
     assert!(!result.archived); // ActionRequired should not be archived
 }
 
@@ -96,7 +96,7 @@ async fn test_spam_email_labeling() {
 
     // Verify results
     assert_eq!(result.message_id, "spam-789");
-    assert_eq!(result.label_applied, "Reference");
+    assert_eq!(result.label_applied, "Agentic/Reference");
     assert!(result.archived); // Reference should be archived
 }
 
@@ -122,7 +122,7 @@ async fn test_newsletter_email_labeling() {
 
     // Verify results
     assert_eq!(result.message_id, "newsletter-101");
-    assert_eq!(result.label_applied, "Interesting");
+    assert_eq!(result.label_applied, "Agentic/Interesting");
     assert!(result.archived); // InterestingInfo should be archived
 }
 
@@ -180,11 +180,11 @@ async fn test_multiple_labels_on_same_email() {
 async fn test_get_label_for_category() {
     let labeler = StubLabeler::new();
 
-    // Test all category mappings
-    assert_eq!(labeler.get_label_for_category("work"), "Work");
-    assert_eq!(labeler.get_label_for_category("personal"), "Personal");
-    assert_eq!(labeler.get_label_for_category("promotional"), "Promotional");
-    assert_eq!(labeler.get_label_for_category("spam"), "Spam");
-    assert_eq!(labeler.get_label_for_category("newsletter"), "Newsletter");
-    assert_eq!(labeler.get_label_for_category("urgent"), "Urgent");
+    // Test all category mappings (hierarchical labels)
+    assert_eq!(labeler.get_label_for_category("work"), "Agentic/Work");
+    assert_eq!(labeler.get_label_for_category("personal"), "Agentic/Personal");
+    assert_eq!(labeler.get_label_for_category("promotional"), "Agentic/Promotional");
+    assert_eq!(labeler.get_label_for_category("spam"), "Agentic/Spam");
+    assert_eq!(labeler.get_label_for_category("newsletter"), "Agentic/Newsletter");
+    assert_eq!(labeler.get_label_for_category("urgent"), "Agentic/Urgent");
 }
