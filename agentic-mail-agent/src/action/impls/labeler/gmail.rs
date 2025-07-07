@@ -669,11 +669,20 @@ mod tests {
         struct TestLabeler;
 
         let labeler = TestLabeler;
-        assert_eq!(labeler.get_label_for_category("work"), "Work");
-        assert_eq!(labeler.get_label_for_category("personal"), "Personal");
-        assert_eq!(labeler.get_label_for_category("spam"), "Spam");
-        assert_eq!(labeler.get_label_for_category("promotional"), "Promotional");
-        assert_eq!(labeler.get_label_for_category("newsletter"), "Newsletter");
-        assert_eq!(labeler.get_label_for_category("urgent"), "Urgent");
+        assert_eq!(labeler.get_label_for_category("work"), "Agentic/Work");
+        assert_eq!(
+            labeler.get_label_for_category("personal"),
+            "Agentic/Personal"
+        );
+        assert_eq!(labeler.get_label_for_category("spam"), "Agentic/Spam");
+        assert_eq!(
+            labeler.get_label_for_category("promotional"),
+            "Agentic/Promotional"
+        );
+        assert_eq!(
+            labeler.get_label_for_category("newsletter"),
+            "Agentic/Newsletter"
+        );
+        assert_eq!(labeler.get_label_for_category("urgent"), "Agentic/Urgent");
     }
 }

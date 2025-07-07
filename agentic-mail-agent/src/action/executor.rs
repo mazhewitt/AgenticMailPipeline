@@ -346,21 +346,21 @@ mod tests {
     fn test_get_label_for_category() {
         assert_eq!(
             get_label_for_category(&EmailCategory::ActionRequired),
-            "Action Required"
+            "Agentic/Action Required"
         );
         assert_eq!(
             get_label_for_category(&EmailCategory::InterestingInfo),
-            "Interesting"
+            "Agentic/Interesting"
         );
         assert_eq!(
             get_label_for_category(&EmailCategory::Reference),
-            "Reference"
+            "Agentic/Reference"
         );
         assert_eq!(
             get_label_for_category(&EmailCategory::Noise),
-            "Low Priority"
+            "Agentic/Low Priority"
         );
-        assert_eq!(get_label_for_category(&EmailCategory::Spam), "Spam");
+        assert_eq!(get_label_for_category(&EmailCategory::Spam), "Agentic/Spam");
     }
 
     #[test]
@@ -407,7 +407,7 @@ mod tests {
 
         assert_eq!(result.message_id, "msg123");
         assert!(!result.archived); // ActionRequired should not be archived
-        assert_eq!(result.label_applied, "Action Required");
+        assert_eq!(result.label_applied, "Agentic/Action Required");
         assert!(result
             .actions_taken
             .iter()
@@ -435,7 +435,7 @@ mod tests {
 
         assert_eq!(result.message_id, "msg456");
         assert!(result.archived); // Noise should be archived
-        assert_eq!(result.label_applied, "Low Priority");
+        assert_eq!(result.label_applied, "Agentic/Low Priority");
         assert!(result.actions_taken.iter().any(|a| a.contains("Archived")));
     }
 

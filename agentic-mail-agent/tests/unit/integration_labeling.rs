@@ -182,9 +182,18 @@ async fn test_get_label_for_category() {
 
     // Test all category mappings (hierarchical labels)
     assert_eq!(labeler.get_label_for_category("work"), "Agentic/Work");
-    assert_eq!(labeler.get_label_for_category("personal"), "Agentic/Personal");
-    assert_eq!(labeler.get_label_for_category("promotional"), "Agentic/Promotional");
+    assert_eq!(
+        labeler.get_label_for_category("personal"),
+        "Agentic/Personal"
+    );
+    assert_eq!(
+        labeler.get_label_for_category("promotional"),
+        "Agentic/Promotional"
+    );
     assert_eq!(labeler.get_label_for_category("spam"), "Agentic/Spam");
-    assert_eq!(labeler.get_label_for_category("newsletter"), "Agentic/Newsletter");
+    assert_eq!(
+        labeler.get_label_for_category("newsletter"),
+        "Agentic/Newsletter"
+    );
     assert_eq!(labeler.get_label_for_category("urgent"), "Agentic/Urgent");
 }

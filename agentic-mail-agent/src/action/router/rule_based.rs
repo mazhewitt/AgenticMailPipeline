@@ -268,10 +268,9 @@ mod tests {
 
         let result = router.route(&email, &classification).await.unwrap();
 
-        assert!(result
-            .actions
-            .iter()
-            .any(|a| matches!(a, EmailAction::Label { label } if label == "Action Required")));
+        assert!(result.actions.iter().any(
+            |a| matches!(a, EmailAction::Label { label } if label == "Agentic/Action Required")
+        ));
         assert!(result.reasoning.contains("ActionRequired"));
         assert_eq!(result.confidence, 0.9);
     }
@@ -303,7 +302,7 @@ mod tests {
         assert!(result
             .actions
             .iter()
-            .any(|a| matches!(a, EmailAction::Label { label } if label == "Needs Review")));
+            .any(|a| matches!(a, EmailAction::Label { label } if label == "Agentic/Needs Review")));
         assert!(result.reasoning.contains("low confidence"));
     }
 
@@ -318,7 +317,7 @@ mod tests {
         assert!(result
             .actions
             .iter()
-            .any(|a| matches!(a, EmailAction::Label { label } if label == "Spam")));
+            .any(|a| matches!(a, EmailAction::Label { label } if label == "Agentic/Spam")));
         assert!(result.actions.contains(&EmailAction::Archive));
     }
 

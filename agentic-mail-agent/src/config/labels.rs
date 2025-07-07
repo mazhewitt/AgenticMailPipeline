@@ -270,6 +270,9 @@ mod tests {
             mappings.get("InterestingInfo"),
             Some(&"Agentic/Interesting".to_string())
         );
-        assert_eq!(mappings.get("Noise"), Some(&"Agentic/Low Priority".to_string()));
+        assert_eq!(
+            mappings.get("Noise"),
+            Some(&"Agentic/Low Priority".to_string())
+        );
     }
 }
